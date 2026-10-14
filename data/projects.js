@@ -28,7 +28,7 @@ window.SITE = {
   about: [
     "I'm a third-year Computer Engineering student (co-op) at the University of Ottawa. I like systems I can " +
       "measure: a detector is only as good as its mAP on held-out data, an API only as safe as its worst route.",
-    "Most of my recent work is computer vision: 18 projects, from classical OpenCV to fine-tuned detectors, " +
+    "Most of my recent work is computer vision: 19 projects, from classical OpenCV to fine-tuned detectors, " +
       "segmentation, 3D and foundation models, all trained and deployed on a laptop without a GPU. Alongside it, " +
       "I build software where security is part of the design: OAuth 2.1, IDOR-safe APIs, risk limits enforced in C++.",
     "I'm looking for co-op and internship roles in computer vision, machine learning or AI security.",
@@ -48,8 +48,8 @@ const cv = (folder) => `${CVLIB}/tree/main/${folder}`;
 window.FEATURED = [
   {
     title: "Computer Vision Project Library",
-    kicker: "18 projects · one benchmark each · trained on a laptop CPU",
-    metric: { value: "18", unit: "measured projects" },
+    kicker: "19 projects · one benchmark each · trained on a laptop CPU",
+    metric: { value: "19", unit: "measured projects" },
     summary:
       "From classical OpenCV to fine-tuned detectors, segmentation, 3D and foundation models. A CVPR paper " +
       "reimplemented from scratch, a detector deployed 17× faster on an NPU, and the debugging stories behind each number.",
@@ -108,6 +108,10 @@ window.MORE = [
 
 /* The Computer Vision Library, one card per project. `area` drives the filter chips. */
 window.PROJECTS = [
+  { n: "05", title: "Sign Language Translator", area: "Classification", depth: 3, image: "images/cv-05.png",
+    metric: { value: "99.9%", unit: "test accuracy, and why it's misleading" },
+    summary: "A 100 % test set built from 1,704 photos; robustness curves show what a webcam does to it, and how augmentation helps except under blur.",
+    links: [{ label: "Code", href: cv("05-sign-language-translator") }] },
   { n: "02", title: "Solar Panel Defects", area: "Classification", depth: 2, image: "images/cv-02.png",
     metric: { value: "82.9%", unit: "test accuracy, 6 classes" },
     summary: "EfficientNet fine-tuned on CPU; Grad-CAM revealed the model partly looked at the roof, not the dust.",
