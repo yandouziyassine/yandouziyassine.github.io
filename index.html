@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yassine Yandouzi · Computer Vision, ML & AI Cybersecurity</title>
+  <meta name="description" content="Computer engineering student building measured computer vision, machine learning and AI cybersecurity projects.">
+  <meta property="og:title" content="Yassine Yandouzi · Computer Vision, ML & AI Cybersecurity">
+  <meta property="og:description" content="18 measured computer vision projects, a C++ execution engine and an AI SaaS.">
+  <meta property="og:image" content="images/cv-13.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' fill='none' stroke='%23ff5b1f' stroke-width='3'/><rect x='11' y='11' width='10' height='10' fill='%23ff5b1f'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="mark" href="#top" aria-label="Home"><span class="mark-box"></span><span class="mono">yy</span></a>
+    <nav>
+      <a href="#work">Work</a>
+      <a href="#library">CV Library</a>
+      <a href="#skills">Skills</a>
+      <a class="nav-gh" id="nav-github" href="#">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero">
+      <p class="eyebrow mono reveal" style="--d:0"><span class="dot"></span><span id="hero-role"></span></p>
+      <h1 class="hero-name reveal" style="--d:1">
+        <span class="bbox" aria-hidden="true">
+          <span class="bbox-label mono"><span id="bbox-label">person</span> <b>0.99</b></span>
+          <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+        </span>
+        <span id="hero-name"></span>
+      </h1>
+      <p class="hero-focus reveal" style="--d:2" id="hero-focus"></p>
+      <p class="hero-tag reveal" style="--d:3" id="hero-tagline"></p>
+      <dl class="readings reveal" style="--d:4" id="readings"></dl>
+      <p class="machine mono reveal" style="--d:5" id="machine"></p>
+    </section>
+
+    <!-- FEATURED -->
+    <section id="work" class="section">
+      <div class="section-head">
+        <span class="mono idx">01</span>
+        <h2>Selected work</h2>
+        <p class="lede">Three projects, three different kinds of engineering.</p>
+      </div>
+      <div class="featured" id="featured"></div>
+    </section>
+
+    <!-- LIBRARY -->
+    <section id="library" class="section">
+      <div class="section-head">
+        <span class="mono idx">02</span>
+        <h2>Computer Vision Library</h2>
+        <p class="lede">Every card is one project with one benchmark. <span class="mono depth-key">◆ demo · ◆◆ measured · ◆◆◆ in-depth</span></p>
+      </div>
+      <div class="filters" id="filters" role="toolbar" aria-label="Filter projects by area"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills" class="section">
+      <div class="section-head">
+        <span class="mono idx">03</span>
+        <h2>Skills</h2>
+        <p class="lede">Learned by building, listed where I've actually used them.</p>
+      </div>
+      <div class="skills" id="skill-list"></div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section contact">
+      <h2>Let's talk.</h2>
+      <p class="lede">The fastest way to reach me, and to read every line of code above:</p>
+      <a class="cta" id="contact-github" href="#">github.com/yandouziyassine <span>↗</span></a>
+    </section>
+  </main>
+
+  <footer class="foot mono">
+    <span>© <span id="year"></span> Yassine Yandouzi</span>
+    <span>Static site · no trackers · built and measured by hand</span>
+  </footer>
+
+  <script src="data/projects.js"></script>
+  <script src="assets/main.js"></script>
+</body>
+</html>

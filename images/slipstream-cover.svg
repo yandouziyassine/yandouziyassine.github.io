@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760">
+<rect width="1200" height="760" fill="#0d0e10"/>
+<line x1="0" y1="0" x2="0" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="40" y1="0" x2="40" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="80" y1="0" x2="80" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="120" y1="0" x2="120" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="160" y1="0" x2="160" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="200" y1="0" x2="200" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="240" y1="0" x2="240" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="280" y1="0" x2="280" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="320" y1="0" x2="320" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="360" y1="0" x2="360" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="400" y1="0" x2="400" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="440" y1="0" x2="440" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="480" y1="0" x2="480" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="520" y1="0" x2="520" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="560" y1="0" x2="560" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="600" y1="0" x2="600" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="640" y1="0" x2="640" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="680" y1="0" x2="680" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="720" y1="0" x2="720" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="760" y1="0" x2="760" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="800" y1="0" x2="800" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="840" y1="0" x2="840" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="880" y1="0" x2="880" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="920" y1="0" x2="920" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="960" y1="0" x2="960" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="1000" y1="0" x2="1000" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="1040" y1="0" x2="1040" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="1080" y1="0" x2="1080" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="1120" y1="0" x2="1120" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="1160" y1="0" x2="1160" y2="760" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="0" x2="1200" y2="0" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="40" x2="1200" y2="40" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="80" x2="1200" y2="80" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="120" x2="1200" y2="120" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="160" x2="1200" y2="160" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="200" x2="1200" y2="200" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="240" x2="1200" y2="240" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="280" x2="1200" y2="280" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="320" x2="1200" y2="320" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="360" x2="1200" y2="360" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="400" x2="1200" y2="400" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="440" x2="1200" y2="440" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="480" x2="1200" y2="480" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="520" x2="1200" y2="520" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="560" x2="1200" y2="560" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="600" x2="1200" y2="600" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="640" x2="1200" y2="640" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="680" x2="1200" y2="680" stroke="#141518" stroke-width="1"/>
+<line x1="0" y1="720" x2="1200" y2="720" stroke="#141518" stroke-width="1"/>
+<text x="60" y="78" font-family="'Geist Mono', ui-monospace, monospace" font-size="15" fill="#6f6e6a" letter-spacing="2">SLIPSTREAM · SMART ORDER EXECUTION</text>
+<text x="60" y="128" font-family="'Instrument Serif', Georgia, serif" font-size="46" fill="#ecebe6">Execute big orders without moving the market.</text>
+<polyline points="60.0,233.7 69.0,236.3 78.0,235.1 87.0,233.6 96.0,228.9 105.0,228.0 114.0,233.7 123.0,235.8 132.0,241.0 141.0,242.1 150.0,244.0 159.0,244.7 168.0,236.2 177.0,240.4 186.0,242.9 195.0,245.2 204.0,236.5 213.0,227.8 222.0,223.5 231.0,221.4 240.0,223.2 249.0,223.2 258.0,226.0 267.0,223.0 276.0,224.8 285.0,227.0 294.0,223.8 303.0,232.6 312.0,235.5 321.0,241.4 330.0,238.2 339.0,234.4 348.0,232.7 357.0,232.2 366.0,235.5 375.0,236.7 384.0,234.4 393.0,229.6 402.0,227.1 411.0,233.4 420.0,229.4 429.0,230.7 438.0,233.0 447.0,225.5 456.0,226.0 465.0,232.7 474.0,222.7 483.0,221.3 492.0,221.0 501.0,217.2 510.0,220.1 519.0,220.1 528.0,213.0 537.0,217.6 546.0,221.3 555.0,226.3 564.0,233.7 573.0,235.5 582.0,236.1 591.0,229.6 600.0,232.8 609.0,229.8 618.0,227.6 627.0,221.4 636.0,216.9 645.0,214.6 654.0,221.4 663.0,211.5 672.0,204.7 681.0,206.5 690.0,214.3 699.0,217.6 708.0,208.5 717.0,196.4 726.0,199.0 735.0,196.0 744.0,191.2 753.0,196.9 762.0,203.2 771.0,204.6 780.0,206.5 789.0,209.2 798.0,217.7 807.0,221.1 816.0,224.0 825.0,227.0 834.0,219.3 843.0,226.0 852.0,231.0 861.0,233.7 870.0,223.9 879.0,220.9 888.0,225.4 897.0,216.5 906.0,216.0 915.0,221.5 924.0,215.2 933.0,223.6 942.0,226.6 951.0,226.0 960.0,227.8 969.0,231.2 978.0,231.9 987.0,237.7 996.0,234.3 1005.0,232.3 1014.0,237.5 1023.0,237.6 1032.0,233.2 1041.0,237.9 1050.0,245.2 1059.0,242.8 1068.0,235.7 1077.0,235.0 1086.0,234.3 1095.0,232.8 1104.0,239.9 1113.0,234.6 1122.0,241.0 1131.0,234.5 1140.0,230.6" fill="none" stroke="#a9a8a2" stroke-width="1.6"/>
+<line x1="60" y1="226.7" x2="1140" y2="226.7" stroke="#ff5b1f" stroke-width="1.2" stroke-dasharray="6 6"/>
+<text x="1140" y="216.7" font-family="'Geist Mono', ui-monospace, monospace" font-size="13" fill="#ff5b1f" text-anchor="end">VWAP</text>
+<text x="60" y="162" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#6f6e6a">BTC-USD · mid price</text>
+<text x="60" y="335" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#6f6e6a">CHILD ORDERS · VWAP schedule</text>
+<rect x="60" y="377.0" width="30" height="93.0" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="105" y="383.5" width="30" height="86.5" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="150" y="389.5" width="30" height="80.5" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="195" y="395.3" width="30" height="74.7" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="240" y="400.9" width="30" height="69.1" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="285" y="406.5" width="30" height="63.5" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="330" y="412.0" width="30" height="58.0" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="375" y="417.2" width="30" height="52.8" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="420" y="421.9" width="30" height="48.1" fill="#ff5b1f" fill-opacity="0.9" stroke="#ff5b1f" stroke-width="1.4" rx="2"/>
+<rect x="465" y="425.8" width="30" height="44.2" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="510" y="428.8" width="30" height="41.2" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="555" y="430.5" width="30" height="39.5" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="600" y="430.9" width="30" height="39.1" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="645" y="429.8" width="30" height="40.2" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="690" y="427.4" width="30" height="42.6" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="735" y="423.7" width="30" height="46.3" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="780" y="419.0" width="30" height="51.0" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="825" y="413.6" width="30" height="56.4" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="870" y="407.6" width="30" height="62.4" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="915" y="401.3" width="30" height="68.7" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="960" y="395.0" width="30" height="75.0" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="1005" y="388.5" width="30" height="81.5" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="1050" y="382.0" width="30" height="88.0" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<rect x="1095" y="375.1" width="30" height="94.9" fill="none" fill-opacity="1" stroke="#6f6e6a" stroke-width="1.4" rx="2"/>
+<line x1="60" y1="470" x2="1140" y2="470" stroke="#262930" stroke-width="2"/>
+<line x1="457.5" y1="342" x2="457.5" y2="484" stroke="#ecebe6" stroke-width="1.2"/>
+<text x="465.5" y="484" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#ecebe6">now</text>
+<rect x="60" y="540" width="250" height="80" fill="#141518" stroke="#262930" stroke-width="1.5" rx="4"/>
+<text x="78" y="572" font-family="'Geist Mono', ui-monospace, monospace" font-size="15" fill="#ecebe6" letter-spacing="1.5">ROUTER</text>
+<text x="78" y="598" font-family="'Geist Mono', ui-monospace, monospace" font-size="13" fill="#6f6e6a">best all-in price</text>
+<rect x="400" y="490" width="230" height="74" fill="#141518" stroke="#262930" stroke-width="1.5" rx="4"/>
+<text x="418" y="522" font-family="'Geist Mono', ui-monospace, monospace" font-size="15" fill="#ecebe6" letter-spacing="1.5">KRAKEN</text>
+<text x="418" y="548" font-family="'Geist Mono', ui-monospace, monospace" font-size="13" fill="#6f6e6a">order book + fees</text>
+<rect x="400" y="596" width="230" height="74" fill="#141518" stroke="#262930" stroke-width="1.5" rx="4"/>
+<text x="418" y="628" font-family="'Geist Mono', ui-monospace, monospace" font-size="15" fill="#ecebe6" letter-spacing="1.5">COINBASE</text>
+<text x="418" y="654" font-family="'Geist Mono', ui-monospace, monospace" font-size="13" fill="#6f6e6a">order book + fees</text>
+<rect x="720" y="540" width="250" height="80" fill="#141518" stroke="#ff5b1f" stroke-width="2" rx="4"/>
+<text x="738" y="572" font-family="'Geist Mono', ui-monospace, monospace" font-size="15" fill="#ff5b1f" letter-spacing="1.5">RISK GATE · C++</text>
+<text x="738" y="598" font-family="'Geist Mono', ui-monospace, monospace" font-size="13" fill="#6f6e6a">notional · price band · kill</text>
+<path d="M310,580 C355.0,580 355.0,527 392,527" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M390,522 L400,527 L390,532" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M310,580 C355.0,580 355.0,633 392,633" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M390,628 L400,633 L390,638" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M630,527 C675.0,527 675.0,580 712,580" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M710,575 L720,580 L710,585" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M630,633 C675.0,633 675.0,580 712,580" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M710,575 L720,580 L710,585" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M970,580 C1005.0,580 1005.0,580 1032,580" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<path d="M1030,575 L1040,580 L1030,585" fill="none" stroke="#6f6e6a" stroke-width="1.5"/>
+<text x="1046" y="585" font-family="'Geist Mono', ui-monospace, monospace" font-size="15" fill="#ecebe6">FILLS</text>
+<text x="60" y="720" font-family="'Geist Mono', ui-monospace, monospace" font-size="13" fill="#6f6e6a">1 writer thread · 0 locks on the hot path · deterministic clock for exact replays · paper trading only</text>
+</svg>
