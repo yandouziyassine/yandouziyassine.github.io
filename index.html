@@ -20,9 +20,11 @@
   <header class="topbar">
     <a class="mark" href="#top" aria-label="Home"><span class="mark-box"></span><span class="mono">yy</span></a>
     <nav>
-      <a href="#work">Work</a>
-      <a href="#library">CV Library</a>
+      <a href="#about">About</a>
+      <a href="#work">Projects</a>
+      <a href="#library">Computer Vision</a>
       <a href="#skills">Skills</a>
+      <a href="#coursework">Coursework</a>
       <a class="nav-gh" id="nav-github" href="#">GitHub ↗</a>
     </nav>
   </header>
@@ -44,22 +46,36 @@
       <p class="machine mono reveal" style="--d:5" id="machine"></p>
     </section>
 
+    <!-- ABOUT -->
+    <section id="about" class="section">
+      <div class="section-head">
+        <span class="mono idx">01</span>
+        <h2>About me</h2>
+      </div>
+      <div class="about">
+        <div class="about-text" id="about-text"></div>
+        <dl class="facts" id="facts"></dl>
+      </div>
+    </section>
+
     <!-- FEATURED -->
     <section id="work" class="section">
       <div class="section-head">
-        <span class="mono idx">01</span>
-        <h2>Selected work</h2>
+        <span class="mono idx">02</span>
+        <h2>Best projects</h2>
         <p class="lede">Three projects, three different kinds of engineering.</p>
       </div>
       <div class="featured" id="featured"></div>
+      <h3 class="sub-head mono">More projects</h3>
+      <div class="more" id="more"></div>
     </section>
 
     <!-- LIBRARY -->
     <section id="library" class="section">
       <div class="section-head">
-        <span class="mono idx">02</span>
-        <h2>Computer Vision Library</h2>
-        <p class="lede">Every card is one project with one benchmark. <span class="mono depth-key">◆ demo · ◆◆ measured · ◆◆◆ in-depth</span></p>
+        <span class="mono idx">03</span>
+        <h2>Computer Vision</h2>
+        <p class="lede">18 projects, each measured on a real benchmark. Every card links to the code; new to the field? Start with <a href="https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/THEORY.md" target="_blank" rel="noopener">the theory course ↗</a>. <span class="mono depth-key">◆ demo · ◆◆ measured · ◆◆◆ in-depth</span></p>
       </div>
       <div class="filters" id="filters" role="toolbar" aria-label="Filter projects by area"></div>
       <div class="grid" id="grid"></div>
@@ -68,11 +84,24 @@
     <!-- SKILLS -->
     <section id="skills" class="section">
       <div class="section-head">
-        <span class="mono idx">03</span>
+        <span class="mono idx">04</span>
         <h2>Skills</h2>
         <p class="lede">Learned by building, listed where I've actually used them.</p>
       </div>
       <div class="skills" id="skill-list"></div>
+    </section>
+
+    <!-- HARDWARE & COURSEWORK -->
+    <section id="coursework" class="section">
+      <div class="section-head">
+        <span class="mono idx">05</span>
+        <h2>Hardware &amp; coursework</h2>
+        <p class="lede">From logic gates to NPUs: the foundations under the projects.</p>
+      </div>
+      <div class="hw">
+        <div class="skill"><h3>Hardware</h3><ul id="hardware"></ul></div>
+        <div class="skill"><h3>Relevant coursework · uOttawa</h3><ul class="courses" id="courses"></ul></div>
+      </div>
     </section>
 
     <!-- CONTACT -->

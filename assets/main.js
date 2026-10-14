@@ -82,6 +82,24 @@
   $("#skill-list").innerHTML = K.map((g) =>
     `<div class="skill"><h3>${esc(g.group)}</h3><ul>${g.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></div>`).join("");
 
+  // ── About
+  $("#about-text").innerHTML = (S.about || []).map((t) => `<p>${esc(t)}</p>`).join("");
+  $("#facts").innerHTML = (S.facts || []).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("");
+
+  // ── More projects
+  $("#more").innerHTML = (window.MORE || []).map((m) => `
+    <a class="more-item" href="${esc(m.href)}" target="_blank" rel="noopener">
+      <span class="more-when mono">${esc(m.when)}</span>
+      <h4>${esc(m.title)} <span aria-hidden="true">↗</span></h4>
+      <p>${esc(m.summary)}</p>
+      <span class="more-stack mono">${(m.stack || []).map(esc).join(" · ")}</span>
+    </a>`).join("");
+
+  // ── Hardware & coursework
+  $("#hardware").innerHTML = (window.HARDWARE || []).map((h) => `<li>${esc(h)}</li>`).join("");
+  $("#courses").innerHTML = (window.COURSEWORK || []).map((c) =>
+    `<li><b>${esc(c.course)}</b><span>${esc(c.detail)}</span></li>`).join("");
+
   // ── Contact + misc
   ["#nav-github", "#contact-github"].forEach((id) => { const a = $(id); a.href = S.github; a.target = "_blank"; a.rel = "noopener"; });
   $("#year").textContent = new Date().getFullYear();
@@ -90,5 +108,5 @@
   const io = "IntersectionObserver" in window && new IntersectionObserver((entries) => {
     entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in-view"); io.unobserve(en.target); } });
   }, { threshold: 0.12 });
-  if (io) document.querySelectorAll(".card, .feat, .skill").forEach((el) => io.observe(el));
+  if (io) document.querySelectorAll(".card, .feat, .skill, .more-item").forEach((el) => io.observe(el));
 })();

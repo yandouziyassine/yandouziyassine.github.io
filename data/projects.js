@@ -25,6 +25,21 @@ window.SITE = {
     "I build vision and ML systems end to end, and I measure them: every project here reports a real number, " +
     "including what didn't work.",
   github: "https://github.com/yandouziyassine",
+  about: [
+    "I'm a third-year Computer Engineering student (co-op) at the University of Ottawa. I like systems I can " +
+      "measure: a detector is only as good as its mAP on held-out data, an API only as safe as its worst route.",
+    "Most of my recent work is computer vision: 18 projects, from classical OpenCV to fine-tuned detectors, " +
+      "segmentation, 3D and foundation models, all trained and deployed on a laptop without a GPU. Alongside it, " +
+      "I build software where security is part of the design: OAuth 2.1, IDOR-safe APIs, risk limits enforced in C++.",
+    "I'm looking for co-op and internship roles in computer vision, machine learning or AI security.",
+  ],
+  facts: [
+    ["Education", "BASc Computer Engineering (co-op), University of Ottawa · 2024 – 2028"],
+    ["Based in", "Ottawa – Gatineau, ON / QC"],
+    ["Languages", "French (fluent) · English (fluent) · Arabic (native)"],
+    ["Recognition", "Top 10, PolyFinance Datathon 2025"],
+    ["Focus", "Computer vision · ML · AI cybersecurity"],
+  ],
 };
 
 const CVLIB = "https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY";
@@ -75,6 +90,22 @@ window.FEATURED = [
   },
 ];
 
+/* Smaller projects, shown as a compact list under the featured ones. */
+window.MORE = [
+  { title: "Financial Risk Analytics Dashboard", when: "PolyFinance Datathon 2025 · top 10",
+    summary: "Feature-engineering pipelines (Pandas, scikit-learn) feeding a filterable React risk dashboard over real financial data.",
+    stack: ["Python", "FastAPI", "React", "scikit-learn", "spaCy", "Docker", "AWS"],
+    href: "https://github.com/yandouziyassine/Datathon_Polyfinance_2025" },
+  { title: "Universal File Converter", when: "Dec. 2025",
+    summary: "Production REST API for batch conversion of 7+ formats (PDF, DOCX, HEIC, TIFF), up to 1 GB per upload; Factory pattern for strategy selection.",
+    stack: ["Java", "Spring Boot", "Apache POI", "Docker"],
+    href: "https://github.com/yandouziyassine/Universal-File-Converter" },
+  { title: "OTAMS: tutoring appointments", when: "2024 – 2025",
+    summary: "Role-based Android booking app for 3 user types with conflict prevention and notifications, tested with JUnit on CircleCI.",
+    stack: ["Java", "Android SDK", "SQLite", "CircleCI", "JUnit"],
+    href: "https://github.com/yandouziyassine/Android_tutoring_app" },
+];
+
 /* The Computer Vision Library, one card per project. `area` drives the filter chips. */
 window.PROJECTS = [
   { n: "02", title: "Solar Panel Defects", area: "Classification", depth: 2, image: "images/cv-02.png",
@@ -116,7 +147,7 @@ window.PROJECTS = [
   { n: "13", title: "PatchCore, from scratch", area: "Anomaly detection", depth: 3, image: "images/cv-13.png",
     metric: { value: "1.000", unit: "image AUROC, matching the CVPR paper" },
     summary: "Reimplemented an industrial anomaly-detection paper in ~150 lines; finds defects without ever seeing one.",
-    links: [{ label: "Code", href: cv("13-anomaly-detection-patchcore") }] },
+    links: [{ label: "Code", href: cv("13-anomaly-detection-patchcore") }, { label: "Live demo", href: "https://huggingface.co/spaces/yandyassine/patchcore-defect-detection" }] },
   { n: "14", title: "Monocular Depth → 3D", area: "3D", depth: 1, image: "images/cv-14.gif",
     metric: { value: "1 photo", unit: "→ point cloud → new viewpoints" },
     summary: "Depth Anything V2, pinhole back-projection and z-buffered rendering of new camera angles.",
@@ -161,17 +192,27 @@ window.SKILLS = [
             "nmap · Wireshark", "MITRE ATT&CK", "Sanitizers (ASan/UBSan)", "Dependency auditing (pip-audit)",
             "Responsible face recognition"] },
   { group: "Deployment & performance",
-    items: ["OpenVINO · ONNX Runtime", "INT8 quantization (NNCF)", "CPU / iGPU / NPU profiling", "Docker · Docker Compose",
-            "GitHub Actions · CircleCI", "AWS · Google Cloud · Azure", "Vercel · Firebase · Linux"] },
+    items: ["OpenVINO · ONNX Runtime (incl. in the browser)", "INT8 quantization (NNCF)", "CPU / iGPU / NPU profiling",
+            "Docker · Docker Compose", "GitHub Actions · CircleCI", "AWS · Google Cloud · Azure", "Vercel · Firebase · Linux"] },
   { group: "Programming",
-    items: ["Python", "C · C++20", "Java", "JavaScript · TypeScript", "SQL", "HTML/CSS", "Assembly", "MATLAB"] },
+    items: ["Python", "C · C++20", "Java", "JavaScript · TypeScript", "SQL", "HTML/CSS", "Assembly", "MATLAB", "VHDL"] },
   { group: "Frameworks & data",
     items: ["React · Next.js · Tailwind CSS", "Node.js · NestJS", "FastAPI · Flask · Django", "Spring Boot",
             "gRPC / Protocol Buffers", "Pandas · NumPy · scikit-learn", "PostgreSQL · MongoDB · Supabase · Redis",
             "Power BI"] },
-  { group: "Hardware",
-    items: ["Intel NPU & Arc iGPU (OpenVINO)", "Raspberry Pi", "FPGA (Quartus II)", "Computer architecture",
-            "Networking (CCNA track)", "Signals & systems"] },
-  { group: "Languages",
-    items: ["French: fluent", "English: fluent", "Arabic: native"] },
+];
+
+/* Shown side by side: what I've built on, and the courses behind it. */
+window.HARDWARE = ["Intel AI Boost NPU & Arc iGPU (OpenVINO)", "FPGA development (Quartus II, VHDL)", "Raspberry Pi",
+  "Logic design: gates, flip-flops, state machines", "Assembly-level debugging: registers, PC, memory",
+  "Profiling on hybrid CPUs (performance vs efficiency cores)"];
+
+window.COURSEWORK = [
+  { course: "Data Structures & Algorithms", detail: "complexity, trees, graphs, hashing, sorting" },
+  { course: "Software Construction I & II", detail: "object-oriented design, testing, design patterns" },
+  { course: "Computer Architecture I, II & III", detail: "assembly and C, registers, program counter, datapath, memory" },
+  { course: "Digital Systems I & II", detail: "logic gates, flip-flops, counters, VHDL on FPGA" },
+  { course: "Signals & Systems", detail: "convolution, Fourier analysis, filtering" },
+  { course: "Networking & Data Communication", detail: "CCNA track: TCP/IP, routing, switching" },
+  { course: "Probability & Statistics", detail: "the math behind every metric on this page" },
 ];

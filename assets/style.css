@@ -196,6 +196,34 @@ nav a:hover { color: var(--ink); }
 .skill li { font-size: 15px; color: var(--ink-2); padding-left: 16px; position: relative; }
 .skill li::before { content: ""; position: absolute; left: 0; top: .62em; width: 7px; height: 7px; border: 1.5px solid var(--ink-3); }
 
+/* ─── About ──────────────────────────────────────────────────────────────── */
+.about { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 64px); }
+.about-text p { margin: 0 0 16px; font-size: 18px; line-height: 1.65; color: var(--ink-2); }
+.about-text p:first-child { color: var(--ink); font-size: 20px; }
+.facts { margin: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); align-self: start; }
+.facts div { padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.facts div:last-child { border-bottom: 0; }
+.facts dt { font: 400 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--signal); }
+.facts dd { margin: 4px 0 0; font-size: 15px; color: var(--ink); }
+
+/* ─── More projects ──────────────────────────────────────────────────────── */
+.sub-head { margin: 44px 0 14px; font-size: 12px; font-weight: 400; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+.more { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.more-item { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; text-decoration: none; color: inherit;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); transition: border-color .2s; }
+.more-item:hover { border-color: var(--signal); }
+.more-item h4 { margin: 0; font: 400 24px/1.15 var(--serif); }
+.more-item h4 span { color: var(--signal); font-size: 16px; }
+.more-item p { margin: 0; font-size: 14.5px; color: var(--ink-2); }
+.more-when, .more-stack { font-size: 11.5px; color: var(--ink-3); }
+.more-stack { margin-top: auto; padding-top: 6px; }
+
+/* ─── Hardware & coursework ──────────────────────────────────────────────── */
+.hw { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.courses li { display: flex; flex-direction: column; }
+.courses b { font-weight: 500; color: var(--ink); }
+.courses span { font-size: 13.5px; color: var(--ink-3); }
+
 /* ─── Contact + footer ───────────────────────────────────────────────────── */
 .contact { padding-bottom: 110px; }
 .contact h2 { font-size: clamp(54px, 9vw, 120px); }
@@ -229,5 +257,7 @@ nav a:hover { color: var(--ink); }
   .section-head { grid-template-columns: 1fr; }
   .lede { grid-column: 1; }
   .skill { border-right: 0; border-bottom: 1px solid var(--line); }
+  .about, .hw { grid-template-columns: 1fr; }
+  .about-text p, .about-text p:first-child { font-size: 17px; }
   nav a:not(.nav-gh) { display: none; }
 }
