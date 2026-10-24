@@ -20,7 +20,7 @@
     ["CV projects", P.length, ""],
     ["In-depth analyses", deep, ""],
     ["Fastest speed-up", "17", "×"],
-    ["Trained on", "1", "laptop CPU"],
+    ["Compute budget", "$0", "laptop CPU + free cloud GPU"],
   ].map(([t, v, u]) => `<div><dt>${esc(t)}</dt><dd>${esc(v)}${u ? `<small>${esc(u)}</small>` : ""}</dd></div>`).join("");
   if (S.machine) $("#machine").innerHTML = `<span>The laptop</span>${esc(S.machine)}`;
 
@@ -47,19 +47,28 @@
   const depthHtml = (d) => `<span class="depth" title="${["", "working demo", "measured on a benchmark", "in-depth analysis"][d] || ""}">` +
     [1, 2, 3].map((i) => `<span class="${i <= d ? "" : "off"}">◆</span>`).join("") + "</span>";
   const ordered = [...P].sort((a, b) => (b.depth || 0) - (a.depth || 0) || a.n.localeCompare(b.n));
-  $("#grid").innerHTML = ordered.map((p) => `
-    <a class="card" data-area="${esc(p.area)}" href="${esc((p.links && p.links[0] && p.links[0].href) || "#")}" target="_blank" rel="noopener">
+  // The whole card opens the code (stretched link); a live demo, when there is one, gets its own button on top.
+  const isDemo = (l) => /demo/i.test(l.label);
+  $("#grid").innerHTML = ordered.map((p) => {
+    const links = p.links || [];
+    const code = links.find((l) => !isDemo(l)) || links[0] || { href: "#" };
+    const demo = links.find(isDemo);
+    return `
+    <article class="card" data-area="${esc(p.area)}">
       <div class="card-media${p.image ? "" : " empty"}">
         ${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.title)} result" loading="lazy">` : "live webcam app"}
         <span class="card-num">${esc(p.n)}</span>
+        ${demo ? '<span class="card-live">Live demo</span>' : ""}
       </div>
       <div class="card-body">
         <span class="area">${esc(p.area)}</span>
-        <div class="card-top"><h3>${esc(p.title)}</h3>${depthHtml(p.depth)}</div>
+        <div class="card-top"><h3><a class="card-link" href="${esc(code.href)}" target="_blank" rel="noopener">${esc(p.title)}</a></h3>${depthHtml(p.depth)}</div>
         ${reading(p.metric)}
         <p>${esc(p.summary)}</p>
+        ${demo ? `<a class="card-demo" href="${esc(demo.href)}" target="_blank" rel="noopener">▶ Try it live</a>` : ""}
       </div>
-    </a>`).join("");
+    </article>`;
+  }).join("");
 
   const areas = [...new Set(P.map((p) => p.area))];
   const counts = Object.fromEntries(areas.map((a) => [a, P.filter((p) => p.area === a).length]));

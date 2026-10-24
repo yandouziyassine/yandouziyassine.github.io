@@ -29,7 +29,7 @@ window.SITE = {
     "I'm a third-year Computer Engineering student (co-op) at the University of Ottawa. I like systems I can " +
       "measure: a detector is only as good as its mAP on held-out data, an API only as safe as its worst route.",
     "Most of my recent work is computer vision: 19 projects, from classical OpenCV to fine-tuned detectors, " +
-      "segmentation, 3D and foundation models, all trained and deployed on a laptop without a GPU. Alongside it, " +
+      "segmentation, 3D and foundation models, built on a laptop without a GPU (plus a free cloud GPU for the biggest training runs). Alongside it, " +
       "I build software where security is part of the design: OAuth 2.1, IDOR-safe APIs, risk limits enforced in C++.",
     "I'm looking for co-op and internship roles in computer vision, machine learning or AI security.",
   ],
@@ -48,7 +48,7 @@ const cv = (folder) => `${CVLIB}/tree/main/${folder}`;
 window.FEATURED = [
   {
     title: "Computer Vision Project Library",
-    kicker: "19 projects · one benchmark each · trained on a laptop CPU",
+    kicker: "19 projects · one benchmark each · laptop CPU + free cloud GPU",
     metric: { value: "19", unit: "measured projects" },
     summary:
       "From classical OpenCV to fine-tuned detectors, segmentation, 3D and foundation models. A CVPR paper " +
@@ -180,7 +180,7 @@ window.PROJECTS = [
     metric: { value: "2.5 m", unit: "median player position error on the tactical map" },
     summary: "Players, ball and teams from broadcast frames, then 32 pitch landmarks and a homography put everyone on a top-down map.",
     links: [{ label: "Code", href: cv("20-football-analytics") }] },
-  { n: "01", title: "Virtual Painter", area: "Classical CV", depth: 1, image: null,
+  { n: "01", title: "Virtual Painter", area: "Classical CV", depth: 1, image: "images/cv-01.svg",
     metric: { value: "live", unit: "draw in the air with hand gestures" },
     summary: "MediaPipe hand tracking, gesture state machine and a FastAPI live stream.",
     links: [{ label: "Code", href: cv("01-virtual-painter") }] },
