@@ -866,8 +866,9 @@ languages: "French (fluent) · English (fluent) · Arabic (native)"
 - [ ] **Step 2: `src/lib/resume.ts`**
 
 ```ts
-import fs from "node:fs";
-import { dump } from "js-yaml";
+import { load } from "js-yaml";
+// ?raw inlines the file at build time (a path read at runtime breaks once Astro bundles the page).
+import raw from "../data/resume.yaml?raw";
 
 export interface Entry { points?: string[]; dates: string; [key: string]: unknown }
 export interface Resume {
@@ -881,7 +882,7 @@ export interface Resume {
 }
 
 export function loadResume(): Resume {
-  return yaml.load(fs.readFileSync(new URL("../data/resume.yaml", import.meta.url), "utf8")) as Resume;
+  return load(raw) as Resume;
 }
 ```
 
