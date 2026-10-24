@@ -1,0 +1,48 @@
+---
+import Base from "../layouts/Base.astro";
+import { loadResume } from "../lib/resume";
+const r = loadResume();
+---
+<Base title="Résumé" description={`${r.name}: ${r.headline}`}>
+  <div class="wrap section cv">
+    <header>
+      <h1>{r.name}</h1>
+      <p class="headline">{r.headline}</p>
+      <p class="contact mono">{r.location} · {r.links.map((l, i) => <>{i > 0 && " · "}<a href={l.url}>{l.url.replace(/^https:\/\/(www\.)?/, "")}</a></>)}</p>
+      <p class="no-print"><a class="btn primary" href="/cv/Yassine_Yandouzi_CV.pdf" download>Download PDF</a></p>
+    </header>
+    <section><h2>Education</h2>
+      {r.education.map((e) => <div class="item"><div class="row"><b>{e.school}</b><span>{e.dates}</span></div>
+        <div class="row sub"><i>{e.degree}</i><span>{e.place}</span></div><p>{e.details}</p></div>)}
+    </section>
+    <section><h2>Projects</h2>
+      {r.projects.map((p) => <div class="item"><div class="row"><b>{p.name}</b><span>{p.dates}</span></div>
+        <div class="sub"><i>{p.stack}</i></div><ul>{p.points?.map((x) => <li>{x}</li>)}</ul></div>)}
+    </section>
+    <section><h2>Experience</h2>
+      {r.experience.map((e) => <div class="item"><div class="row"><b>{e.role}</b><span>{e.dates}</span></div>
+        <div class="row sub"><i>{e.org}</i><span>{e.place}</span></div><ul>{e.points?.map((x) => <li>{x}</li>)}</ul></div>)}
+    </section>
+    <section><h2>Skills</h2>
+      {r.skills.map((s) => <p><b>{s.group}:</b> {s.items}</p>)}
+    </section>
+    <section><h2>Languages</h2><p>{r.languages}</p></section>
+  </div>
+</Base>
+<style>
+  .cv { max-width: 860px; }
+  h1 { font: 400 clamp(40px, 6vw, 64px)/1 var(--serif); margin: 0; }
+  .headline { font: italic 400 22px var(--serif); color: var(--ink-2); margin: 6px 0; }
+  .contact { font-size: 13px; color: var(--ink-3); } .contact a { color: var(--ink-2); }
+  h2 { font: 500 13px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--signal);
+    border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 34px 0 12px; }
+  .item { margin-bottom: 16px; } .row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .sub { color: var(--ink-2); font-size: 14.5px; } ul { margin: 6px 0 0; padding-left: 18px; } li, p { color: var(--ink-2); }
+  @media print {
+    .cv { max-width: none; padding: 0; } h1 { font-size: 30px; color: #111; } .headline { font-size: 15px; color: #333; }
+    h2 { color: #b23a00; border-color: #ccc; margin: 14px 0 6px; font-size: 11px; }
+    li, p, .sub, .contact, .contact a { color: #222; font-size: 10.5pt; } .item { margin-bottom: 8px; break-inside: avoid; }
+    .section { padding-top: 0; }
+  }
+  @page { size: A4; margin: 14mm 14mm; }
+</style>

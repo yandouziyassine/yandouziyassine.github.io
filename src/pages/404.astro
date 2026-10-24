@@ -1,0 +1,10 @@
+---
+import Base from "../layouts/Base.astro";
+import DetectionBox from "../components/DetectionBox.astro";
+---
+<Base title="Not found" description="Page not found.">
+  <div class="wrap section">
+    <h1 class="display"><DetectionBox label="page" score="0.00">404</DetectionBox></h1>
+    <p class="lede" style="margin-top:24px">No object detected at this address. <a href="/">Back to the home page →</a></p>
+  </div>
+</Base>
