@@ -5,3 +5,4 @@ dist/
 .lighthouseci/
 test-results/
 playwright-report/
+public/thumbs/

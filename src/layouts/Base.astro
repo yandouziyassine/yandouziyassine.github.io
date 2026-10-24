@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { Font } from "astro:assets";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 interface Props { title: string; description: string; image?: string }
@@ -22,9 +23,9 @@ const ogImage = new URL(image, Astro.site);
   <meta property="og:image" content={ogImage} />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' fill='none' stroke='%23ff5b1f' stroke-width='3'/><rect x='11' y='11' width='10' height='10' fill='%23ff5b1f'/></svg>" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <Font cssVariable="--font-sans" preload />
+  <Font cssVariable="--font-serif" preload />
+  <Font cssVariable="--font-mono" />
 </head>
 <body>
   <Nav />

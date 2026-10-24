@@ -1601,3 +1601,12 @@ Run: `curl -sI https://<domain>/ | head -1` → `HTTP/2 200`; `curl -sI https://
 - Spec coverage (phase 1): pages `/`, `/demos`, `/projects`, `/projects/<slug>`, `/resume`, `/contact`, `/404` → Tasks 5–8, 10; content model → Tasks 3–4; résumé + PDF without contact details → Tasks 8–9, privacy tests Task 11; S3 + CloudFront + ACM + Route 53 + OIDC → Tasks 13–15; deploy on push → Task 14; GitHub Pages redirect after go-live → Task 16; testing (build, links, smoke, Lighthouse) → Tasks 11–12. Budget alarms are included now (spec listed them in phase 3) because they are cheap and protect the credits from day one.
 - Deliberate phase-1 choices: the home hero embeds the PatchCore demo until the painter ships in phase 2; `/demos` labels the three new demos "coming soon"; `/contact` lists LinkedIn and GitHub until the form ships in phase 3.
 - Names used across tasks: `loadResume` (Task 8), `ProjectCard` prop `p` (Tasks 5–6), slugs from `migrate-projects.mjs` = library folder name without the number (used in Tasks 7 and 11), repo variables `AWS_ROLE_ARN`, `S3_BUCKET`, `CF_DISTRIBUTION_ID`, `SITE_URL` (Tasks 14–15).
+
+## Deviations found while implementing (2026-10-24)
+
+- **js-yaml 5** has no default export: use `import { dump } / { load } from "js-yaml"`.
+- **`resume.ts`** imports the YAML with Vite's `?raw` suffix; reading it through `import.meta.url` breaks once Astro bundles the page.
+- **Migration script** normalizes CRLF before stripping the README title (in JS regexes `.` does not match `\r`).
+- **`[hidden] { display: none !important; }`** in `global.css`: components set `display: flex`, which beat the `hidden` attribute, so the project filter hid nothing (caught by the smoke test).
+- **Link check** skip pattern is `^https?://(?!localhost|127\.0\.0\.1)`: linkinator serves `dist/` on `127.0.0.1`, so the first pattern skipped every link.
+- **Lighthouse** first scored performance 0.78–0.83. Fixes: Astro's built-in Fonts API (Google fonts downloaded at build, self-hosted, preloaded, metric-matched fallbacks) instead of the Google Fonts stylesheet; `scripts/thumbs.mjs` (sharp 0.35.5) makes 400/800 px WebP card thumbnails into `public/thumbs/` (GIFs become their first frame); a rehype plugin lazy-loads all case-study images but the first. Astro 7's default Markdown engine (Sätteri) does not run rehype plugins, so the config uses `@astrojs/markdown-remark` 7.3.4 with `processor: unified({ rehypePlugins })`. Result: performance 0.98–1.00, CLS 0, `/projects/` 3.8 MB → 359 KB.
