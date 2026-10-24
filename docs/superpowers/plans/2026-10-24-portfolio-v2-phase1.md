@@ -414,7 +414,7 @@ git commit -m "v2: projects content collection schema"
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
-import yaml from "js-yaml";
+import { dump } from "js-yaml";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const LIB = path.resolve(process.argv[2] || path.join(ROOT, "..", "COMPUTER-VISION-PROJECT-LIBRARY"));
@@ -432,7 +432,7 @@ const FEATURED_CV = new Set(["13", "14", "20"]);    // shown on the home page
 function write(slug, data, body) {
   fs.mkdirSync(OUT, { recursive: true });
   const clean = JSON.parse(JSON.stringify(data));     // drop undefined
-  fs.writeFileSync(path.join(OUT, `${slug}.md`), `---\n${yaml.dump(clean, { lineWidth: 120 })}---\n\n${body.trim()}\n`);
+  fs.writeFileSync(path.join(OUT, `${slug}.md`), `---\n${dump(clean, { lineWidth: 120 })}---\n\n${body.trim()}\n`);
 }
 
 // README body: drop the H1, copy images to /media/projects/<slug>/, turn other relative links into GitHub links.
@@ -867,7 +867,7 @@ languages: "French (fluent) · English (fluent) · Arabic (native)"
 
 ```ts
 import fs from "node:fs";
-import yaml from "js-yaml";
+import { dump } from "js-yaml";
 
 export interface Entry { points?: string[]; dates: string; [key: string]: unknown }
 export interface Resume {
