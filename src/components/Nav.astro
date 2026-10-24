@@ -1,0 +1,26 @@
+---
+const links = [["/", "Home"], ["/demos/", "Demos"], ["/projects/", "Projects"], ["/resume/", "Résumé"], ["/contact/", "Contact"]];
+const path = Astro.url.pathname;
+const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+---
+<header class="site-nav">
+  <a class="mark" href="/" aria-label="Home"><span class="mark-box"></span><span class="mono">Yassine Yandouzi</span></a>
+  <nav aria-label="Main">
+    {links.map(([href, label]) => <a href={href} aria-current={active(href) ? "page" : undefined}>{label}</a>)}
+    <a class="gh" href="https://github.com/yandouziyassine" target="_blank" rel="noopener">GitHub ↗</a>
+  </nav>
+</header>
+<style>
+  .site-nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; padding: 14px clamp(16px, 4vw, 40px); backdrop-filter: blur(10px);
+    background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--line); }
+  .mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 14px; }
+  .mark-box { width: 16px; height: 16px; border: 2px solid var(--signal); position: relative; }
+  .mark-box::after { content: ""; position: absolute; inset: 3px; background: var(--signal); }
+  nav { display: flex; gap: clamp(14px, 2.5vw, 26px); font-size: 14px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+  nav::-webkit-scrollbar { display: none; }
+  nav a { text-decoration: none; color: var(--ink-2); padding: 2px 0; border-bottom: 1.5px solid transparent; }
+  nav a:hover, nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--signal); }
+  .gh { color: var(--signal) !important; }
+  @media (max-width: 760px) { nav { width: 100%; order: 3; } }
+</style>
