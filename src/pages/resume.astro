@@ -3,7 +3,7 @@ import Base from "../layouts/Base.astro";
 import { loadResume } from "../lib/resume";
 const r = loadResume();
 ---
-<Base title="Résumé" description={`${r.name}: ${r.headline}`}>
+<Base title="Resume" description={`${r.name}: ${r.headline}`}>
   <div class="wrap section cv">
     <header>
       <h1>{r.name}</h1>

@@ -7,7 +7,7 @@ metric:
   value: 0–100
   unit: ATS score per tailored CV
 summary: >-
-  Tailors a résumé and cover letter to each job, then grades it against the ATS with the missing keywords.
+  Tailors a resume and cover letter to each job, then grades it against the ATS with the missing keywords.
   Security-first architecture: OAuth 2.1 (PKCE), token-derived resource paths (IDOR-safe), default-deny rules,
   signature-verified billing webhooks. Also a remote MCP server for AI agents.
 stack:
@@ -24,7 +24,7 @@ links:
 
 *AI job-application & CV-tailoring SaaS*
 
-Tailors a résumé and cover letter to each job, then grades it against the ATS with the missing keywords. Security-first architecture: OAuth 2.1 (PKCE), token-derived resource paths (IDOR-safe), default-deny rules, signature-verified billing webhooks. Also a remote MCP server for AI agents.
+Tailors a resume and cover letter to each job, then grades it against the ATS with the missing keywords. Security-first architecture: OAuth 2.1 (PKCE), token-derived resource paths (IDOR-safe), default-deny rules, signature-verified billing webhooks. Also a remote MCP server for AI agents.
 
 **Stack:** Next.js · TypeScript · Firebase · DeepSeek · Stripe · MCP
 

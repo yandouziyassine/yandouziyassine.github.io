@@ -22,7 +22,7 @@ projects:
     dates: 2025 – 2026
     stack: Next.js 16, React 19, Firebase, DeepSeek API, Stripe, MCP, Vercel
     points:
-      - "Built and shipped a full-stack platform that tailors résumés and cover letters per posting and grades them with an ATS score (0–100 plus missing keywords)"
+      - "Built and shipped a full-stack platform that tailors resumes and cover letters per posting and grades them with an ATS score (0–100 plus missing keywords)"
       - "Hardened every API route against IDOR with Firebase ID-token verification, Zod validation and default-deny Firestore rules; remote MCP server with OAuth 2.1 (PKCE + DCR)"
   - name: Universal File Converter
     dates: Dec. 2025

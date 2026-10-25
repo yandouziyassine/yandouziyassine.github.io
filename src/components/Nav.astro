@@ -1,5 +1,5 @@
 ---
-const links = [["/", "Home"], ["/demos/", "Demos"], ["/projects/", "Projects"], ["/resume/", "Résumé"], ["/contact/", "Contact"]];
+const links = [["/", "Home"], ["/demos/", "Demos"], ["/projects/", "Projects"], ["/resume/", "Resume"], ["/contact/", "Contact"]];
 const path = Astro.url.pathname;
 const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 ---
