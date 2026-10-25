@@ -1,6 +1,13 @@
 # Portfolio website v2: demo-first, multi-page, on AWS
 
-Date: 2026-10-24 · Status: design approved section by section by the owner; written spec awaiting review
+Date: 2026-10-24 · Status: approved by the owner
+
+> **Scope change (owner decision, 2026-10-24):** the site stays on **GitHub Pages** at `yandouziyassine.github.io`
+> (free, permanent). AWS is out of scope for now: the connected account is a training account whose organization
+> blocks CloudFormation and S3, and no card charges are allowed. Consequences: no custom domain, no CloudFront/S3,
+> **no plate-reader demo and no contact form** (contact = LinkedIn + GitHub links). Browser-only demos (painter,
+> hard hats) stay. The AWS sections below are kept as the design to revisit if a credits-only AWS account is
+> opened later; `infra/` and `deploy.yml` were removed from the repo (they remain in git history, commit 95e8534).
 
 ## Goal
 
