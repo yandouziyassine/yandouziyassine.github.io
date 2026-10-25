@@ -1,0 +1,114 @@
+---
+// Hard-hat safety check (project 07): YOLO11n in ONNX Runtime Web on a photo the visitor picks. Nothing is uploaded.
+// The runtime (~14 MB) and the model (~5 MB) download when the visitor first picks a photo or focuses the picker.
+---
+<div class="hh" data-hardhat>
+  <label class="drop">
+    <input type="file" accept="image/*" class="sr-only" data-input />
+    <span class="mono cta">Choose a site photo</span>
+    <span class="sub">or drop it here · JPG, PNG, WebP · stays on your device</span>
+  </label>
+  <figure class="result" data-result hidden>
+    <canvas data-canvas role="img" aria-label="Your photo with the detected heads boxed"></canvas>
+  </figure>
+  <p class="status mono" data-status role="status" aria-live="polite"></p>
+  <p class="legend mono"><span class="k no"></span>no hard hat <span class="k yes"></span>hard hat · threshold 0.25, the site-alert operating point</p>
+</div>
+<script>
+  import { detect, warmUp, type Result } from "../lib/ppe/detector";
+  import { siteAlert } from "../lib/ppe/postprocess";
+
+  const OPTS = { modelUrl: "/models/ppe_yolo11n_fp16.onnx" };
+  const root = document.querySelector<HTMLElement>("[data-hardhat]");
+  if (root) {
+    const input = root.querySelector<HTMLInputElement>("[data-input]")!;
+    const drop = root.querySelector<HTMLElement>(".drop")!;
+    const figure = root.querySelector<HTMLElement>("[data-result]")!;
+    const canvas = root.querySelector<HTMLCanvasElement>("[data-canvas]")!;
+    const status = root.querySelector<HTMLElement>("[data-status]")!;
+    const css = getComputedStyle(document.documentElement);
+    const colour = (id: number) => (id === 1 ? css.getPropertyValue("--signal") : css.getPropertyValue("--ok")).trim();
+    const mono = css.getPropertyValue("--font-mono") || "monospace";
+    let busy = false;
+
+    const say = (text: string, kind = "") => { status.textContent = text; status.dataset.kind = kind; };
+    const prefetch = () => warmUp(OPTS).catch(() => {}); // errors resurface on detect
+    input.addEventListener("focus", prefetch, { once: true });
+    drop.addEventListener("pointerenter", prefetch, { once: true });
+
+    function draw(img: ImageBitmap, r: Result) {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0);
+      const s = img.width / (canvas.clientWidth || img.width); // image px per screen px: tags stay ~12 px on screen
+      ctx.lineWidth = 2 * s;
+      ctx.font = `500 ${Math.round(12 * s)}px ${mono}`;
+      ctx.textBaseline = "bottom";
+      for (const d of [...r.detections].reverse()) { // strongest drawn last, on top
+        const [x1, y1, x2, y2] = d.box;
+        ctx.strokeStyle = ctx.fillStyle = colour(d.classId);
+        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+        const tag = `${d.classId === 1 ? "NO HAT" : "HAT"} ${d.score.toFixed(2)}`;
+        const tw = ctx.measureText(tag).width + 8 * s;
+        const ty = y1 > 18 * s ? y1 : y2 + 18 * s;
+        ctx.fillRect(x1 - ctx.lineWidth / 2, ty - 17 * s, tw, 17 * s);
+        ctx.fillStyle = "#0d0e10";
+        ctx.fillText(tag, x1 + 4 * s, ty - 2 * s);
+      }
+    }
+
+    async function run(file: File) {
+      if (busy || !file.type.startsWith("image/")) return;
+      busy = true;
+      say("Loading the model (first photo only)…");
+      try {
+        const img = await createImageBitmap(file, { imageOrientation: "from-image" });
+        const r = await detect(img, OPTS);
+        figure.hidden = false; // shown first so draw() can read the displayed width
+        draw(img, r);
+        const bad = r.detections.filter((d) => d.classId === 1).length;
+        const ok = r.detections.length - bad;
+        root!.dataset.detections = JSON.stringify(r.detections.map((d) => ({ label: d.label, score: +d.score.toFixed(5), box: d.box.map((v) => +v.toFixed(2)) })));
+        const ms = `${Math.round(r.ms)} ms on this device`;
+        if (siteAlert(r.detections)) say(`Site alert: ${bad} ${bad === 1 ? "head" : "heads"} without a hard hat, ${ok} with · ${ms}`, "alert");
+        else if (ok) say(`No violation: ${ok} ${ok === 1 ? "head" : "heads"} with a hard hat · ${ms}`, "ok");
+        else say(`No heads found · ${ms}`);
+        img.close();
+      } catch (e) {
+        console.warn(e);
+        say("Could not run the model in this browser. Try a recent Chrome, Edge, Firefox or Safari.", "alert");
+      } finally {
+        busy = false;
+        input.value = "";
+      }
+    }
+
+    input.addEventListener("change", () => input.files?.[0] && run(input.files[0]));
+    drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+    drop.addEventListener("drop", (e) => {
+      e.preventDefault();
+      drop.classList.remove("over");
+      const f = e.dataTransfer?.files[0];
+      if (f) run(f);
+    });
+  }
+</script>
+<style>
+  .hh { display: grid; gap: 10px; }
+  .drop { display: grid; place-items: center; gap: 6px; padding: 28px 16px; text-align: center; cursor: pointer;
+    background: var(--bg-2); border: 1px dashed var(--line-2); border-radius: var(--radius); }
+  .drop:hover, .drop.over, .drop:focus-within { border-color: var(--signal); background: var(--signal-soft); }
+  .cta { background: var(--signal); color: #0d0e10; padding: 9px 16px; border-radius: 999px; font-size: 13px; }
+  .sub { color: var(--ink-3); font-size: 13px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .result { margin: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); }
+  .result canvas { display: block; width: 100%; height: auto; }
+  .status { margin: 0; font-size: 13px; color: var(--ink-2); min-height: 1.4em; }
+  .status[data-kind="alert"] { color: var(--signal); }
+  .status[data-kind="ok"] { color: var(--ok); }
+  .legend { margin: 0; font-size: 12px; color: var(--ink-3); }
+  .k { display: inline-block; width: 10px; height: 10px; border: 2px solid; vertical-align: -1px; margin: 0 4px 0 0; }
+  .k.no { border-color: var(--signal); } .k.yes { border-color: var(--ok); margin-left: 10px; }
+</style>
