@@ -1,0 +1,63 @@
+name: Yassine Yandouzi
+headline: Computer Engineering student (co-op) · Computer vision, ML and AI security
+location: Ottawa – Gatineau, ON / QC
+links:
+  - { label: Portfolio, url: "https://yandouziyassine.github.io" }
+  - { label: GitHub, url: "https://github.com/yandouziyassine" }
+  - { label: LinkedIn, url: "https://www.linkedin.com/in/yassine-yandouzi" }
+education:
+  - school: University of Ottawa
+    degree: Bachelor of Applied Science, Computer Engineering (co-op), third year
+    dates: Sep. 2024 – May 2028
+    place: Ottawa, ON
+    details: "Relevant coursework: Data Structures & Algorithms, Software Construction I & II, Computer Architecture I–III, Digital Systems I & II, Signals & Systems, Networking & Data Communication (CCNA track), Probability & Statistics"
+projects:
+  - name: Computer Vision Project Library
+    dates: "2026"
+    stack: PyTorch, YOLO11, OpenVINO, ONNX, CLIP, SAM, OpenCV
+    points:
+      - "19 end-to-end computer vision projects, each measured on a public benchmark, e.g. PatchCore reimplemented from scratch (image AUROC 1.000 / 0.999 / 0.977 on MVTec AD)"
+      - "Deployed detectors 17× faster on a laptop iGPU/NPU with OpenVINO and INT8; browser demo with ONNX Runtime Web"
+  - name: JoBaI, AI-powered job application platform
+    dates: 2025 – 2026
+    stack: Next.js 16, React 19, Firebase, DeepSeek API, Stripe, MCP, Vercel
+    points:
+      - "Built and shipped a full-stack platform that tailors resumes and cover letters per posting and grades them with an ATS score (0–100 plus missing keywords)"
+      - "Hardened every API route against IDOR with Firebase ID-token verification, Zod validation and default-deny Firestore rules; remote MCP server with OAuth 2.1 (PKCE + DCR)"
+  - name: Universal File Converter
+    dates: Dec. 2025
+    stack: Java, Spring Boot, Apache POI, Docker, AWS/Railway
+    points:
+      - "Production REST API for batch conversion of 7+ file formats (PDF, DOCX, HEIC, TIFF) up to 1 GB per upload"
+  - name: Financial Risk Analytics Dashboard, PolyFinance Datathon 2025
+    dates: Nov. 2025
+    stack: Python, FastAPI, React, scikit-learn, spaCy, Docker, AWS
+    points:
+      - "Top 10 finish: interactive risk dashboard over real financial datasets"
+experience:
+  - role: Crew Member
+    org: Top Karting
+    dates: May 2024 – Present
+    place: Gatineau, QC
+    points:
+      - "Redesigned scheduling workflows and standardized reporting, improving operational efficiency by 35 %"
+      - "Team of 10 serving 150+ customers per event; performance summaries and bottleneck analysis for management"
+  - role: Student Painter
+    org: Student Works Painting
+    dates: Summer 2023
+    place: Gatineau, QC
+    points:
+      - "Prepped and painted residential interiors and exteriors as part of a small crew"
+  - role: Customer Service Attendant
+    org: Couche-Tard
+    dates: Oct. 2022 – May 2023
+    place: Gatineau, QC
+    points:
+      - "Served customers at a busy convenience store, processing cash, card, fuel and lottery transactions accurately"
+skills:
+  - { group: Languages, items: "Python, Java, JavaScript, TypeScript, C, C++, SQL, HTML/CSS, Assembly, MATLAB" }
+  - { group: Computer vision & ML, items: "PyTorch, YOLO, OpenCV, ONNX, OpenVINO, scikit-learn, Hugging Face" }
+  - { group: Frameworks, items: "React, Next.js, Node.js, NestJS, FastAPI, Spring Boot, Flask, Django, Tailwind CSS" }
+  - { group: Tools & platforms, items: "Git, Docker, GitHub Actions, CircleCI, AWS, Google Cloud, Azure, Vercel, Redis, Linux, Raspberry Pi, FPGA (Quartus II)" }
+  - { group: AI & security, items: "MCP servers, OAuth 2.1 (PKCE), OpenAI/DeepSeek APIs, nmap, Wireshark, MITRE ATT&CK" }
+languages: "French (fluent) · English (fluent) · Arabic (native)"

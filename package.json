@@ -1,0 +1,31 @@
+{
+  "name": "yandouziyassine-portfolio",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "node scripts/thumbs.mjs && astro dev",
+    "build": "node scripts/thumbs.mjs && astro build && node scripts/build-pdf.mjs",
+    "preview": "astro preview --port 4321",
+    "migrate": "node scripts/migrate-projects.mjs",
+    "test": "vitest run",
+    "test:links": "linkinator dist --recurse --skip \"^https?://(?!localhost|127\\.0\\.0\\.1)\" --verbosity error",
+    "test:smoke": "playwright test",
+    "test:lhci": "lhci autorun"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "7.3.4",
+    "@astrojs/sitemap": "3.7.4",
+    "astro": "7.4.2",
+    "js-yaml": "5.5.0"
+  },
+  "devDependencies": {
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.64.1",
+    "linkinator": "8.1.0",
+    "sharp": "0.35.5",
+    "vitest": "5.0.5"
+  }
+}

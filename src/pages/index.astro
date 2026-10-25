@@ -1,0 +1,67 @@
+---
+import Base from "../layouts/Base.astro";
+import DetectionBox from "../components/DetectionBox.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import Painter from "../components/Painter.astro";
+import { PAINTER_LIVE } from "../data/flags";
+import { getCollection } from "astro:content";
+const all = await getCollection("projects");
+const featured = all.filter((p) => p.data.featured).sort((a, b) => a.data.order - b.data.order);
+const cvCount = all.filter((p) => p.data.kind === "cv").length;
+// Until the painter is live, the hero shows the strongest single figure: project 14's
+// "what you see vs what the computer sees".
+const HERO = { src: "/media/projects/monocular-depth-3d/see_vs_infer.jpg", href: "/projects/monocular-depth-3d/" };
+---
+<Base title="Home" description="Computer engineering student building computer vision you can try: measured projects and live demos.">
+  <section class="wrap hero">
+    <div class="intro">
+      <p class="eyebrow"><span class="dot"></span> Computer engineering student · uOttawa · open to CV / ML internships</p>
+      <h1 class="name"><DetectionBox>Yassine Yandouzi</DetectionBox></h1>
+      <p class="pitch">I build computer vision you can try.</p>
+      <p class="lede">{cvCount} measured computer vision projects, from classical OpenCV to foundation models, each with its
+        benchmark number and what didn't work.{PAINTER_LIVE && " Try one right here: draw in the air with your finger."}</p>
+      <div class="cta"><a class="btn primary" href="/projects/">Explore the projects</a><a class="btn" href="/demos/">All demos</a><a class="btn" href="/resume/">Resume</a></div>
+    </div>
+    {PAINTER_LIVE ? (
+      <figure class="live">
+        <figcaption class="mono"><span class="tag">LIVE</span> Virtual painter · hand tracking in your browser · <a href="/projects/virtual-painter/">how it works</a></figcaption>
+        <Painter />
+      </figure>
+    ) : (
+      <figure class="live still panel">
+        <figcaption class="mono"><span class="tag">PROJECT 14</span> What you see vs what the computer sees</figcaption>
+        <a href={HERO.href}><img src={HERO.src} width="1330" height="1008" alt="Rows of photos next to the raw pixel numbers a computer receives, its inferred depth, the sensor truth and a 3D side view" fetchpriority="high" /></a>
+      </figure>
+    )}
+  </section>
+
+  <section class="wrap section">
+    <div class="section-head"><span class="eyebrow">Featured</span><h2>Three projects, in depth</h2></div>
+    <div class="grid">{featured.map((p) => <ProjectCard p={p} />)}</div>
+    <p class="more"><a class="btn" href="/projects/">All {all.length} projects →</a></p>
+  </section>
+
+  <section class="wrap section about">
+    <div class="section-head"><span class="eyebrow">About</span><h2>Measured, not just built</h2></div>
+    <p class="lede">Third-year Computer Engineering (co-op) student at the University of Ottawa. I care about systems I can
+      measure: a detector is only as good as its mAP on held-out data. Fluent in French and English, native Arabic.</p>
+  </section>
+</Base>
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px);
+    align-items: center; padding-top: clamp(48px, 8vw, 96px); }
+  .eyebrow { display: flex; align-items: center; gap: 10px; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--ink-2); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+  .name { font: 400 clamp(48px, 7.5vw, 104px)/0.95 var(--serif); margin: 34px 0 14px; letter-spacing: -0.02em; }
+  .pitch { font: italic 400 clamp(24px, 3vw, 34px) var(--serif); color: var(--ink); margin: 0 0 12px; }
+  .cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .live { margin: 0; min-width: 0; }
+  .live figcaption { font-size: 12px; color: var(--ink-2); padding: 0 0 10px; }
+  .live figcaption a { color: var(--ink); text-decoration-color: var(--signal); }
+  .still { overflow: hidden; } .still figcaption { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .still img { width: 100%; height: auto; display: block; background: #fff; }
+  .tag { background: var(--signal); color: #0d0e10; padding: 2px 6px; border-radius: 3px; margin-right: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 18px; margin-top: 24px; }
+  .more { margin-top: 24px; }
+  @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
+</style>

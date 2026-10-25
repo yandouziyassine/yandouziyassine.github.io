@@ -1,0 +1,25 @@
+import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+
+const projects = fs.readdirSync("src/content/projects").filter((f) => f.endsWith(".md"));
+
+describe("projects", () => {
+  it("has the 25 migrated projects", () => {
+    expect(projects.length).toBeGreaterThanOrEqual(25);
+  });
+
+  it("every project has a built case-study page", () => {
+    const missing = projects.map((f) => f.replace(/\.md$/, "")).filter((s) => !fs.existsSync(path.join("dist", "projects", s, "index.html")));
+    expect(missing).toEqual([]);
+  });
+
+  it("every local image a project links to exists in public/", () => {
+    const broken = projects.flatMap((f) => {
+      const md = fs.readFileSync(path.join("src/content/projects", f), "utf8");
+      return [...md.matchAll(/(?:\]\(|src="|cover: )(\/(?:media|images)\/[^)"\s]+)/g)]
+        .map((m) => m[1]).filter((p) => !fs.existsSync(path.join("public", p)));
+    });
+    expect(broken).toEqual([]);
+  });
+});

@@ -1,0 +1,131 @@
+---
+title: Retail Shelf Monitor
+kind: cv
+number: '09'
+area: Detection
+depth: 2
+featured: false
+order: 9
+metric:
+  value: '0.927'
+  unit: mAP50 on shelves of 100–700 products
+summary: >-
+  YOLO11n counts every product on dense supermarket shelves. Retraining on all 8,185 SKU-110K images on a Kaggle GPU
+  raised mAP50 from 0.838 to 0.927 and cut count error from 13.3 % to 10.3 % on the same 488 test shelves.
+cover: /images/cv-09.jpg
+links:
+  code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/09-retail-shelf-monitor
+---
+
+Detects and **counts every product** on a supermarket shelf photo, where a single image can hold
+**100–700+ tightly packed items**, and flags possible empty facings. YOLO11n fine-tuned on a laptop
+CPU with only 219 training photos from the SKU-110K benchmark.
+
+![examples](/media/projects/retail-shelf-monitor/examples.jpg)
+
+*Green: detected products. Red: spots flagged as possibly empty by a simple rule. Many red boxes
+are actually missed products, see below.*
+
+## Results
+
+488 test shelf photos (SKU-110K validation shard, never seen in training): **76,083 products**.
+
+### Detection
+
+| Metric | Value |
+|---|---|
+| **mAP50** | **0.838** |
+| **mAP50-95** | **0.487** |
+| Precision / recall | 0.842 / 0.766 |
+| Inference (CPU, 960 px) | 128 ms per image |
+
+For context, the original SKU-110K paper (Goldman et al., CVPR 2019) reports about 0.49 AP
+(0.5:0.95) for its method, trained on ~8,000 images on a GPU. This model trained on **219 images on a CPU**.
+Image sizes and protocol differ, so it's a sanity check, not a head-to-head comparison.
+
+### Counting
+
+| Metric | Value |
+|---|---|
+| Products per image (true) | mean 155.9, max 718 |
+| Mean absolute count error | **22.1 products** |
+| Mean relative count error | **13.3 %** |
+| Bias (predicted − true) | −12.7: it **under-counts** |
+
+![counting](/media/projects/retail-shelf-monitor/counting.png)
+
+### Retrained on all the data (Kaggle GPU)
+
+The model above was trained on a laptop CPU with **219** images (30 epochs). The same YOLO11n, same 960 px and
+`max_det=1000`, was retrained on the **full official SKU-110K train split (8,185 images) for 40 epochs** on a free
+Kaggle GPU (~3.6 h; [`kaggle_train_full.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/09-retail-shelf-monitor/kaggle_train_full.py)). Model selection used 499 images of the
+official *test* split, so the 488 local test images (official *validation* split) were never seen. Evaluated here
+on the **same 488 test images** (`python evaluate.py --model full`):
+
+| | Laptop CPU, 219 images | Kaggle GPU, 8,185 images |
+|---|---|---|
+| mAP50 / mAP50-95 | 0.838 / 0.487 | **0.927 / 0.580** |
+| Precision / recall | 0.842 / 0.766 | **0.907 / 0.865** |
+| Count MAE / relative error | 22.1 / 13.3 % | **17.0 / 10.3 %** |
+| Bias (predicted − true) | −12.7 | −10.2 (still under-counts) |
+| Images with flagged "gaps" | 401 / 488 | 376 / 488 |
+| CPU inference (960 px) | 128 ms / image | 141 ms / image (same network) |
+
+![examples, full-data model](/media/projects/retail-shelf-monitor/examples_full.jpg)
+
+More data mostly bought recall (+10 points), which is what the counting and gap rule needed. The model
+still under-counts on the most crowded shelves, and the gap rule still fires on most images, so most
+"gaps" remain missed products rather than real empty facings.
+
+## How it works
+
+1. **Data prep** ([`prepare.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/09-retail-shelf-monitor/prepare.py)): SKU-110K parquet shards (COCO `xywh` boxes) are exported to
+   the YOLO layout. Photos (up to 2340×4160) are shrunk to a max side of 1,280 px.
+2. **Training** ([`train.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/09-retail-shelf-monitor/train.py)): YOLO11n from COCO weights, **960 px** input (products are small),
+   30 epochs (~1.6 h on CPU), and **`max_det=1000`**. YOLO's default cap of 300 detections per image would
+   silently cut off a 700-product shelf.
+3. **Counting**: number of detections above 0.35 confidence per image, compared with the true box count.
+4. **Empty-facing rule** ([`evaluate.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/09-retail-shelf-monitor/evaluate.py)): products are grouped into shelf rows by their
+   vertical position; a horizontal gap wider than 1.5× the median product width between neighbors in a
+   row is flagged.
+
+## Data
+
+- **SKU-110K** (Goldman et al., CVPR 2019), from the parquet mirror `finedet/sku110k` (CC BY-NC 2.0,
+  non-commercial). Used: training shard 8 of 9 (219 images, 31,394 boxes) and the validation shard
+  (100 images for validation, 488 for test). The full dataset is ~11,700 images / 13 GB.
+- **Location:** `../../cv-data/shelf/` (not committed).
+
+## Run it
+
+```bash
+.venv\Scripts\activate            # shared environment, from the repo root
+cd 09-retail-shelf-monitor
+python prepare.py
+python train.py --epochs 30       # ~1.6 h on CPU; --resume continues an interrupted run
+python evaluate.py                # mAP, counting error, examples
+```
+
+## What I learned / what didn't work
+
+- **Dense scenes need two settings changed**: a larger input size (small objects) and a higher
+  `max_det` (YOLO's default would make counting impossible on large shelves).
+- **The empty-facing rule mostly finds missed products.** It flagged gaps in 401 of 488 images: with
+  23 % of products undetected (recall 0.77), a missed item looks exactly like a hole. Real gap detection
+  needs either much higher recall or labeled "empty facing" examples. SKU-110K has none, so the rule
+  stays a demo.
+- **Under-counting comes from the same source.** Missed products in crowded or hanging displays
+  (left example: 138 of 224) pull the count down; more training data is the obvious fix (8 more shards available).
+- **Validation and test agree** (val mAP50 0.849 at the last epoch, from the training log
+  `../../cv-data/shelf/outputs/runs/yolo11n_shelf/results.csv`, vs test 0.838), so the 100-image
+  validation set wasn't misleading.
+
+## Next steps
+
+- Train on more shards (and longer) to raise recall; then revisit gap detection.
+- Label a few hundred empty facings and train a dedicated "gap" class.
+- Planogram compliance: match detected positions against the expected layout.
+
+## Tech stack
+
+Python · Ultralytics YOLO11 · pyarrow · OpenCV · NumPy · Matplotlib

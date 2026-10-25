@@ -1,0 +1,35 @@
+---
+import Base from "../../layouts/Base.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import { getCollection } from "astro:content";
+const all = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
+const areas = [...new Set(all.map((p) => p.data.area))].sort();
+---
+<Base title="Projects" description="Every project: 19 measured computer vision projects plus software and data work.">
+  <div class="wrap section">
+    <div class="section-head"><span class="eyebrow">Projects</span><h1 class="display">Everything I've built</h1>
+      <p class="lede">{all.length} projects. Each computer vision project is measured on a real benchmark, with what didn't work.</p></div>
+    <div class="filters" role="toolbar" aria-label="Filter by topic">
+      <button class="chip" aria-pressed="true" data-f="*">All {all.length}</button>
+      {areas.map((a) => <button class="chip" aria-pressed="false" data-f={a}>{a}</button>)}
+    </div>
+    <div class="grid">{all.map((p, i) => <ProjectCard p={p} eager={i < 3} />)}</div>
+  </div>
+</Base>
+<script>
+  const bar = document.querySelector(".filters")!;
+  bar.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest("button");
+    if (!b) return;
+    bar.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    document.querySelectorAll<HTMLElement>(".card").forEach((c) => {
+      c.hidden = b.dataset.f !== "*" && c.dataset.area !== b.dataset.f;
+    });
+  });
+</script>
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 22px; }
+  .filters .chip { cursor: pointer; background: none; }
+  .filters .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 18px; }
+</style>

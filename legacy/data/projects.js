@@ -80,7 +80,7 @@ window.FEATURED = [
     kicker: "AI job-application & CV-tailoring SaaS",
     metric: { value: "0–100", unit: "ATS score per tailored CV" },
     summary:
-      "Tailors a résumé and cover letter to each job, then grades it against the ATS with the missing keywords. " +
+      "Tailors a resume and cover letter to each job, then grades it against the ATS with the missing keywords. " +
       "Security-first architecture: OAuth 2.1 (PKCE), token-derived resource paths (IDOR-safe), default-deny rules, " +
       "signature-verified billing webhooks. Also a remote MCP server for AI agents.",
     tags: ["Web", "ML", "Security"],
@@ -121,8 +121,8 @@ window.PROJECTS = [
     summary: "Page detection and perspective warp in pure OpenCV, measured on synthetic phone photos with known corners.",
     links: [{ label: "Code", href: cv("03-document-scanner-ocr") }] },
   { n: "06", title: "License Plate Recognition", area: "Detection", depth: 3, image: "images/cv-06.jpg",
-    metric: { value: "0 → 90%", unit: "plates read exactly, after one diagnosis" },
-    summary: "YOLO11n fine-tuned on CPU (mAP50 0.983) + OCR; a padding fix and plate-grammar rules took reading from 0% to 90%.",
+    metric: { value: "0.990", unit: "mAP50 on 882 test images" },
+    summary: "YOLO11n retrained on all 6,176 images on a free cloud GPU (mAP50 0.990) + OCR; a padding fix and plate-grammar rules took reading from 0% to 90%.",
     links: [{ label: "Code", href: cv("06-license-plate-recognition") }] },
   { n: "07", title: "PPE Safety Monitor", area: "Detection", depth: 2, image: "images/cv-07.jpg",
     metric: { value: "97.6%", unit: "of violations flagged, 96% precision" },

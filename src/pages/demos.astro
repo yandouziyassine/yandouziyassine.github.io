@@ -1,0 +1,40 @@
+---
+import Base from "../layouts/Base.astro";
+import Painter from "../components/Painter.astro";
+import { PAINTER_LIVE } from "../data/flags";
+const demos = [
+  { title: "Virtual painter", where: PAINTER_LIVE ? "Runs in your browser (webcam)" : "Will run in your browser (webcam)",
+    status: PAINTER_LIVE ? "live" : "soon", painter: PAINTER_LIVE,
+    text: "Draw in the air with your index finger: MediaPipe tracks 21 hand landmarks per frame and a small gesture state machine switches between drawing, erasing and picking colours.", project: "/projects/virtual-painter/" },
+  { title: "Hard-hat safety check", where: "Will run in your browser", status: "soon",
+    text: "Upload a site photo: 97.6 % of missing hard hats flagged at 96 % precision (2,001 test images).", project: "/projects/ppe-safety-monitor/" },
+];
+---
+<Base title="Demos" description="Computer vision demos you can try in your browser.">
+  <div class="wrap section">
+    <div class="section-head"><span class="eyebrow">Demos</span><h1 class="display">Try them</h1>
+      <p class="lede">Browser demos run on your own device: your photos and webcam never leave it.</p></div>
+    <div class="list">
+      {demos.map((d) => (
+        <section class="demo panel">
+          <div class="meta">
+            <span class={`status mono ${d.status}`}>{d.status === "live" ? "LIVE" : "COMING SOON"}</span>
+            <h2>{d.title}</h2><p class="where mono">{d.where}</p><p>{d.text}</p>
+            <p class="links"><a href={d.project}>Case study →</a></p>
+          </div>
+          {d.painter && <div class="embed"><Painter /></div>}
+        </section>
+      ))}
+    </div>
+  </div>
+</Base>
+<style>
+  .list { display: grid; gap: 18px; margin-top: 30px; }
+  .demo { display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+  .meta { padding: 22px; } h2 { font: 400 30px/1.1 var(--serif); margin: 10px 0 4px; }
+  .where { color: var(--ink-3); font-size: 12px; margin: 0 0 8px; } p { color: var(--ink-2); margin: 0 0 8px; }
+  .status { font-size: 11px; padding: 3px 8px; border-radius: 3px; }
+  .status.live { background: var(--signal); color: #0d0e10; } .status.soon { border: 1px solid var(--line-2); color: var(--ink-3); }
+  .embed { padding: 0 22px 22px; }
+  .links a { color: var(--ink); text-decoration-color: var(--signal); }
+</style>

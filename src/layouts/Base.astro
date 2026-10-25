@@ -1,0 +1,35 @@
+---
+import "../styles/global.css";
+import { Font } from "astro:assets";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+interface Props { title: string; description: string; image?: string }
+const { title, description, image = "/images/cv-13.png" } = Astro.props;
+const fullTitle = title === "Home" ? "Yassine Yandouzi · Computer Vision & ML" : `${title} · Yassine Yandouzi`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image, Astro.site);
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImage} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='3' width='26' height='26' fill='none' stroke='%23ff5b1f' stroke-width='3'/><rect x='11' y='11' width='10' height='10' fill='%23ff5b1f'/></svg>" />
+  <Font cssVariable="--font-sans" preload />
+  <Font cssVariable="--font-serif" preload />
+  <Font cssVariable="--font-mono" />
+</head>
+<body>
+  <Nav />
+  <main id="main"><slot /></main>
+  <Footer />
+</body>
+</html>
