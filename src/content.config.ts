@@ -18,7 +18,7 @@ const projects = defineCollection({
     cover: z.string().optional(),               // path under /public, e.g. /images/cv-13.png
     links: z.object({
       code: z.string().url().optional(),
-      demo: z.string().url().optional(),
+      demo: z.string().optional(), // absolute URL or a site path like /demos/
       huggingface: z.string().url().optional(),
     }).default({}),
   }),

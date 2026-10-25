@@ -24,7 +24,7 @@ const thumb = d.cover && /^\/images\/.+\.(png|jpe?g|gif|webp)$/i.test(d.cover)
     <h3><a class="stretch" href={`/projects/${p.id}/`}>{d.title}</a></h3>
     {d.metric && <Metric value={d.metric.value} unit={d.metric.unit} />}
     <p>{d.summary}</p>
-    {d.links.demo && <a class="try mono" href={d.links.demo} target="_blank" rel="noopener">▶ Try it live</a>}
+    {d.links.demo && <a class="try mono" href={d.links.demo} {...(d.links.demo.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>▶ Try it live</a>}
   </div>
 </article>
 <style>

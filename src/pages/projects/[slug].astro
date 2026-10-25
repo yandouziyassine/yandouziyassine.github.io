@@ -19,7 +19,7 @@ const { Content } = await render(p);
       <p class="lede">{d.summary}</p>
       {d.metric && <Metric value={d.metric.value} unit={d.metric.unit} />}
       <div class="actions">
-        {d.links.demo && <a class="btn primary" href={d.links.demo} target="_blank" rel="noopener">▶ Try it live</a>}
+        {d.links.demo && <a class="btn primary" href={d.links.demo} {...(d.links.demo.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}>▶ Try it live</a>}
         {d.links.code && <a class="btn" href={d.links.code} target="_blank" rel="noopener">Code on GitHub ↗</a>}
       </div>
       {d.stack.length > 0 && <div class="chips">{d.stack.map((s) => <span class="chip">{s}</span>)}</div>}
