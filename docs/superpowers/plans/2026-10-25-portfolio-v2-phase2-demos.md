@@ -8,10 +8,10 @@ hard hats only, both in the browser, no PatchCore embed, no AWS).
 - `src/vendor/painter/`: build output of painter-web 0.1.0 (`mountPainter(element, options)`), see its README.
 - `public/mediapipe/`: MediaPipe tasks-vision 1.1.0 wasm + `hand_landmarker.task`, self-hosted, Apache-2.0 notice.
 - `src/components/Painter.astro`: mounts it; the camera starts only on click; destroyed on `pagehide`.
-- Ship switch `PAINTER_LIVE` in `src/data/flags.ts`: `import.meta.env.DEV` until the owner tests it with a real
-  webcam, so `npm run dev` shows it and the built site says "coming soon". To ship: set it to `true`, add
-  `demo: /demos/` back to `src/content/projects/virtual-painter.md` (and the legacy entry).
-- Test: `tests/smoke.spec.mjs` starts it with Chromium's fake camera (skipped while the flag is off in the build).
+- Ship switch `PAINTER_LIVE` in `src/data/flags.ts`: true since the owner tested it with a real webcam
+  (2026-10-25; it was dev-only before). Their one finding, no way to stop the camera, is fixed: "Stop camera" and
+  "Clear drawing" buttons show while the camera runs, and the camera stops when the tab is hidden.
+- Test: `tests/smoke.spec.mjs` starts it with Chromium's fake camera, then stops it.
 
 ## Hard-hat safety check (project 07)
 

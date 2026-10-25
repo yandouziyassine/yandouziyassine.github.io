@@ -183,7 +183,7 @@ window.PROJECTS = [
   { n: "01", title: "Virtual Painter", area: "Classical CV", depth: 1, image: "images/cv-01.svg",
     metric: { value: "live", unit: "draw in the air with hand gestures" },
     summary: "MediaPipe hand tracking, gesture state machine and a FastAPI live stream.",
-    links: [{ label: "Code", href: cv("01-virtual-painter") }] },
+    links: [{ label: "Code", href: cv("01-virtual-painter") }, { label: "Live demo", href: "/demos/" }] },
 ];
 
 window.SKILLS = [

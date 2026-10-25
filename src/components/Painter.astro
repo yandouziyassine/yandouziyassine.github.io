@@ -4,6 +4,10 @@
 ---
 <div class="painter-wrap">
   <div class="painter" data-painter></div>
+  <div class="controls" data-controls hidden>
+    <button type="button" class="ctl mono stop" data-stop>■ Stop camera</button>
+    <button type="button" class="ctl mono" data-clear>Clear drawing</button>
+  </div>
   <p class="hint mono">
     <b>1 finger</b> draws · <b>2 fingers</b> erase · <b>2 fingers on a colour</b> picks it · <b>fist</b> pauses.
     Runs on your device: the camera feed never leaves your browser.
@@ -21,12 +25,27 @@
       fontFamily: fonts.fontFamily,
       monoFontFamily: getComputedStyle(document.documentElement).getPropertyValue("--font-mono") || "monospace",
     });
-    addEventListener("pagehide", () => painter.destroy(), { once: true });
+    const controls = el.parentElement!.querySelector<HTMLElement>("[data-controls]")!;
+    controls.querySelector("[data-stop]")!.addEventListener("click", () => painter.stop());
+    controls.querySelector("[data-clear]")!.addEventListener("click", () => painter.clear());
+
+    // The module has no running-change event: show the controls while the camera is on.
+    const sync = () => { controls.hidden = !painter.running; };
+    const timer = setInterval(sync, 250);
+    // Never leave the camera on in a background tab.
+    document.addEventListener("visibilitychange", () => { if (document.hidden && painter.running) painter.stop(); sync(); });
+    addEventListener("pagehide", () => { clearInterval(timer); painter.destroy(); }, { once: true });
   }
 </script>
 <style>
   .painter-wrap { display: grid; gap: 10px; }
   .painter { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; min-height: 240px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ctl { font-size: 12px; padding: 7px 12px; border-radius: 999px; cursor: pointer; background: transparent;
+    color: var(--ink-2); border: 1px solid var(--line-2); }
+  .ctl:hover, .ctl:focus-visible { color: var(--ink); border-color: var(--ink-3); }
+  .ctl.stop { color: var(--ink); border-color: var(--signal); }
+  .ctl.stop:hover, .ctl.stop:focus-visible { background: var(--signal-soft); }
   .hint { margin: 0; font-size: 12px; color: var(--ink-3); }
   .hint b { color: var(--ink-2); font-weight: 500; }
 </style>

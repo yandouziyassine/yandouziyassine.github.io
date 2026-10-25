@@ -37,6 +37,10 @@ test.describe("painter", () => {
     test.skip((await page.locator("[data-painter]").count()) === 0, "painter not live yet (src/data/flags.ts)");
     await start.click();
     await expect(page.locator(".vp-msg")).toBeHidden({ timeout: 90_000 });
+    await page.getByRole("button", { name: "Stop camera" }).click();
+    await expect(page.locator(".vp-msg")).toContainText("Camera stopped.");
+    expect(await page.locator(".vp-root video").evaluate((v) => v.srcObject)).toBeNull();
+    await expect(page.getByRole("button", { name: "Stop camera" })).toBeHidden();
     expect(errors).toEqual([]);
   });
 });
