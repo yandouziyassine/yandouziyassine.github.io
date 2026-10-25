@@ -13,6 +13,7 @@ summary: Hard-hat detector with alert-level metrics; retraining on all 13.8k ima
 cover: /images/cv-07.jpg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/07-ppe-safety-monitor
+  demo: /demos/
 ---
 
 Detects every head in an image as **wearing a hard hat** or **not**, and raises a site alert
