@@ -13,7 +13,6 @@ summary: Reimplemented an industrial anomaly-detection paper in ~150 lines; find
 cover: /images/cv-13.png
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/13-anomaly-detection-patchcore
-  demo: https://huggingface.co/spaces/yandyassine/patchcore-defect-detection
 ---
 
 Finds and localizes manufacturing defects **without ever seeing a defect during training**.
@@ -21,7 +20,6 @@ A from-scratch PyTorch implementation of **PatchCore** (Roth et al., *Towards To
 Industrial Anomaly Detection*, CVPR 2022), about 150 lines with no anomaly-detection library,
 evaluated on the MVTec AD benchmark on a laptop CPU.
 
-**▶ Try it live:** [Hugging Face demo](https://huggingface.co/spaces/yandyassine/patchcore-defect-detection), running entirely in your browser (ONNX Runtime Web, WebGPU or WebAssembly; no server).
 Model files and card: [yandyassine/patchcore-mvtec-ad](https://huggingface.co/yandyassine/patchcore-mvtec-ad).
 
 ![metal_nut results](/media/projects/anomaly-detection-patchcore/metal_nut_examples.png)
@@ -93,7 +91,7 @@ python -c "from huggingface_hub import snapshot_download as d; d('foersben/mvtec
 
 ## Browser demo (no server)
 
-The [live demo](https://huggingface.co/spaces/yandyassine/patchcore-defect-detection) runs the model on the
+A browser version runs the model on the
 visitor's own device with ONNX Runtime Web (WebGPU when available, WebAssembly otherwise), so it is free to host
 and uploaded photos never leave the browser.
 

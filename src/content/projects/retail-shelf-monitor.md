@@ -7,9 +7,11 @@ depth: 2
 featured: false
 order: 9
 metric:
-  value: '0.838'
+  value: '0.927'
   unit: mAP50 on shelves of 100–700 products
-summary: Dense small-object detection trained on just 219 images; counting error 13%.
+summary: >-
+  YOLO11n counts every product on dense supermarket shelves. Retraining on all 8,185 SKU-110K images on a Kaggle GPU
+  raised mAP50 from 0.838 to 0.927 and cut count error from 13.3 % to 10.3 % on the same 488 test shelves.
 cover: /images/cv-09.jpg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/09-retail-shelf-monitor
@@ -51,6 +53,29 @@ Image sizes and protocol differ, so it's a sanity check, not a head-to-head comp
 | Bias (predicted − true) | −12.7: it **under-counts** |
 
 ![counting](/media/projects/retail-shelf-monitor/counting.png)
+
+### Retrained on all the data (Kaggle GPU)
+
+The model above was trained on a laptop CPU with **219** images (30 epochs). The same YOLO11n, same 960 px and
+`max_det=1000`, was retrained on the **full official SKU-110K train split (8,185 images) for 40 epochs** on a free
+Kaggle GPU (~3.6 h; [`kaggle_train_full.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/09-retail-shelf-monitor/kaggle_train_full.py)). Model selection used 499 images of the
+official *test* split, so the 488 local test images (official *validation* split) were never seen. Evaluated here
+on the **same 488 test images** (`python evaluate.py --model full`):
+
+| | Laptop CPU, 219 images | Kaggle GPU, 8,185 images |
+|---|---|---|
+| mAP50 / mAP50-95 | 0.838 / 0.487 | **0.927 / 0.580** |
+| Precision / recall | 0.842 / 0.766 | **0.907 / 0.865** |
+| Count MAE / relative error | 22.1 / 13.3 % | **17.0 / 10.3 %** |
+| Bias (predicted − true) | −12.7 | −10.2 (still under-counts) |
+| Images with flagged "gaps" | 401 / 488 | 376 / 488 |
+| CPU inference (960 px) | 128 ms / image | 141 ms / image (same network) |
+
+![examples, full-data model](/media/projects/retail-shelf-monitor/examples_full.jpg)
+
+More data mostly bought recall (+10 points), which is what the counting and gap rule needed. The model
+still under-counts on the most crowded shelves, and the gap rule still fires on most images, so most
+"gaps" remain missed products rather than real empty facings.
 
 ## How it works
 

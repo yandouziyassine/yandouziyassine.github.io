@@ -80,7 +80,7 @@ window.FEATURED = [
     kicker: "AI job-application & CV-tailoring SaaS",
     metric: { value: "0–100", unit: "ATS score per tailored CV" },
     summary:
-      "Tailors a résumé and cover letter to each job, then grades it against the ATS with the missing keywords. " +
+      "Tailors a resume and cover letter to each job, then grades it against the ATS with the missing keywords. " +
       "Security-first architecture: OAuth 2.1 (PKCE), token-derived resource paths (IDOR-safe), default-deny rules, " +
       "signature-verified billing webhooks. Also a remote MCP server for AI agents.",
     tags: ["Web", "ML", "Security"],
@@ -133,8 +133,8 @@ window.PROJECTS = [
     summary: "Detection, ByteTrack tracking, line counting and bird's-eye speed estimation on a 4K highway video.",
     links: [{ label: "Code", href: cv("08-traffic-analytics") }] },
   { n: "09", title: "Retail Shelf Monitor", area: "Detection", depth: 2, image: "images/cv-09.jpg",
-    metric: { value: "0.838", unit: "mAP50 on shelves of 100–700 products" },
-    summary: "Dense small-object detection trained on just 219 images; counting error 13%.",
+    metric: { value: "0.927", unit: "mAP50 on shelves of 100–700 products" },
+    summary: "YOLO11n counts every product on dense supermarket shelves. Retraining on all 8,185 SKU-110K images on a Kaggle GPU raised mAP50 from 0.838 to 0.927 and cut count error from 13.3 % to 10.3 % on the same 488 test shelves.",
     links: [{ label: "Code", href: cv("09-retail-shelf-monitor") }] },
   { n: "10", title: "Face Verification", area: "Security", depth: 3, image: "images/cv-10.png",
     metric: { value: "99.35%", unit: "LFW, official 10-fold protocol" },
@@ -151,7 +151,7 @@ window.PROJECTS = [
   { n: "13", title: "PatchCore, from scratch", area: "Anomaly detection", depth: 3, image: "images/cv-13.png",
     metric: { value: "1.000", unit: "image AUROC, matching the CVPR paper" },
     summary: "Reimplemented an industrial anomaly-detection paper in ~150 lines; finds defects without ever seeing one.",
-    links: [{ label: "Code", href: cv("13-anomaly-detection-patchcore") }, { label: "Live demo", href: "https://huggingface.co/spaces/yandyassine/patchcore-defect-detection" }] },
+    links: [{ label: "Code", href: cv("13-anomaly-detection-patchcore") }] },
   { n: "14", title: "Where Machine 3D Vision Fails", area: "3D", depth: 3, image: "images/cv-14.jpg",
     metric: { value: "7×", unit: "more depth error on mirrors than on walls (654 rooms)" },
     summary: "What you see vs what the computer sees: 4 depth models vs a depth sensor, a failure map by surface, illusions with a known answer, and measuring distances from one photo.",

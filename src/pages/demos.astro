@@ -1,10 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
 const demos = [
-  { title: "Defect detection (PatchCore)", where: "Runs in your browser", status: "live",
-    text: "Finds manufacturing defects without ever seeing one. Image AUROC 1.000 / 0.999 / 0.977 on MVTec AD.",
-    href: "https://huggingface.co/spaces/yandyassine/patchcore-defect-detection",
-    embed: "https://yandyassine-patchcore-defect-detection.static.hf.space/index.html", project: "/projects/anomaly-detection-patchcore/" },
   { title: "Virtual painter", where: "Will run in your browser (webcam)", status: "soon",
     text: "Draw in the air with your index finger: hand tracking with 21 landmarks and a gesture state machine.", project: "/projects/virtual-painter/" },
   { title: "Hard-hat safety check", where: "Will run in your browser", status: "soon",
@@ -16,7 +12,7 @@ const demos = [
 <Base title="Demos" description="Computer vision demos you can try in your browser.">
   <div class="wrap section">
     <div class="section-head"><span class="eyebrow">Demos</span><h1 class="display">Try them</h1>
-      <p class="lede">Browser demos run on your own device: your photos and webcam never leave it.</p></div>
+      <p class="lede">Browser demos run on your own device: your photos and webcam never leave it. The first ones go live with the next update of this site.</p></div>
     <div class="list">
       {demos.map((d) => (
         <section class="demo panel">
