@@ -1,8 +1,10 @@
 ---
 import Base from "../layouts/Base.astro";
 import Painter from "../components/Painter.astro";
+import { PAINTER_LIVE } from "../data/flags";
 const demos = [
-  { title: "Virtual painter", where: "Runs in your browser (webcam)", status: "live", painter: true,
+  { title: "Virtual painter", where: PAINTER_LIVE ? "Runs in your browser (webcam)" : "Will run in your browser (webcam)",
+    status: PAINTER_LIVE ? "live" : "soon", painter: PAINTER_LIVE,
     text: "Draw in the air with your index finger: MediaPipe tracks 21 hand landmarks per frame and a small gesture state machine switches between drawing, erasing and picking colours.", project: "/projects/virtual-painter/" },
   { title: "Hard-hat safety check", where: "Will run in your browser", status: "soon",
     text: "Upload a site photo: 97.6 % of missing hard hats flagged at 96 % precision (2,001 test images).", project: "/projects/ppe-safety-monitor/" },

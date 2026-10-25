@@ -3,10 +3,14 @@ import Base from "../layouts/Base.astro";
 import DetectionBox from "../components/DetectionBox.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import Painter from "../components/Painter.astro";
+import { PAINTER_LIVE } from "../data/flags";
 import { getCollection } from "astro:content";
 const all = await getCollection("projects");
 const featured = all.filter((p) => p.data.featured).sort((a, b) => a.data.order - b.data.order);
 const cvCount = all.filter((p) => p.data.kind === "cv").length;
+// Until the painter is live, the hero shows the strongest single figure: project 14's
+// "what you see vs what the computer sees".
+const HERO = { src: "/media/projects/monocular-depth-3d/see_vs_infer.jpg", href: "/projects/monocular-depth-3d/" };
 ---
 <Base title="Home" description="Computer engineering student building computer vision you can try: measured projects and live demos.">
   <section class="wrap hero">
@@ -15,13 +19,20 @@ const cvCount = all.filter((p) => p.data.kind === "cv").length;
       <h1 class="name"><DetectionBox>Yassine Yandouzi</DetectionBox></h1>
       <p class="pitch">I build computer vision you can try.</p>
       <p class="lede">{cvCount} measured computer vision projects, from classical OpenCV to foundation models, each with its
-        benchmark number and what didn't work. Try one right here: draw in the air with your finger.</p>
+        benchmark number and what didn't work.{PAINTER_LIVE && " Try one right here: draw in the air with your finger."}</p>
       <div class="cta"><a class="btn primary" href="/projects/">Explore the projects</a><a class="btn" href="/demos/">All demos</a><a class="btn" href="/resume/">Resume</a></div>
     </div>
-    <figure class="live">
-      <figcaption class="mono"><span class="tag">LIVE</span> Virtual painter · hand tracking in your browser · <a href="/projects/virtual-painter/">how it works</a></figcaption>
-      <Painter />
-    </figure>
+    {PAINTER_LIVE ? (
+      <figure class="live">
+        <figcaption class="mono"><span class="tag">LIVE</span> Virtual painter · hand tracking in your browser · <a href="/projects/virtual-painter/">how it works</a></figcaption>
+        <Painter />
+      </figure>
+    ) : (
+      <figure class="live still panel">
+        <figcaption class="mono"><span class="tag">PROJECT 14</span> What you see vs what the computer sees</figcaption>
+        <a href={HERO.href}><img src={HERO.src} width="1330" height="1008" alt="Rows of photos next to the raw pixel numbers a computer receives, its inferred depth, the sensor truth and a 3D side view" fetchpriority="high" /></a>
+      </figure>
+    )}
   </section>
 
   <section class="wrap section">
@@ -47,6 +58,8 @@ const cvCount = all.filter((p) => p.data.kind === "cv").length;
   .live { margin: 0; min-width: 0; }
   .live figcaption { font-size: 12px; color: var(--ink-2); padding: 0 0 10px; }
   .live figcaption a { color: var(--ink); text-decoration-color: var(--signal); }
+  .still { overflow: hidden; } .still figcaption { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .still img { width: 100%; height: auto; display: block; background: #fff; }
   .tag { background: var(--signal); color: #0d0e10; padding: 2px 6px; border-radius: 3px; margin-right: 6px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 18px; margin-top: 24px; }
   .more { margin-top: 24px; }
