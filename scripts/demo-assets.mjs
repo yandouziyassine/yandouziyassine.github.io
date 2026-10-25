@@ -1,6 +1,6 @@
-// The hard-hat model (project 07) for the browser demo: public/models/ppe_yolo11n_fp16.onnx. Weights are not committed
-// to git; the file is copied from PPE_MODEL or ../cv-data/ppe/web when present. Without it the demo builds as
-// "coming soon". (The ONNX Runtime WASM binary needs no copy: Vite emits it from node_modules.)
+// The hard-hat model (project 07) for the browser demo: public/models/ppe_yolo11n_fp16.onnx (committed, owner decision
+// 2026-10-25). This refreshes it from PPE_MODEL or ../cv-data/ppe/web after a re-export; without the file the demo
+// builds as "coming soon". (The ONNX Runtime WASM binary needs no copy: Vite emits it from node_modules.)
 import fs from "node:fs";
 import path from "node:path";
 
@@ -17,8 +17,7 @@ function copy(src, out) {
 }
 
 if (fs.existsSync(MODEL_SRC)) {
-  copy(MODEL_SRC, MODEL_OUT);
-  console.log(`demo-assets: ${MODEL}`);
-} else {
+  if (copy(MODEL_SRC, MODEL_OUT)) console.log(`demo-assets: refreshed ${MODEL}`);
+} else if (!fs.existsSync(MODEL_OUT)) {
   console.log(`demo-assets: no ${MODEL}, the hard-hat demo builds as "coming soon"`);
 }

@@ -16,9 +16,9 @@ hard hats only, both in the browser, no PatchCore embed, no AWS).
 ## Hard-hat safety check (project 07)
 
 - Model: `ppe_yolo11n_fp16.onnx` (5.4 MB, FP16 weights, float32 I/O) from `cv-data/ppe/web` (exported from the
-  Kaggle kernel `cvlib-07-ppe-full`). **Not committed** (no weights in git): `scripts/demo-assets.mjs` copies it to
-  `public/models/` (gitignored) from `PPE_MODEL` or `../cv-data/ppe/web`. `HARDHAT_LIVE` is true when it is there,
-  so CI and the deploy build the demo as "coming soon" until the model has a hosting decision.
+  Kaggle kernel `cvlib-07-ppe-full`). Committed at `public/models/` (owner decision, 2026-10-25);
+  `scripts/demo-assets.mjs` refreshes it from `PPE_MODEL` or `../cv-data/ppe/web` after a re-export.
+  `HARDHAT_LIVE` is true when the file is there.
 - `src/lib/ppe/postprocess.ts`: letterbox (Ultralytics `LetterBox(auto=False)`), tensor packing, decode of the
   channel-major `[1, 6, 8400]` output, class-aware NMS (IoU 0.45, conf 0.25, max 300), site alert. Port of
   `ppe_onnx_reference.py`.
@@ -31,8 +31,7 @@ hard hats only, both in the browser, no PatchCore embed, no AWS).
   runs only where the samples and the model exist, i.e. locally). Measured locally: all 5 match within
   1.5 px / 0.02 score (3 px / 0.05 for the resized 960x540 sample), ~0.4 s per photo on a laptop CPU.
 
-## Open decision (owner)
+## Decision (owner, 2026-10-25)
 
-Where the hard-hat model is served from in production: committed to this repo under `public/models/`
-(simplest; 5.4 MB of our own weights in a public repo) or downloaded at build time from a public Hugging Face
-model repo (keeps weights out of git; needs the owner to publish it).
+The hard-hat model is committed to this repo under `public/models/` (5.4 MB of our own weights), rather than
+downloaded at build time from a Hugging Face model repo.

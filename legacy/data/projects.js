@@ -127,7 +127,7 @@ window.PROJECTS = [
   { n: "07", title: "PPE Safety Monitor", area: "Detection", depth: 2, image: "images/cv-07.jpg",
     metric: { value: "97.6%", unit: "of violations flagged, 96% precision" },
     summary: "Hard-hat detector with alert-level metrics; retraining on all 13.8k images (Kaggle GPU) cut missed violations by 74 %.",
-    links: [{ label: "Code", href: cv("07-ppe-safety-monitor") }] },
+    links: [{ label: "Code", href: cv("07-ppe-safety-monitor") }, { label: "Live demo", href: "/demos/" }] },
   { n: "08", title: "Traffic Analytics", area: "Video", depth: 2, image: "images/cv-08.gif",
     metric: { value: "km/h", unit: "speeds via homography + tracking" },
     summary: "Detection, ByteTrack tracking, line counting and bird's-eye speed estimation on a 4K highway video.",

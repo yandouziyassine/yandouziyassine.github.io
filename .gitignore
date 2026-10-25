@@ -6,4 +6,3 @@ dist/
 test-results/
 playwright-report/
 public/thumbs/
-public/models/
