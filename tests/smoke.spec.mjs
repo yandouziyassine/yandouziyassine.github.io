@@ -22,3 +22,19 @@ test("project filter hides other topics", async ({ page }) => {
   expect(visible).toBeGreaterThan(0);
   expect(visible).toBeLessThan(total);
 });
+
+// The painter with Chromium's built-in fake camera: the self-hosted wasm and hand model must load,
+// and the "starting" overlay must go away (it stays up with an error message if anything fails).
+test.describe("painter", () => {
+  test.use({
+    permissions: ["camera"],
+  });
+  test("starts with a fake camera on /demos/", async ({ page }) => {
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto("/demos/");
+    await page.getByRole("button", { name: "Start camera" }).click();
+    await expect(page.locator(".vp-msg")).toBeHidden({ timeout: 90_000 });
+    expect(errors).toEqual([]);
+  });
+});
