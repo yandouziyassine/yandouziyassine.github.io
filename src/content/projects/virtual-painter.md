@@ -13,6 +13,7 @@ summary: MediaPipe hand tracking, gesture state machine and a FastAPI live strea
 cover: /images/cv-01.svg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/01-virtual-painter
+  demo: /demos/
 ---
 
 Draw in the air with your finger. A real-time, gesture-controlled drawing app built with
