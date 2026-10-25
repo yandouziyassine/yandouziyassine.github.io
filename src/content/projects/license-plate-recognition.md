@@ -7,9 +7,11 @@ depth: 3
 featured: false
 order: 6
 metric:
-  value: 0 → 90%
-  unit: plates read exactly, after one diagnosis
-summary: YOLO11n fine-tuned on CPU (mAP50 0.983) + OCR; a padding fix and plate-grammar rules took reading from 0% to 90%.
+  value: '0.990'
+  unit: mAP50 on 882 test images
+summary: >-
+  YOLO11n retrained on all 6,176 images on a free cloud GPU (mAP50 0.990) + OCR; a padding fix and plate-grammar rules
+  took reading from 0% to 90%.
 cover: /images/cv-06.jpg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/06-license-plate-recognition
@@ -37,6 +39,23 @@ measured separately.
 Fine-tuning on a quarter of the training set on a CPU gets within ~1 point mAP50 of a public
 model trained on far more data. Caveat: the public model may have seen images from this same
 Roboflow source, so its numbers could be optimistic.
+
+### Retrained on all the data (Kaggle GPU)
+
+The detector above was trained on a laptop CPU with **1,500** of the 6,176 training images (12 epochs). The same
+YOLO11n, same single class, same 640 px, was retrained on **all 6,176 images for 50 epochs** on a free Kaggle T4
+GPU (41 min; [`kaggle_train_full.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/06-license-plate-recognition/kaggle_train_full.py)), selecting on the full official valid split (1,765
+images), then evaluated here on the **same 882 test images** (`python evaluate.py --model full`, numbers in
+[`docs/results_full.json`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/06-license-plate-recognition/docs/results_full.json)):
+
+| | Laptop CPU, 1,500 images | Kaggle GPU, 6,176 images | Public model (morsetechlab v1n) |
+|---|---|---|---|
+| mAP50 / mAP50-95 | 0.983 / 0.686 | **0.990 / 0.717** | 0.993 / 0.717 |
+| Precision / recall | 0.986 / 0.957 | **0.993 / 0.966** | 0.994 / 0.980 |
+
+Four times the data closes most of the gap to the public detector: mAP50-95 (tighter boxes) now matches it,
+recall is still ~1.4 points lower. The gain is small because the CPU model was already at 0.98 mAP50; the
+OCR stage is unchanged (it does not depend on the detector), so reading is still the weak link.
 
 ### Stage 2: reading (300 UK plates with known registrations)
 
