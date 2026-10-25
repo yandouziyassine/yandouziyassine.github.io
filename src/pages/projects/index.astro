@@ -13,7 +13,7 @@ const areas = [...new Set(all.map((p) => p.data.area))].sort();
       <button class="chip" aria-pressed="true" data-f="*">All {all.length}</button>
       {areas.map((a) => <button class="chip" aria-pressed="false" data-f={a}>{a}</button>)}
     </div>
-    <div class="grid">{all.map((p) => <ProjectCard p={p} />)}</div>
+    <div class="grid">{all.map((p, i) => <ProjectCard p={p} eager={i < 3} />)}</div>
   </div>
 </Base>
 <script>
