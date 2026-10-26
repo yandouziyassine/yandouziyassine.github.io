@@ -25,6 +25,16 @@ test("project filter hides other topics", async ({ page }) => {
 
 // The painter with Chromium's built-in fake camera: the self-hosted wasm and hand model must load,
 // and the "starting" overlay must go away (it stays up with an error message if anything fails).
+test("the first Tab reaches a skip link to the main content", async ({ page }) => {
+  await page.goto("/projects/");
+  await page.keyboard.press("Tab");
+  const skip = page.getByRole("link", { name: "Skip to content" });
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeInViewport();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("main")).toBeFocused();
+});
+
 test.describe("painter", () => {
   test.use({
     permissions: ["camera"],
