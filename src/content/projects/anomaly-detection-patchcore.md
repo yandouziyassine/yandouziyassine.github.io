@@ -10,7 +10,7 @@ metric:
   value: '1.000'
   unit: image AUROC, matching the CVPR paper
 summary: Reimplemented an industrial anomaly-detection paper in ~150 lines; finds defects without ever seeing one.
-cover: /images/cv-13.png
+cover: /media/projects/anomaly-detection-patchcore/results_chart.png
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/13-anomaly-detection-patchcore
 ---
@@ -21,8 +21,6 @@ Industrial Anomaly Detection*, CVPR 2022), about 150 lines with no anomaly-detec
 evaluated on the MVTec AD benchmark on a laptop CPU.
 
 Model files and card: [yandyassine/patchcore-mvtec-ad](https://huggingface.co/yandyassine/patchcore-mvtec-ad).
-
-![metal_nut results](/media/projects/anomaly-detection-patchcore/metal_nut_examples.png)
 
 *Top: defective test parts. Middle: ground-truth defect masks. Bottom: PatchCore anomaly heatmap.
 The model was fitted on defect-free nuts only.*
@@ -42,10 +40,9 @@ The model was fitted on defect-free nuts only.*
 
 The from-scratch implementation reproduces the published numbers within ~1 point.
 
-<p float="left">
-  <img src="/media/projects/anomaly-detection-patchcore/bottle_examples.png" width="49%" />
-  <img src="/media/projects/anomaly-detection-patchcore/grid_examples.png" width="49%" />
-</p>
+![results](/media/projects/anomaly-detection-patchcore/results_chart.png)
+
+> Example images not shown: the dataset licence (MVTec AD, CC BY-NC-SA 4.0) does not allow redistribution; see the dataset page.
 
 ## How it works
 

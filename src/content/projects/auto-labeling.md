@@ -10,7 +10,7 @@ metric:
   value: 0.558 vs 0.473
   unit: zero-shot vs supervised mAP
 summary: Grounding DINO + SAM label images from a text prompt and beat a COCO-trained YOLO, 118× slower.
-cover: /images/cv-17.jpg
+cover: /media/projects/auto-labeling/results_chart.png
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/17-auto-labeling
 ---
@@ -21,7 +21,9 @@ hand-drawn boxes: **Grounding DINO** finds objects from a text prompt, **SAM** t
 into a mask. The point is to bootstrap a labeled dataset that you then *review* instead of
 drawing from scratch.
 
-![open-vocabulary demo](/media/projects/auto-labeling/open_vocab_demo.jpg)
+![results](/media/projects/auto-labeling/results_chart.png)
+
+> Example images not shown: COCO images are Flickr photos under mixed licences; see the dataset page.
 
 *Prompts with objects COCO has no labels for (goggles, glove, ski pole, curb, cap). Mistakes are
 visible too: "street lamp" lands on the stop-sign post.*

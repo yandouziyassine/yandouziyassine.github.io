@@ -10,7 +10,6 @@ metric:
   value: km/h
   unit: speeds via homography + tracking
 summary: Detection, ByteTrack tracking, line counting and bird's-eye speed estimation on a 4K highway video.
-cover: /images/cv-08.gif
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/08-traffic-analytics
 ---
@@ -19,7 +18,7 @@ Detects, tracks, counts and **measures the speed** of vehicles on a highway vide
 heatmap of where they drive. The full pipeline (detection → multi-object tracking → line
 counting → perspective-corrected speed estimation) runs on a laptop CPU.
 
-![demo](/media/projects/traffic-analytics/demo.gif)
+> Example images not shown: the dataset licence (Roboflow `vehicles.mp4` sample video, licence not verified) does not allow redistribution; see the dataset page.
 
 ## Results
 
@@ -32,11 +31,6 @@ On the 4K sample highway video (538 frames, ~21 s):
 | Median / mean speed | 119 / 109 km/h as calibrated; **≈ 132 / 120 km/h** after the lane-marking check below |
 | Processing speed | 3.4 FPS on CPU at 4K input (YOLO at 960 px) |
 
-<p float="left">
-  <img src="/media/projects/traffic-analytics/annotated_frame.jpg" width="49%" />
-  <img src="/media/projects/traffic-analytics/heatmap.jpg" width="49%" />
-</p>
-
 *Left: tracked vehicles with IDs, speeds and the counting line. Right: accumulated traffic heatmap.*
 
 ### Calibration check: the road's own ruler
@@ -45,8 +39,6 @@ Speeds depend on one assumption: that the road polygon is a 25 m × 250 m patch.
 video, but the road carries two rulers of its own. [`calibration_check.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/08-traffic-analytics/calibration_check.py) removes the
 cars (median of 25 frames), warps the road to a bird's-eye view with the same calibration, finds the white
 markings and measures them in "calibrated meters":
-
-![calibration check](/media/projects/traffic-analytics/calibration_check.jpg)
 
 | Ruler | Measured with the current calibration | Typical European motorway | Implied correction |
 |---|---|---|---|

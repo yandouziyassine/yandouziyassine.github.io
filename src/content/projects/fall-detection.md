@@ -10,7 +10,7 @@ metric:
   value: ~97%
   unit: of falls caught in ~0.7 s
 summary: Tells a fall from lying down on purpose using pose dynamics; cross-validation grouped by video.
-cover: /images/cv-15.gif
+cover: /media/projects/fall-detection/probability_traces.png
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/15-fall-detection
 ---
@@ -19,10 +19,7 @@ Detects when a person **falls** in a video and raises an alarm, while **not** al
 they sit, crouch or lie down on purpose. Each frame is reduced to a body skeleton (YOLO11n-pose),
 the skeleton to posture and motion features, and a classifier decides whether a fall is happening.
 
-<p float="left">
-  <img src="/media/projects/fall-detection/demo_fall.gif" width="49%" />
-  <img src="/media/projects/fall-detection/demo_lying_not_fall.gif" width="49%" />
-</p>
+> Example images not shown: the dataset licence (UR Fall Detection, research use only) does not allow redistribution; see the dataset page.
 
 *Left: a real fall, alarm raised. Right: lying down on purpose, no alarm. The bar at the bottom
 is the fall probability. Both are test-time (out-of-fold) predictions.*

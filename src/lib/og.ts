@@ -17,9 +17,9 @@ export function ogCards(projects: CollectionEntry<"projects">[]): OgCard[] {
   return [
     { slug: "home", eyebrow: "Computer vision · ML · uOttawa", title: "I build computer vision you can try.",
       metric: { value: String(cv), unit: "measured projects · 2 live demos" },
-      image: "/media/projects/monocular-depth-3d/see_vs_infer.jpg" },
+      image: "/images/cv-01.svg" },
     { slug: "demos", eyebrow: "Live demos", title: "Computer vision running in your browser",
-      sub: "Virtual painter (webcam hand tracking) · Hard-hat safety check (YOLO11n)", image: cover("ppe-safety-monitor") },
+      sub: "Virtual painter (webcam hand tracking) · Hard-hat safety check (YOLO11n)", image: "/images/cv-01.svg" },
     { slug: "projects", eyebrow: "Projects", title: `${projects.length} projects, each with its benchmark number`,
       sub: "Classical CV · detection · segmentation · 3D · foundation models · software" },
     { slug: "resume", eyebrow: "Resume", title: "Computer engineering student, uOttawa",

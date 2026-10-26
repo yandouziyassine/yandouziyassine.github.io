@@ -12,7 +12,7 @@ metric:
 summary: >-
   YOLO11n counts every product on dense supermarket shelves. Retraining on all 8,185 SKU-110K images on a Kaggle GPU
   raised mAP50 from 0.838 to 0.927 and cut count error from 13.3 % to 10.3 % on the same 488 test shelves.
-cover: /images/cv-09.jpg
+cover: /media/projects/retail-shelf-monitor/counting.png
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/09-retail-shelf-monitor
 ---
@@ -21,7 +21,7 @@ Detects and **counts every product** on a supermarket shelf photo, where a singl
 **100–700+ tightly packed items**, and flags possible empty facings. YOLO11n fine-tuned on a laptop
 CPU with only 219 training photos from the SKU-110K benchmark.
 
-![examples](/media/projects/retail-shelf-monitor/examples.jpg)
+> Example images not shown: the dataset licence (SKU-110K, CC BY-NC 2.0) does not allow redistribution; see the dataset page.
 
 *Green: detected products. Red: spots flagged as possibly empty by a simple rule. Many red boxes
 are actually missed products, see below.*
@@ -70,8 +70,6 @@ on the **same 488 test images** (`python evaluate.py --model full`):
 | Bias (predicted − true) | −12.7 | −10.2 (still under-counts) |
 | Images with flagged "gaps" | 401 / 488 | 376 / 488 |
 | CPU inference (960 px) | 128 ms / image | 141 ms / image (same network) |
-
-![examples, full-data model](/media/projects/retail-shelf-monitor/examples_full.jpg)
 
 More data mostly bought recall (+10 points), which is what the counting and gap rule needed. The model
 still under-counts on the most crowded shelves, and the gap rule still fires on most images, so most
