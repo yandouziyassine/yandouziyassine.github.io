@@ -62,4 +62,7 @@ deploys `main`.
 The owner's phone number and personal email never appear on the site, in the PDF or in this repo.
 `tests/privacy.test.mjs` checks the built site with generic patterns.
 
+The Hugging Face Space [yandyassine/cv-project-library](https://huggingface.co/spaces/yandyassine/cv-project-library) is
+built from `hf-hub/` with `npm run build:hf` (output in `dist-hf/`, upload command in `scripts/build-hf-hub.mjs`).
+
 The previous single-page site is kept in `legacy/` (its `data/projects.js` also feeds the migration script).
