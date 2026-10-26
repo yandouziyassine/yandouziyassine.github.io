@@ -10,7 +10,7 @@ metric:
   value: '0.897'
   unit: Dice on colonoscopy images
 summary: U-Net with a Dice + BCE loss for small lesions; the worst failure turned out to be a data artifact.
-cover: /images/cv-11.jpg
+cover: /media/projects/medical-segmentation/training_curves.png
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/11-medical-segmentation
 ---
@@ -19,7 +19,7 @@ Outlines **colorectal polyps** pixel by pixel in colonoscopy images with a **U-N
 encoder, ImageNet-pretrained), trained on a laptop CPU. Polyps are precursors of colorectal
 cancer; automatic segmentation helps endoscopists not miss them.
 
-![predictions](/media/projects/medical-segmentation/predictions.jpg)
+> Example images not shown: the dataset licence (Kvasir-SEG, research / education only) does not allow redistribution; see the dataset page.
 
 *Three typical test cases (left) and the two worst (right). Red: expert annotation. Blue: U-Net prediction.*
 

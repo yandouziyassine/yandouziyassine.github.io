@@ -16,7 +16,7 @@ stack:
   - CLIP
   - SAM
   - OpenCV
-cover: /images/cv-13.png
+cover: /images/cv-12.jpg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY
 ---

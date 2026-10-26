@@ -10,7 +10,6 @@ metric:
   value: +9 pts
   unit: VQA accuracy from prompt wording alone
 summary: A local vision-language model on CPU (VQAv2 67%) and where it fails against a specialized pipeline.
-cover: /images/cv-18.jpg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/18-video-qa-assistant
 ---
@@ -20,7 +19,7 @@ happens in this clip?") and get an answer **fully offline**, with no API key and
 **SmolVLM2-500M**, a small vision-language model, on a laptop CPU at ~2.5 s per image question.
 Two experiments measure what such a small model can and can't do.
 
-![VQA examples](/media/projects/video-qa-assistant/vqa_examples.jpg)
+> Example images not shown: the dataset licence (COCO / UR Fall images: mixed Flickr licences and research-only video) does not allow redistribution; see the dataset page.
 
 *VQAv2 questions on COCO photos. Top: correct answers. Bottom: mistakes (model answer vs the most
 common answer from 10 humans).*

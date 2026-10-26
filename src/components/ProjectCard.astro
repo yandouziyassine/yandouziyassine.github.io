@@ -15,8 +15,8 @@ const thumb = d.cover && /^\/images\/.+\.(png|jpe?g|gif|webp)$/i.test(d.cover)
     {thumb
       ? <img src={`${thumb}-800.webp`} srcset={`${thumb}-400.webp 400w, ${thumb}-800.webp 800w`}
           sizes="(max-width: 700px) 100vw, 380px" width="800" height="450" alt="" loading={loading} decoding="async" />
-      : d.cover ? <img src={d.cover} width="800" height="450" alt="" loading={loading} decoding="async" />
-      : <span class="empty">{d.title}</span>}
+      : d.cover ? <img class:list={[{ chart: d.cover.startsWith("/media/") }]} src={d.cover} width="800" height="450" alt="" loading={loading} decoding="async" />
+      : <span class="empty" aria-hidden="true"><span class="frame mono">{d.area}</span>{d.metric && <b>{d.metric.value}</b>}</span>}
     {d.number && <span class="num mono">{d.number}</span>}
     {d.links.demo && <span class="live mono">Live demo</span>}
   </div>
@@ -34,7 +34,14 @@ const thumb = d.cover && /^\/images\/.+\.(png|jpe?g|gif|webp)$/i.test(d.cover)
   .card:hover, .card:focus-within { border-color: var(--signal); transform: translateY(-2px); }
   .media { position: relative; aspect-ratio: 16 / 9; background: var(--bg-2); border-bottom: 1px solid var(--line); overflow: hidden; }
   .media img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
-  .empty { display: grid; place-items: center; height: 100%; font: italic 400 24px var(--serif); color: var(--ink-3); }
+  /* Result charts (case-study figures) are shown whole, on the white they were plotted on. */
+  .media img.chart { object-fit: contain; object-position: center; background: #fff; padding: 6px; box-sizing: border-box; }
+  /* No licence-safe figure: the detection-box motif around the headline number. */
+  .empty { display: grid; place-content: center; justify-items: center; gap: 10px; height: 100%;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px; }
+  .empty .frame { font-size: 11px; color: #0d0e10; background: var(--signal); padding: 3px 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .empty b { font: 400 46px/1 var(--serif); color: var(--signal); padding: 8px 16px; border: 1.5px solid var(--signal); background: var(--bg-2); }
   .num { position: absolute; top: 10px; left: 10px; font-size: 12px; background: var(--bg); border: 1px solid var(--line); padding: 2px 7px; }
   .live { position: absolute; top: 10px; right: 10px; font-size: 11px; background: var(--signal); color: #0d0e10; padding: 3px 8px;
     text-transform: uppercase; letter-spacing: .04em; border-radius: 3px; }

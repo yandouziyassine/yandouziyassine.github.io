@@ -10,7 +10,7 @@ metric:
   value: 82.9%
   unit: test accuracy, 6 classes
 summary: EfficientNet fine-tuned on CPU; Grad-CAM revealed the model partly looked at the roof, not the dust.
-cover: /images/cv-02.png
+cover: /media/projects/solar-defect-classifier/confusion_matrix.png
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/02-solar-defect-classifier
 ---
@@ -19,7 +19,7 @@ Classifies photos of solar panels into 6 conditions (bird droppings, clean, dust
 damage, physical damage, snow-covered) by fine-tuning a pretrained **EfficientNet-B0**, and
 shows *why* it decided with **Grad-CAM** heatmaps. Trained entirely on a laptop CPU.
 
-![Grad-CAM examples](/media/projects/solar-defect-classifier/gradcam_examples.png)
+> Example images not shown: the dataset licence (licence not recorded, Kaggle) does not allow redistribution; see the dataset page.
 
 ## Results
 

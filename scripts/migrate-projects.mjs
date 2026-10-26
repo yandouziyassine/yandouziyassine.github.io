@@ -51,6 +51,14 @@ function readmeBody(folder, slug) {
 
 const slugOf = (folder) => folder.replace(/^\d+-/, "");
 
+// Site-only edits that a re-migration must keep. The PatchCore Hugging Face demo is not advertised on the site
+// (owner decision 2026-10-24: it does not work well enough); the Space itself stays up.
+const OVERRIDES = {
+  "anomaly-detection-patchcore": (body) => body
+    .replace(/^\*\*▶ Try it live:\*\*.*\n/m, "")
+    .replace("The [live demo](https://huggingface.co/spaces/yandyassine/patchcore-defect-detection) runs", "A browser version runs"),
+};
+
 for (const p of PROJECTS) {
   const folder = p.links[0].href.split("/tree/main/")[1];
   const slug = slugOf(folder);
@@ -60,7 +68,7 @@ for (const p of PROJECTS) {
     featured: FEATURED_CV.has(p.n), order: Number(p.n), metric: p.metric, summary: p.summary,
     cover: p.image ? `/${p.image}` : undefined,
     links: { code: `${CVLIB}/tree/main/${folder}`, demo: demo?.href },
-  }, readmeBody(folder, slug));
+  }, (OVERRIDES[slug] || ((b) => b))(readmeBody(folder, slug)));
 }
 
 const software = [

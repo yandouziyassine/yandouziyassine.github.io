@@ -10,7 +10,6 @@ metric:
   value: 75.2%
   unit: Recall@10 on COCO 5k
 summary: 'CLIP embeddings + FAISS: search photos by typing a description, with a web UI.'
-cover: /images/cv-16.jpg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/16-text-to-image-search
 ---
@@ -18,8 +17,6 @@ links:
 Search a photo collection by **describing what you want**, like "a dog catching a frisbee",
 or by giving an example photo. CLIP embeds images and text into the same vector space, FAISS
 finds the nearest images in milliseconds. No labels or tags needed.
-
-![query example](/media/projects/text-to-image-search/query_2.jpg)
 
 ## Results
 
@@ -39,10 +36,7 @@ COCO 5k), with **no training on COCO at all**. Picking the exact right image out
 first try 39 % of the time is hard: many COCO captions ("a man riding a wave on a surfboard") fit
 dozens of images, so the top results are often correct-looking images that just aren't *the* one.
 
-| | |
-|---|---|
-| ![](/media/projects/text-to-image-search/query_1.jpg) | ![](/media/projects/text-to-image-search/query_3.jpg) |
-| ![](/media/projects/text-to-image-search/query_4.jpg) | ![](/media/projects/text-to-image-search/query_5.jpg) |
+> Example images not shown: the dataset licence (COCO images are Flickr photos under mixed licences) does not allow redistribution; see the dataset page.
 
 ## How it works
 

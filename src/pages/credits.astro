@@ -1,0 +1,49 @@
+---
+// Image and third-party credits, generated from src/data/image-licences.json (the list every published image must be in).
+import Base from "../layouts/Base.astro";
+import licences from "../data/image-licences.json";
+
+const { sources, images } = licences as { sources: Record<string, { name: string; licence: string; url?: string }>; images: Record<string, string> };
+const used = Object.entries(sources).filter(([id]) => id !== "own" && Object.values(images).includes(id));
+const illusions = [
+  ["Ames room forced perspective", "https://commons.wikimedia.org/wiki/File:Ames_room_forced_perspective.jpg", "CC BY 2.0", "mosso"],
+  ["3D street painting", "https://commons.wikimedia.org/wiki/File:3D_street_painting.jpg", "CC BY-SA 4.0", "Limnesh Augustine"],
+  ["Den Helder - Julianaplein, 3D street art 2020", "https://commons.wikimedia.org/wiki/File:Den_Helder_-_Julianaplein,_3D_street_art_2020.jpg", "CC BY-SA 4.0", "Lars van der Heide"],
+  ["Colonnade, trompe l'oeil mural by John Pugh", "https://commons.wikimedia.org/wiki/File:Colonnade,_trompe_l%27oeil_mural_by_John_Pugh.jpg", "CC BY-SA 4.0", "John Pugh"],
+  ["Film crew in trompe l'oeil mural, Cinéma Vox, Chamonix", "https://commons.wikimedia.org/wiki/File:Film_crew_in_trompe_l%27oeil_mural,_Cin%C3%A9ma_Vox,_Chamonix-Mont-Blanc,_2007.jpg", "CC0", "DimiTalen"],
+  ["Man photographing himself in a hotel bathroom with mirrors", "https://commons.wikimedia.org/wiki/File:Man_photographing_himself_in_hotel_bathroom_with_mirrors_all_around_to_generate_illusion_(cropped_twice).jpg", "CC BY-SA 4.0", "Pittigrilli"],
+];
+---
+<Base title="Credits" description="Licences of the images, data and models shown on this site.">
+  <div class="wrap section prose">
+    <span class="eyebrow">Credits</span>
+    <h1 class="display">Images, data and models</h1>
+    <p class="lede">Every image on this site is either my own work (charts, diagrams, drawings, screenshots of my own
+      software) or comes from a dataset under a free licence. Photos from non-commercial, research-only or unlicensed
+      datasets are never shown, even when a project was evaluated on them.</p>
+
+    <h2>Dataset images shown</h2>
+    <ul>
+      {used.map(([, s]) => <li>{s.url ? <a href={s.url} target="_blank" rel="noopener">{s.name}</a> : s.name}: {s.licence}</li>)}
+    </ul>
+
+    <h2>Illusion photos (project 14)</h2>
+    <p>From Wikimedia Commons; the figure that combines them with depth predictions is shared under CC BY-SA 4.0.</p>
+    <ul>
+      {illusions.map(([title, url, licence, author]) => <li><a href={url} target="_blank" rel="noopener">{title}</a> by {author}, {licence}</li>)}
+    </ul>
+
+    <h2>Data used in charts</h2>
+    <ul>
+      <li>Expected-goals chart (project 20): data from <a href="https://github.com/statsbomb/open-data" target="_blank" rel="noopener">StatsBomb open data</a>, under the StatsBomb Public Data User Agreement.</li>
+      <li>Other charts show my own measurements; each case study names its benchmark and links to the dataset's licence in the code repository.</li>
+    </ul>
+
+    <h2>Software in the live demos</h2>
+    <ul>
+      <li>Virtual painter: <a href="https://github.com/google-ai-edge/mediapipe" target="_blank" rel="noopener">MediaPipe Tasks Vision</a> and its hand landmark model, Apache-2.0 (notice in <a href="/mediapipe/NOTICE.txt">/mediapipe/NOTICE.txt</a>).</li>
+      <li>Hard-hat check: <a href="https://onnxruntime.ai" target="_blank" rel="noopener">ONNX Runtime Web</a>, MIT; the model is my YOLO11n (Ultralytics, AGPL-3.0) trained on Hard Hat Workers (CC BY 4.0).</li>
+    </ul>
+    <p>Full dataset and model licence table: <a href="https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/DATA_LICENSES.md" target="_blank" rel="noopener">DATA_LICENSES.md</a>.</p>
+  </div>
+</Base>

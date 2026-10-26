@@ -8,9 +8,8 @@ import { getCollection } from "astro:content";
 const all = await getCollection("projects");
 const featured = all.filter((p) => p.data.featured).sort((a, b) => a.data.order - b.data.order);
 const cvCount = all.filter((p) => p.data.kind === "cv").length;
-// Until the painter is live, the hero shows the strongest single figure: project 14's
-// "what you see vs what the computer sees".
-const HERO = { src: "/media/projects/monocular-depth-3d/see_vs_infer.jpg", href: "/projects/monocular-depth-3d/" };
+// Fallback when the painter is switched off: project 14's depth error by surface (an own chart, licence-safe).
+const HERO = { src: "/media/projects/monocular-depth-3d/failure_by_class.png", href: "/projects/monocular-depth-3d/" };
 ---
 <Base title="Home" description="Computer engineering student building computer vision you can try: measured projects and live demos.">
   <section class="wrap hero">
@@ -29,8 +28,8 @@ const HERO = { src: "/media/projects/monocular-depth-3d/see_vs_infer.jpg", href:
       </figure>
     ) : (
       <figure class="live still panel">
-        <figcaption class="mono"><span class="tag">PROJECT 14</span> What you see vs what the computer sees</figcaption>
-        <a href={HERO.href}><img src={HERO.src} width="1330" height="1008" alt="Rows of photos next to the raw pixel numbers a computer receives, its inferred depth, the sensor truth and a 3D side view" fetchpriority="high" /></a>
+        <figcaption class="mono"><span class="tag">PROJECT 14</span> Depth error by surface: mirrors, glass and pictures vs ordinary surfaces</figcaption>
+        <a href={HERO.href}><img src={HERO.src} width="1560" height="504" alt="Bar chart: depth error of three models per surface type, highest on mirrors, glass and pictures" fetchpriority="high" /></a>
       </figure>
     )}
   </section>

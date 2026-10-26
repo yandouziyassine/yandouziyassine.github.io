@@ -33,6 +33,30 @@ describe("projects", () => {
     expect(pages.filter((f) => f.split(/[\\/]/)[0] === "og")).toEqual([]);
   });
 
+  it("every published image has a licence entry (owner rule: no copyrighted dataset images online)", () => {
+    const { images, sources } = JSON.parse(fs.readFileSync("src/data/image-licences.json", "utf8"));
+    const files = ["images", "media"].flatMap((d) => fs.readdirSync(path.join("public", d), { recursive: true }).map(String)
+      .filter((f) => /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(f)).map((f) => `/${d}/${f.split(path.sep).join("/")}`));
+    expect(files.filter((f) => !images[f])).toEqual([]);                        // a new image needs a licence entry
+    expect(Object.keys(images).filter((k) => !files.includes(k))).toEqual([]);  // no stale entries
+    expect(Object.values(images).filter((s) => !sources[s])).toEqual([]);
+
+    // Every image a built page shows must come from that list (generated variants map back to their original).
+    const original = (src) => src
+      .replace(/^\/media-webp\/(.+?)(\.still)?\.webp$/, (_, p) => files.find((f) => f.replace(/\.[a-z]+$/i, "") === `/media/${p}`) || src)
+      .replace(/^\/thumbs\/(.+)-(400|800)\.webp$/, (_, p) => files.find((f) => f.replace(/\.[a-z]+$/i, "") === `/images/${p}`) || src);
+    const shown = new Set();
+    for (const f of fs.readdirSync("dist", { recursive: true }).map(String).filter((f) => f.endsWith(".html"))) {
+      const html = fs.readFileSync(path.join("dist", f), "utf8");
+      for (const m of html.matchAll(/(?:src|srcset|data-anim)="([^"]+)"/g))
+        for (const part of m[1].split(",")) shown.add(part.trim().split(" ")[0]);
+    }
+    const allowedRemote = /^https:\/\/raw\.githubusercontent\.com\/statsbomb\//; // StatsBomb logo, required by their terms
+    const unlisted = [...shown].filter((s) => /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(s) && !s.startsWith("/_astro/"))
+      .filter((s) => !allowedRemote.test(s) && !images[original(s)]);
+    expect(unlisted).toEqual([]);
+  });
+
   it("every image in a case study has alt text", () => {
     const missing = fs.readdirSync("dist/projects", { recursive: true }).map(String).filter((f) => f.endsWith(".html"))
       .flatMap((f) => {
