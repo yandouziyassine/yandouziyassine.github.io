@@ -1,0 +1,149 @@
+---
+// "Can you beat the AI?": the visitor says which of two points is closer, on the same pairs the project 14 models
+// answered. Everything runs in the browser; answers are not sent anywhere.
+import type { GameData } from "../lib/depth-game";
+interface Props { data: GameData; size?: number }
+const { data, size = 12 } = Astro.props;
+---
+<div class="game" data-game data-size={size}>
+  <script type="application/json" data-game-data set:html={JSON.stringify(data)} />
+  <div class="intro" data-intro>
+    <p>Two points, <b>A</b> and <b>B</b>. Which one is <b>closer to the camera</b>? {size} images: ordinary rooms,
+      but also mirrors, glass, flat pictures and illusions, where depth models are known to fail.</p>
+    <fieldset class="mode">
+      <legend class="mono">Mode</legend>
+      <label><input type="radio" name="mode" value="free" checked /> Take your time</label>
+      <label><input type="radio" name="mode" value="glance" /> Quick glance: the image shows for 0.2 s, like a model's single look</label>
+    </fieldset>
+    <button type="button" class="btn primary" data-start>Start</button>
+  </div>
+
+  <div class="play" data-play hidden>
+    <p class="progress mono" data-progress></p>
+    <figure class="stage" data-stage>
+      <img data-img alt="" />
+      <div class="veil" data-veil hidden>Which point was closer?</div>
+      <button type="button" class="pt" data-pt="a" aria-label="Point A is closer">A</button>
+      <button type="button" class="pt" data-pt="b" aria-label="Point B is closer">B</button>
+    </figure>
+    <div class="answer">
+      <button type="button" class="btn" data-pick="a">A is closer</button>
+      <button type="button" class="btn" data-pick="b">B is closer</button>
+      <span class="mono hint">or press A / B</span>
+    </div>
+    <div class="feedback" data-feedback role="status" aria-live="polite" hidden></div>
+    <button type="button" class="btn primary" data-next hidden>Next</button>
+  </div>
+
+  <div class="result" data-result hidden>
+    <h3 class="score" data-score></h3>
+    <table class="table" data-table></table>
+    <p class="note">Model answers were computed offline by the project 14 study on exactly these images. Your answers
+      stay in this browser.</p>
+    <button type="button" class="btn primary" data-again>Play again</button>
+  </div>
+</div>
+<script>
+  import { buildRound, score, type Answer, type GameData, type Pair, type Side } from "../lib/depth-game";
+
+  const root = document.querySelector<HTMLElement>("[data-game]");
+  if (root) {
+    const data: GameData = JSON.parse(root.querySelector("[data-game-data]")!.textContent!);
+    const size = Number(root.dataset.size);
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const img = $<HTMLImageElement>("[data-img]"), veil = $("[data-veil]"), feedback = $("[data-feedback]"), next = $("[data-next]");
+    const pts = { a: $<HTMLButtonElement>('[data-pt="a"]'), b: $<HTMLButtonElement>('[data-pt="b"]') };
+    const pickBtns = [...root.querySelectorAll<HTMLButtonElement>("[data-pick]")];
+    const label = (c: string) => c.charAt(0).toUpperCase() + c.slice(1);
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+    let round: Pair[] = [], i = 0, answers: Answer[] = [], mode: "free" | "glance" = "free", waiting = false;
+
+    const show = (sel: string) => ["[data-intro]", "[data-play]", "[data-result]"].forEach((s) => ($(s).hidden = s !== sel));
+
+    function start() {
+      mode = (root!.querySelector<HTMLInputElement>('input[name="mode"]:checked')!.value as "free" | "glance");
+      round = buildRound(data.pairs, size); i = 0; answers = [];
+      show("[data-play]"); ask();
+    }
+
+    function ask() {
+      const p = round[i];
+      $("[data-progress]").textContent = `${i + 1} / ${round.length} · ${label(p.category)}`;
+      feedback.hidden = true; next.hidden = true; waiting = true;
+      pickBtns.forEach((b) => (b.disabled = false));
+      for (const s of ["a", "b"] as Side[]) {
+        pts[s].style.left = `${(p[s][0] / p.w) * 100}%`; pts[s].style.top = `${(p[s][1] / p.h) * 100}%`;
+        pts[s].className = "pt";
+      }
+      $("[data-stage]").style.aspectRatio = `${p.w} / ${p.h}`;
+      $("[data-stage]").style.setProperty("--ar", String(p.w / p.h));
+      veil.hidden = true; img.hidden = false;
+      img.onload = () => { if (mode === "glance") setTimeout(() => { img.hidden = true; veil.hidden = false; }, 200); };
+      img.src = p.img;
+      img.alt = `Photo ${i + 1} of the round (${p.category}), with points A and B marked`;
+    }
+
+    function pick(side: Side) {
+      if (!waiting) return;
+      waiting = false;
+      const p = round[i];
+      answers.push({ pair: p, pick: side, mode });
+      img.hidden = false; veil.hidden = true;
+      pts[p.closer].classList.add("right");
+      if (side !== p.closer) pts[side].classList.add("wrong");
+      pickBtns.forEach((b) => (b.disabled = true));
+      const said = data.models.map((m) => `${m.name}: ${p.models[m.id] === p.closer ? "right" : "wrong"}`).join(" · ");
+      feedback.innerHTML = `<b>${side === p.closer ? "Right." : "Wrong."}</b> ${p.closer.toUpperCase()} is closer. ${esc(p.why)}<br><span class="mono">${esc(said)}</span>`;
+      feedback.hidden = false;
+      next.hidden = false; next.textContent = i + 1 < round.length ? "Next" : "See the result";
+      next.focus();
+    }
+
+    function finish() {
+      const s = score(answers, data.models);
+      const pct = (x: { correct: number; total: number }) => (x.total ? `${Math.round((100 * x.correct) / x.total)} %` : "–");
+      $("[data-score]").textContent = `You: ${s.you.all.correct} / ${s.you.all.total} (${mode === "glance" ? "quick glance" : "own pace"})`;
+      const cats = [...s.you.byCat.keys()];
+      const rows = [["You", s.you.all, s.you.byCat] as const,
+        ...s.models.map((m) => [esc(data.models.find((x) => x.id === m.id)!.name), m.all, m.byCat] as const)];
+      const head = `<thead><tr><th scope="col">On these ${s.you.all.total} pairs</th><th scope="col">All</th>${cats.map((c) => `<th scope="col">${label(c)}</th>`).join("")}</tr></thead>`;
+      const body = rows.map(([name, all, by]) => `<tr><th scope="row">${name}</th><td>${pct(all)}</td>${cats.map((c) => `<td>${pct(by.get(c) ?? { correct: 0, total: 0 })}</td>`).join("")}</tr>`).join("");
+      const humans = data.humans ? `<tr><th scope="row">Study volunteers</th><td>–</td>${cats.map((c) => `<td>${data.humans![c] ? Math.round(100 * data.humans![c].acc) + " %" : "–"}</td>`).join("")}</tr>` : "";
+      $("[data-table]").innerHTML = head + `<tbody>${body}${humans}</tbody>`;
+      show("[data-result]");
+    }
+
+    $("[data-start]").addEventListener("click", start);
+    $("[data-again]").addEventListener("click", () => show("[data-intro]"));
+    next.addEventListener("click", () => (++i < round.length ? ask() : finish()));
+    pickBtns.forEach((b) => b.addEventListener("click", () => pick(b.dataset.pick as Side)));
+    (["a", "b"] as Side[]).forEach((s) => pts[s].addEventListener("click", () => pick(s)));
+    addEventListener("keydown", (e) => {
+      if ($("[data-play]").hidden || e.altKey || e.ctrlKey || e.metaKey) return;
+      const k = e.key.toLowerCase();
+      if (k === "a" || k === "b") pick(k);
+    });
+  }
+</script>
+<style>
+  .game { display: grid; gap: 16px; }
+  .intro p, .note { color: var(--ink-2); margin: 0 0 12px; }
+  .mode { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin: 0 0 16px; display: grid; gap: 8px; }
+  .mode legend { font-size: 12px; color: var(--ink-3); padding: 0 6px; }
+  .mode label { display: flex; gap: 8px; align-items: baseline; color: var(--ink-2); cursor: pointer; }
+  .progress { margin: 0 0 8px; font-size: 12px; color: var(--ink-3); }
+  /* Never taller than ~70 % of the window: the width follows the image's aspect ratio, so the points stay aligned. */
+  .stage { position: relative; margin: 0 auto; width: min(100%, calc(70vh * var(--ar, 1.5))); background: #000; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .stage img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .veil { position: absolute; inset: 0; display: grid; place-items: center; background: repeating-linear-gradient(45deg, #15171a 0 8px, #1b1d21 8px 16px); color: var(--ink-2); }
+  .pt { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; border: 3px solid #fff;
+    background: var(--signal); color: #0d0e10; font: 600 15px var(--sans); cursor: pointer; box-shadow: 0 0 0 2px #0d0e10; }
+  .pt.right { background: var(--ok); } .pt.wrong { background: #555; color: #fff; text-decoration: line-through; }
+  .answer { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .hint { font-size: 12px; color: var(--ink-3); }
+  .feedback { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--ink-2); }
+  .feedback .mono { font-size: 12px; color: var(--ink-3); }
+  .score { font: 400 30px var(--serif); margin: 0 0 12px; }
+  .table { width: 100%; border-collapse: collapse; font-size: 14px; display: block; overflow-x: auto; margin-bottom: 12px; }
+  .table :global(th), .table :global(td) { border-bottom: 1px solid var(--line); padding: 7px 10px; text-align: left; white-space: nowrap; }
+</style>

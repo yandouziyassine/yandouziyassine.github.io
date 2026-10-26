@@ -1,0 +1,35 @@
+---
+import fs from "node:fs";
+import Base from "../../layouts/Base.astro";
+import DepthGame from "../../components/DepthGame.astro";
+import { DEPTH_GAME_LIVE } from "../../data/flags";
+import type { GameData } from "../../lib/depth-game";
+
+const data: GameData | null = DEPTH_GAME_LIVE ? JSON.parse(fs.readFileSync("src/data/depth-game.json", "utf8")) : null;
+---
+<Base title="Can you beat the AI?" description="Which of two points is closer? Play against depth-estimation models on mirrors, glass and illusions.">
+  <div class="wrap section">
+    <a class="back mono" href="/demos/">← All demos</a>
+    <div class="section-head"><span class="eyebrow">Human vs machine · project 14</span><h1 class="display">Can you beat the AI?</h1>
+      <p class="lede">Depth models read a single photo very well on ordinary surfaces, then fail on mirrors, glass and
+        painted illusions. Humans fail on some of those too, but not always on the same ones.</p></div>
+    {data ? (
+      <>
+        <div class="panel box"><DepthGame data={data} /></div>
+        <h2 class="small">Image credits</h2>
+        <ul class="credits">
+          {data.credits.map((c) => <li><a href={c.url} target="_blank" rel="noopener">{c.source}</a>, {c.license}</li>)}
+        </ul>
+      </>
+    ) : (
+      <p class="panel box soon">Coming soon: the open-licensed image set for this game is being prepared in the project 14 study.</p>
+    )}
+  </div>
+</Base>
+<style>
+  .back { font-size: 13px; color: var(--ink-3); text-decoration: none; } .back:hover { color: var(--signal); }
+  .box { padding: 22px; margin-top: 24px; }
+  .soon { color: var(--ink-2); }
+  .small { font: 500 15px var(--sans); margin: 28px 0 8px; }
+  .credits { font-size: 13px; color: var(--ink-3); padding-left: 18px; }
+</style>
