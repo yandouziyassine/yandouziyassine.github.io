@@ -35,6 +35,17 @@ describe("projects", () => {
 
   it("every published image has a licence entry (owner rule: no copyrighted dataset images online)", () => {
     const { images, sources } = JSON.parse(fs.readFileSync("src/data/image-licences.json", "utf8"));
+    // The depth game's images carry their own per-image credits (copied by scripts/depth-game.mjs, which already
+    // refuses non-free licences); check them again here.
+    if (fs.existsSync("src/data/depth-game.json")) {
+      const game = JSON.parse(fs.readFileSync("src/data/depth-game.json", "utf8"));
+      const free = /^(CC0|Public domain|CC BY(-SA)? \d\.\d|MIT|Apache-2\.0)\b/i;
+      sources["depth-game"] = { name: "Depth game images", licence: "per image" };
+      for (const c of game.credits) {
+        expect(c.license, c.img).toMatch(free);
+        images[c.img] = "depth-game";
+      }
+    }
     const files = ["images", "media"].flatMap((d) => fs.readdirSync(path.join("public", d), { recursive: true }).map(String)
       .filter((f) => /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(f)).map((f) => `/${d}/${f.split(path.sep).join("/")}`));
     expect(files.filter((f) => !images[f])).toEqual([]);                        // a new image needs a licence entry
