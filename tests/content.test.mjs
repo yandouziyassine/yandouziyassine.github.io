@@ -22,4 +22,14 @@ describe("projects", () => {
     });
     expect(broken).toEqual([]);
   });
+
+  it("every built page has an Open Graph card that exists (and no card template is left as a page)", () => {
+    const pages = fs.readdirSync("dist", { recursive: true }).filter((f) => f.endsWith(".html")).map(String);
+    const missing = pages.flatMap((f) => {
+      const og = fs.readFileSync(path.join("dist", f), "utf8").match(/property="og:image" content="https?:\/\/[^/]+(\/[^"]+)"/);
+      return og && fs.existsSync(path.join("dist", og[1])) ? [] : [f];
+    });
+    expect(missing).toEqual([]);
+    expect(pages.filter((f) => f.split(/[\/]/)[0] === "og")).toEqual([]);
+  });
 });

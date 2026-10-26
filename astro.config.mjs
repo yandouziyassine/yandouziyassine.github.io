@@ -19,13 +19,41 @@ function rehypeLazyImages() {
   };
 }
 
+/** Tables whose header row starts with an empty cell have row labels in column 1: mark them as row headers. */
+function rehypeRowHeaders() {
+  return (/** @type {any} */ tree) => {
+    const walk = (/** @type {any} */ node) => {
+      if (node.tagName === "table") {
+        const rows = [];
+        const collect = (/** @type {any} */ n) => (n.tagName === "tr" ? rows.push(n) : (n.children || []).forEach(collect));
+        collect(node);
+        const cells = (/** @type {any} */ tr) => tr.children.filter((/** @type {any} */ c) => c.type === "element");
+        const corner = rows[0] && cells(rows[0])[0];
+        if (corner?.tagName === "th" && !corner.children.some((/** @type {any} */ c) => c.type !== "text" || c.value.trim())) {
+          corner.properties.scope = "col";
+          corner.children = [{ type: "element", tagName: "span", properties: { className: ["sr-only"] }, children: [{ type: "text", value: "Row" }] }];
+          for (const tr of rows.slice(1)) {
+            const first = cells(tr)[0];
+            if (first?.tagName === "td") { first.tagName = "th"; first.properties.scope = "row"; }
+          }
+        }
+      }
+      (node.children || []).forEach(walk);
+    };
+    walk(tree);
+  };
+}
+
 // SITE_URL is set by the deploy workflow (custom domain); local builds use the current address.
 export default defineConfig({
   site: process.env.SITE_URL || "https://yandouziyassine.github.io",
   trailingSlash: "always",
   build: { format: "directory" },
-  integrations: [sitemap()],
-  markdown: { processor: unified({ rehypePlugins: [rehypeLazyImages] }) },
+  integrations: [sitemap({ filter: (page) => !page.includes("/og/") })], // og/ = build-time card templates
+  markdown: {
+    processor: unified({ rehypePlugins: [rehypeLazyImages, rehypeRowHeaders] }),
+    shikiConfig: { theme: "github-dark-high-contrast" }, // the default theme's comments fail WCAG contrast
+  },
   // Fonts are downloaded at build time and served by the site itself (no render-blocking Google request),
   // with metric-matched fallbacks so text does not jump when they load.
   fonts: [

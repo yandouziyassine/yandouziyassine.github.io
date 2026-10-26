@@ -4,7 +4,7 @@ const path = Astro.url.pathname;
 const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 ---
 <header class="site-nav">
-  <a class="mark" href="/" aria-label="Home"><span class="mark-box"></span><span class="mono">Yassine Yandouzi</span></a>
+  <a class="mark" href="/"><span class="mark-box"></span><span class="mono">Yassine Yandouzi</span></a>
   <nav aria-label="Main">
     {links.map(([href, label]) => <a href={href} aria-current={active(href) ? "page" : undefined}>{label}</a>)}
     <a class="gh" href="https://github.com/yandouziyassine" target="_blank" rel="noopener">GitHub ↗</a>
