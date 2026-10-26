@@ -3,6 +3,8 @@
     "collect": {
       "staticDistDir": "./dist",
       "url": [
+        "http://localhost/",
+        "http://localhost/demos/",
         "http://localhost/projects/",
         "http://localhost/resume/",
         "http://localhost/projects/monocular-depth-3d/"

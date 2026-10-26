@@ -1,26 +1,62 @@
 # yandouziyassine.github.io
 
-Personal portfolio site: plain HTML + CSS + JavaScript, no build step, served by GitHub Pages.
+Portfolio site: computer vision projects with their measured results, two demos that run in the visitor's
+browser, and a web resume with a generated PDF. Built with [Astro](https://astro.build) and deployed to GitHub
+Pages by a workflow on every push to `main`. Live at https://yandouziyassine.github.io.
+
+## Pages
+
+| Route | Source |
+|---|---|
+| `/` | `src/pages/index.astro`: hero with the live painter, featured projects, about |
+| `/demos/` | `src/pages/demos.astro`: virtual painter (webcam) and hard-hat safety check (photo) |
+| `/projects/`, `/projects/<slug>/` | `src/content/projects/*.md`, one Markdown file per project |
+| `/resume/` + `/cv/Yassine_Yandouzi_CV.pdf` | `src/data/resume.yaml`; the PDF is printed from the page at build time |
+| `/contact/`, `/404` | `src/pages/` |
 
 ## Add or edit a project
 
-Everything shown on the site comes from **`data/projects.js`**:
+Edit or add a file in `src/content/projects/`. The frontmatter schema is in `src/content.config.ts` (title, area,
+depth, metric, summary, stack, cover, links; `featured: true` puts it on the home page). The body is the case study.
+Images go in `public/media/projects/<slug>/`; card covers in `public/images/` (WebP thumbnails are generated).
 
-- `FEATURED`: the big cards at the top (Computer Vision Library, Slipstream, JoBaI, …).
-  Copy one object, change the fields, done.
-- `PROJECTS`: the Computer Vision Library grid. A new `area` value automatically creates a new filter chip.
-- `SKILLS`, `SITE`: the skills table and the name / headline / GitHub link.
+`scripts/migrate-projects.mjs` regenerates the CV library pages from `legacy/data/projects.js` and the library
+READMEs (`node scripts/migrate-projects.mjs [path-to-library]`). It overwrites hand edits, so review the diff.
 
-Images go in `images/` (keep each under ~2 MB; GIFs are fine).
+## Demos
 
-## Preview locally
+Both run entirely in the browser; nothing the visitor shows them is uploaded.
+
+- **Virtual painter** (`src/components/Painter.astro`): vendored painter-web module (`src/vendor/painter/`) with
+  MediaPipe's wasm runtime and hand model self-hosted in `public/mediapipe/` (Apache-2.0 notice there).
+- **Hard-hat check** (`src/components/HardHat.astro`, `src/lib/ppe/`): the project 07 YOLO11n model
+  (`public/models/ppe_yolo11n_fp16.onnx`) in ONNX Runtime Web; decode and NMS ported from the Python reference.
+
+Ship switches are in `src/data/flags.ts`. Details: `docs/superpowers/plans/2026-10-25-portfolio-v2-phase2-demos.md`.
+
+## Develop
 
 ```bash
-python -m http.server 8766
-# then open http://localhost:8766
+npm ci
+npm run dev          # http://localhost:4321
 ```
 
-## Publish
+## Test
 
-Push to the `main` branch of the `yandouziyassine.github.io` repository; GitHub Pages serves it at
-https://yandouziyassine.github.io within a minute or two.
+```bash
+npm run build        # site + PDF resume in dist/
+npm test             # Vitest: content, privacy (no phone or email anywhere), hard-hat decode
+npm run test:links   # internal links in dist/
+npm run test:smoke   # Playwright: pages, filter, painter with a fake camera, hard-hat parity (local only)
+npm run test:lhci    # Lighthouse: performance and accessibility >= 0.9
+```
+
+CI (`.github/workflows/ci.yml`) runs all of these on every branch except `main`; `pages.yml` builds, tests and
+deploys `main`.
+
+## Privacy rule
+
+The owner's phone number and personal email never appear on the site, in the PDF or in this repo.
+`tests/privacy.test.mjs` checks the built site with generic patterns.
+
+The previous single-page site is kept in `legacy/` (its `data/projects.js` also feeds the migration script).

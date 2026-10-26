@@ -1,6 +1,6 @@
 :root {
   --bg: #0d0e10; --bg-2: #141518; --panel: #17191d; --line: #262930; --line-2: #33373f;
-  --ink: #ecebe6; --ink-2: #a9a8a2; --ink-3: #6f6e6a;
+  --ink: #ecebe6; --ink-2: #a9a8a2; --ink-3: #8a8984; /* >= 4.5:1 on every background (WCAG AA) */
   --signal: #ff5b1f; --signal-soft: rgba(255, 91, 31, 0.12); --ok: #7fd18b;
   --serif: var(--font-serif); --sans: var(--font-sans);
   --mono: var(--font-mono);
@@ -18,6 +18,7 @@ body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-i
 a { color: inherit; }
 img { max-width: 100%; height: auto; }
 [hidden] { display: none !important; }      /* components set display: flex, which would beat the hidden attribute */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 ::selection { background: var(--signal); color: #0d0e10; }
 .wrap { max-width: var(--max); margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
 .mono { font-family: var(--mono); letter-spacing: -0.01em; }
