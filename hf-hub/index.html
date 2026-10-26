@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computer Vision Project Library</title>
+<meta name="description" content="Hands-on computer vision projects, each measured on a real benchmark: code, results and live demos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0e10; --bg-2: #141518; --panel: #17191d; --line: #262930; --line-2: #33373f;
+  --ink: #ecebe6; --ink-2: #a9a8a2; --ink-3: #8a8984; --signal: #ff5b1f; --ok: #7fd18b;
+  --serif: "Instrument Serif", Georgia, serif; --sans: "Geist", ui-sans-serif, sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f4f2ec; --bg-2: #ece9e1; --panel: #fbfaf6; --line: #dcd8cd; --line-2: #c9c4b6;
+    --ink: #17181a; --ink-2: #4c4b47; --ink-3: #696760; --signal: #e0480f; --ok: #2f8a3e; color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--sans); }
+a { color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+header { padding: 48px 0 20px; border-bottom: 1px solid var(--line); }
+.kicker { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+h1 { font: 400 clamp(38px, 5.5vw, 62px)/1.05 var(--serif); margin: 10px 0 12px; }
+h1 em { color: var(--signal); }
+.lede { color: var(--ink-2); max-width: 720px; margin: 0 0 18px; font-size: 16px; }
+.links { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 13px var(--mono); }
+.links a { text-decoration-color: var(--line-2); text-underline-offset: 3px; }
+.links a:hover { text-decoration-color: var(--signal); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 18px 0; }
+.chip { all: unset; cursor: pointer; font: 12px var(--mono); padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 999px; color: var(--ink-2); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip:focus-visible { outline: 2px solid var(--signal); }
+.chip.demo[aria-pressed="true"] { background: var(--signal); border-color: var(--signal); color: #0d0e10; }
+input[type=search] { flex: 1 1 200px; min-width: 0; max-width: 300px; margin-left: auto; padding: 8px 12px; border-radius: 6px;
+  border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); font: 13px var(--sans); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding-bottom: 48px; }
+.card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); overflow: hidden; }
+.media { position: relative; aspect-ratio: 16 / 9; background: var(--bg-2); border-bottom: 1px solid var(--line); }
+.media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.num { position: absolute; top: 8px; left: 8px; font: 500 12px var(--mono); padding: 2px 7px; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; }
+.live { position: absolute; top: 8px; right: 8px; font: 500 11px var(--mono); padding: 2px 7px; background: var(--signal); color: #0d0e10; border-radius: 3px; }
+.body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.area { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+.body h2 { margin: 0; font: 400 24px/1.15 var(--serif); }
+.metric { display: flex; align-items: baseline; gap: 8px; }
+.metric b { font: 400 26px/1 var(--serif); color: var(--signal); }
+.metric span { font: 12px var(--mono); color: var(--ink-3); }
+.body p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.actions { margin-top: auto; padding-top: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
+.actions a { font: 500 12.5px var(--mono); text-decoration: none; padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 4px; }
+.actions a:hover { border-color: var(--signal); }
+.actions a.primary { border-color: var(--signal); color: var(--signal); }
+.empty { color: var(--ink-3); padding: 40px 0; text-align: center; grid-column: 1 / -1; }
+footer { border-top: 1px solid var(--line); padding: 20px 0 36px; font-size: 13px; color: var(--ink-3); }
+@media (max-width: 480px) { .wrap { padding: 0 16px; } input[type=search] { max-width: none; margin-left: 0; } }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="kicker">yandyassine · computer vision</div>
+  <h1>Computer Vision <em>Project Library</em></h1>
+  <p class="lede">Hands-on projects from classical OpenCV to foundation models, each measured on a real benchmark,
+    trained on a laptop CPU or on free cloud GPUs. Filter by topic, or show only the ones you can try live in your browser.</p>
+  <div class="links">
+    <a href="https://yandouziyassine.github.io/demos/" target="_blank" rel="noopener">Live demos ↗</a>
+    <a href="https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY" target="_blank" rel="noopener">Code on GitHub ↗</a>
+    <a href="https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/THEORY.md" target="_blank" rel="noopener">Theory course ↗</a>
+    <a href="https://yandouziyassine.github.io" target="_blank" rel="noopener">Portfolio ↗</a>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <div class="bar" id="bar" role="toolbar" aria-label="Filter projects"></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer><div class="wrap">Project data is shared with the portfolio site. Datasets keep their own licenses (listed in the repository).</div></footer>
+
+<script>window.FEATURED = []; window.SKILLS = []; window.SITE = {};</script>
+<script src="projects.js"></script>
+<script>
+const SITE = "https://yandouziyassine.github.io/";
+// Raster covers use the site's 800 px WebP card thumbnails (some originals are multi-MB GIFs).
+const thumb = (img) => /\.(png|jpe?g|gif|webp)$/i.test(img) ? img.replace(/^images\//, "thumbs/").replace(/\.[a-z]+$/i, "-800.webp") : img;
+const CASE = window.CASE_STUDIES || {};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const P = [...window.PROJECTS].sort((a, b) => a.n.localeCompare(b.n));
+const demo = (p) => (p.links || []).find((l) => /demo/i.test(l.label));
+let area = "*", liveOnly = false, query = "";
+
+const areas = [...new Set(P.map((p) => p.area))];
+const bar = document.getElementById("bar");
+bar.innerHTML = [`<button class="chip" data-a="*" aria-pressed="true">All ${P.length}</button>`]
+  .concat(areas.map((a) => `<button class="chip" data-a="${esc(a)}" aria-pressed="false">${esc(a)}</button>`))
+  .concat([`<button class="chip demo" data-live aria-pressed="false">▶ Live demos ${P.filter(demo).length}</button>`,
+           `<input type="search" id="q" placeholder="Search (e.g. YOLO, depth, CLIP)" aria-label="Search projects">`]).join("");
+bar.addEventListener("click", (e) => {
+  const b = e.target.closest(".chip");
+  if (!b) return;
+  if (b.hasAttribute("data-live")) { liveOnly = !liveOnly; b.setAttribute("aria-pressed", liveOnly); }
+  else { area = b.dataset.a; bar.querySelectorAll(".chip:not([data-live])").forEach((c) => c.setAttribute("aria-pressed", c === b)); }
+  render();
+});
+document.getElementById("q").addEventListener("input", (e) => { query = e.target.value.trim().toLowerCase(); render(); });
+
+function render() {
+  const list = P.filter((p) => (area === "*" || p.area === area) && (!liveOnly || demo(p)) &&
+    (!query || JSON.stringify(p).toLowerCase().includes(query)));
+  document.getElementById("grid").innerHTML = list.length ? list.map((p) => {
+    const d = demo(p);
+    const code = (p.links || []).find((l) => !/demo/i.test(l.label));
+    return `<article class="card">
+      <div class="media">${p.image ? `<img src="${SITE + esc(thumb(p.image))}" alt="${esc(p.title)} result" loading="lazy">` : ""}
+        <span class="num">${esc(p.n)}</span>${d ? '<span class="live">LIVE</span>' : ""}</div>
+      <div class="body">
+        <span class="area">${esc(p.area)}</span>
+        <h2>${esc(p.title)}</h2>
+        ${p.metric ? `<div class="metric"><b>${esc(p.metric.value)}</b><span>${esc(p.metric.unit)}</span></div>` : ""}
+        <p>${esc(p.summary)}</p>
+        <div class="actions">
+          ${d ? `<a class="primary" href="${esc(d.href)}" target="_blank" rel="noopener">▶ Try it live</a>` : ""}
+          ${CASE[p.n] ? `<a href="${SITE}projects/${esc(CASE[p.n])}/" target="_blank" rel="noopener">Case study ↗</a>` : ""}
+          ${code ? `<a href="${esc(code.href)}" target="_blank" rel="noopener">Code ↗</a>` : ""}
+        </div>
+      </div></article>`;
+  }).join("") : `<p class="empty">No project matches.</p>`;
+}
+render();
+</script>
+</body>
+</html>

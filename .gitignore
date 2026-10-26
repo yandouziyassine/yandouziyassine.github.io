@@ -8,3 +8,4 @@ playwright-report/
 public/thumbs/
 public/media-webp/
 src/data/media.json
+dist-hf/
