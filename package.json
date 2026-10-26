@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "node scripts/thumbs.mjs && node scripts/demo-assets.mjs && astro dev",
-    "build": "node scripts/thumbs.mjs && node scripts/demo-assets.mjs && astro build && node scripts/build-pdf.mjs",
+    "build": "node scripts/thumbs.mjs && node scripts/demo-assets.mjs && astro build && node scripts/build-pdf.mjs && node scripts/build-og.mjs",
     "preview": "astro preview --port 4321",
     "migrate": "node scripts/migrate-projects.mjs",
     "test": "vitest run",

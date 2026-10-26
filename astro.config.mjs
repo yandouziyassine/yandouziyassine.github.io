@@ -49,7 +49,7 @@ export default defineConfig({
   site: process.env.SITE_URL || "https://yandouziyassine.github.io",
   trailingSlash: "always",
   build: { format: "directory" },
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: (page) => !page.includes("/og/") })], // og/ = build-time card templates
   markdown: {
     processor: unified({ rehypePlugins: [rehypeLazyImages, rehypeRowHeaders] }),
     shikiConfig: { theme: "github-dark-high-contrast" }, // the default theme's comments fail WCAG contrast

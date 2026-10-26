@@ -10,7 +10,7 @@ const { p } = Astro.props;
 const d = p.data;
 const { Content } = await render(p);
 ---
-<Base title={d.title} description={d.summary} image={d.cover}>
+<Base title={d.title} description={d.summary}>
   <article class="wrap section">
     <a class="back mono" href="/projects/">← All projects</a>
     <header class="head">

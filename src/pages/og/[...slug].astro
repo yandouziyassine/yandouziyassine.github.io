@@ -1,0 +1,68 @@
+---
+// Build-time template for the Open Graph cards (see src/lib/og.ts). Screenshotted, then deleted from dist/.
+import "../../styles/global.css";
+import { Font } from "astro:assets";
+import { getCollection } from "astro:content";
+import { ogCards, type OgCard } from "../../lib/og";
+
+export async function getStaticPaths() {
+  const cards = ogCards(await getCollection("projects"));
+  return cards.map((card) => ({ params: { slug: card.slug }, props: { card } }));
+}
+const { card } = Astro.props as { card: OgCard };
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="robots" content="noindex" />
+  <title>OG card</title>
+  <Font cssVariable="--font-sans" preload />
+  <Font cssVariable="--font-serif" preload />
+  <Font cssVariable="--font-mono" preload />
+</head>
+<body>
+  <div class={`card ${card.image ? "with-image" : ""}`}>
+    <div class="text">
+      <p class="brand mono"><span class="mark"></span>Yassine Yandouzi</p>
+      <div>
+        <p class="eyebrow mono">{card.eyebrow}</p>
+        <h1>{card.title}</h1>
+        {card.metric && <p class="metric"><span class="v">{card.metric.value}</span><span class="u mono">{card.metric.unit}</span></p>}
+        {card.sub && <p class="sub">{card.sub}</p>}
+      </div>
+      <p class="url mono">yandouziyassine.github.io</p>
+    </div>
+    {card.image && (
+      <figure class="fig"><img src={card.image} alt="" /><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></figure>
+    )}
+  </div>
+</body>
+</html>
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: var(--bg); }
+  .card { box-sizing: border-box; width: 1200px; height: 630px; padding: 56px 64px; display: grid; gap: 48px;
+    grid-template-columns: 1fr; position: relative;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 60px 60px; background-position: -1px -1px; }
+  .card::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 20% 40%, transparent, var(--bg) 75%); pointer-events: none; }
+  .card.with-image { grid-template-columns: 1fr 440px; }
+  .text { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+  .brand { display: flex; align-items: center; gap: 14px; margin: 0; font-size: 22px; color: var(--ink); }
+  .mark { width: 22px; height: 22px; border: 3px solid var(--signal); position: relative; }
+  .mark::after { content: ""; position: absolute; inset: 4px; background: var(--signal); }
+  .eyebrow { margin: 0 0 14px; font-size: 20px; color: var(--signal); letter-spacing: .02em; }
+  h1 { margin: 0; font: 400 66px/1.02 var(--serif); color: var(--ink); letter-spacing: -0.01em;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .metric { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 26px 0 0; }
+  .v { font: 400 64px/1 var(--serif); color: var(--signal); }
+  .u { font-size: 22px; color: var(--ink-2); }
+  .sub { margin: 24px 0 0; font-size: 26px; line-height: 1.35; color: var(--ink-2);
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .url { margin: 0; font-size: 18px; color: var(--ink-3); }
+  .fig { position: relative; z-index: 1; margin: 0; align-self: center; height: 440px; background: var(--bg-2); border: 1px solid var(--line-2); }
+  .fig img { width: 100%; height: 100%; object-fit: contain; display: block; } /* whole figure, letterboxed */
+  .c { position: absolute; width: 26px; height: 26px; border: 5px solid var(--signal); }
+  .tl { top: -9px; left: -9px; border-right: 0; border-bottom: 0; } .tr { top: -9px; right: -9px; border-left: 0; border-bottom: 0; }
+  .bl { bottom: -9px; left: -9px; border-right: 0; border-top: 0; } .br { bottom: -9px; right: -9px; border-left: 0; border-top: 0; }
+</style>
