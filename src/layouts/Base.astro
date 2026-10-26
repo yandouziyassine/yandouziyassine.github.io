@@ -33,8 +33,9 @@ const ogImage = new URL(`/og/${ogSlug(Astro.url.pathname, cards)}.jpg`, Astro.si
   <Font cssVariable="--font-mono" />
 </head>
 <body>
+  <a class="skip" href="#main">Skip to content</a>
   <Nav />
-  <main id="main"><slot /></main>
+  <main id="main" tabindex="-1"><slot /></main>
   <Footer />
 </body>
 </html>

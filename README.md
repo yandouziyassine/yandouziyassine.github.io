@@ -18,7 +18,9 @@ Pages by a workflow on every push to `main`. Live at https://yandouziyassine.git
 
 Edit or add a file in `src/content/projects/`. The frontmatter schema is in `src/content.config.ts` (title, area,
 depth, metric, summary, stack, cover, links; `featured: true` puts it on the home page). The body is the case study.
-Images go in `public/media/projects/<slug>/`; card covers in `public/images/` (WebP thumbnails are generated).
+Images go in `public/media/projects/<slug>/`; card covers in `public/images/`. WebP versions are generated at build
+time (`scripts/thumbs.mjs` for cards, `scripts/media.mjs` for case-study figures; animated GIFs show their first
+frame until the page has loaded).
 
 `scripts/migrate-projects.mjs` regenerates the CV library pages from `legacy/data/projects.js` and the library
 READMEs (`node scripts/migrate-projects.mjs [path-to-library]`). It overwrites hand edits, so review the diff.
@@ -48,7 +50,8 @@ npm run build        # site + PDF resume in dist/
 npm test             # Vitest: content, privacy (no phone or email anywhere), hard-hat decode
 npm run test:links   # internal links in dist/
 npm run test:smoke   # Playwright: pages, filter, painter with a fake camera, hard-hat parity (local only)
-npm run test:lhci    # Lighthouse: performance and accessibility >= 0.9
+npm run test:lhci    # Lighthouse CI on 5 pages (3 runs each): performance and accessibility >= 0.9
+npm run test:lh-all  # one Lighthouse run on every page (2026-10-26: performance 0.95-1.0, accessibility 1.0)
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of these on every branch except `main`; `pages.yml` builds, tests and

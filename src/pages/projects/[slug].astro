@@ -27,8 +27,33 @@ const { Content } = await render(p);
     <div class="prose"><Content /></div>
   </article>
 </Base>
+<script>
+  // Animated figures are first shown as their first frame (data-anim holds the animation, see scripts/media.mjs):
+  // swap the animation in once the page has loaded, or on click when the visitor prefers reduced motion.
+  const play = (img: HTMLImageElement) => {
+    const anim = img.dataset.anim;
+    if (!anim) return;
+    delete img.dataset.anim;
+    const next = new Image();
+    next.onload = () => { img.src = anim; img.classList.remove("paused"); };
+    next.src = anim;
+  };
+  const imgs = [...document.querySelectorAll<HTMLImageElement>(".prose img[data-anim]")];
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    for (const img of imgs) {
+      img.classList.add("paused");
+      img.title = "Animation paused (reduced motion): click to play";
+      img.addEventListener("click", () => play(img), { once: true });
+    }
+  } else {
+    const start = () => imgs.forEach(play);
+    if (document.readyState === "complete") start();
+    else addEventListener("load", start, { once: true });
+  }
+</script>
 <style>
   .back { font-size: 13px; color: var(--ink-3); text-decoration: none; } .back:hover { color: var(--signal); }
   .head { display: grid; gap: 16px; margin: 18px 0 30px; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .prose :global(img.paused) { cursor: pointer; }
 </style>
