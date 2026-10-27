@@ -14,7 +14,17 @@ export interface GameData {
   humans?: Record<string, { acc: number; n: number }>;
   credits: { img: string; source: string; license: string; url: string }[];
 }
-export interface Answer { pair: Pair; pick: Side; mode: "glance" | "free"; }
+export interface Answer { pair: Pair; pick: Side; mode: "glance" | "free"; ms?: number; }
+
+/** The project 14 study's answers file (14-monocular-depth-3d/web_study, read by w9_analyze.py): anonymous, a random
+ *  session code plus, per trial, the pair id, the choice, the response time and the exposure. */
+export function studyFile(answers: Answer[], session: string, started: string) {
+  return {
+    session, n: answers.length, started, source: "portfolio-game",
+    plan: { exposure: answers.map((a) => (a.mode === "glance" ? "flash" : "free")), transform: answers.map(() => "none"), flash_ms: 200 },
+    answers: answers.map((a) => ({ id: a.pair.id, choice: a.pick, ms: a.ms, exposure: a.mode === "glance" ? "flash" : "free", transform: "none" })),
+  };
+}
 
 /** Small seeded PRNG so a round can be replayed in tests. */
 export function rng(seed: number) {
