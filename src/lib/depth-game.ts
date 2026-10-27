@@ -12,7 +12,7 @@ export interface GameData {
   models: { id: string; name: string }[];
   pairs: Pair[];
   humans?: Record<string, { acc: number; n: number }>;
-  credits: { img: string; source: string; license: string; url: string }[];
+  credits: { img: string; source: string; license: string; url: string; includes?: { source: string; license: string; url: string } }[];
 }
 export interface Answer { pair: Pair; pick: Side; mode: "glance" | "free"; ms?: number; }
 

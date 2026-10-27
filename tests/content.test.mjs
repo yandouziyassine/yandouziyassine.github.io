@@ -43,6 +43,7 @@ describe("projects", () => {
       sources["depth-game"] = { name: "Depth game images", licence: "per image" };
       for (const c of game.credits) {
         expect(c.license, c.img).toMatch(free);
+        if (c.includes) expect(c.includes.license, `${c.img} (included picture)`).toMatch(free);
         images[c.img] = "depth-game";
       }
     }
