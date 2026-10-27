@@ -10,6 +10,7 @@ metric:
   value: 97.6%
   unit: of violations flagged, 96% precision
 summary: Hard-hat detector with alert-level metrics; retraining on all 13.8k images (Kaggle GPU) cut missed violations by 74 %.
+cover: /images/chart-07.svg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/07-ppe-safety-monitor
   demo: /demos/
@@ -18,6 +19,8 @@ links:
 Detects every head in an image as **wearing a hard hat** or **not**, and raises a site alert
 when anyone is missing one. YOLO11n (COCO-pretrained) fine-tuned on a laptop CPU; evaluated both
 as an object detector (mAP) and as the alert a safety manager would actually receive.
+
+![Chart of this project's measured results](/images/chart-07.svg)
 
 > Example images not shown: the dataset licence (Roboflow CC BY 4.0, but the source photos carry third-party watermarks) does not allow redistribution; see the dataset page.
 

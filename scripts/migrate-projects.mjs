@@ -59,6 +59,15 @@ const OVERRIDES = {
     .replace("The [live demo](https://huggingface.co/spaces/yandyassine/patchcore-defect-detection) runs", "A browser version runs"),
 };
 
+// A case study left without any figure (its photos were not licence-safe) shows its result chart
+// (scripts/result-charts.mjs) under the opening paragraph.
+function withChart(image, body) {
+  if (!/^images\/chart-\d+\.svg$/.test(image || "") || /!\[|<img/.test(body)) return body;
+  const fig = `![Chart of this project's measured results](/${image})`;
+  const cut = body.indexOf("\n\n", body.search(/\S/));
+  return cut < 0 ? `${body}\n\n${fig}\n` : `${body.slice(0, cut)}\n\n${fig}${body.slice(cut)}`;
+}
+
 for (const p of PROJECTS) {
   const folder = p.links[0].href.split("/tree/main/")[1];
   const slug = slugOf(folder);
@@ -68,7 +77,7 @@ for (const p of PROJECTS) {
     featured: FEATURED_CV.has(p.n), order: Number(p.n), metric: p.metric, summary: p.summary,
     cover: p.image ? `/${p.image}` : undefined,
     links: { code: `${CVLIB}/tree/main/${folder}`, demo: demo?.href },
-  }, (OVERRIDES[slug] || ((b) => b))(readmeBody(folder, slug)));
+  }, withChart(p.image, (OVERRIDES[slug] || ((b) => b))(readmeBody(folder, slug))));
 }
 
 const software = [

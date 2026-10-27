@@ -10,6 +10,7 @@ metric:
   value: km/h
   unit: speeds via homography + tracking
 summary: Detection, ByteTrack tracking, line counting and bird's-eye speed estimation on a 4K highway video.
+cover: /images/chart-08.svg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/08-traffic-analytics
 ---
@@ -17,6 +18,8 @@ links:
 Detects, tracks, counts and **measures the speed** of vehicles on a highway video, and builds a
 heatmap of where they drive. The full pipeline (detection → multi-object tracking → line
 counting → perspective-corrected speed estimation) runs on a laptop CPU.
+
+![Chart of this project's measured results](/images/chart-08.svg)
 
 > Example images not shown: the dataset licence (Roboflow `vehicles.mp4` sample video, licence not verified) does not allow redistribution; see the dataset page.
 

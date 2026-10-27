@@ -10,6 +10,7 @@ metric:
   value: +9 pts
   unit: VQA accuracy from prompt wording alone
 summary: A local vision-language model on CPU (VQAv2 67%) and where it fails against a specialized pipeline.
+cover: /images/chart-18.svg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/18-video-qa-assistant
 ---
@@ -18,6 +19,8 @@ Ask questions in plain English about a photo or a video ("How many people are th
 happens in this clip?") and get an answer **fully offline**, with no API key and no GPU. It runs
 **SmolVLM2-500M**, a small vision-language model, on a laptop CPU at ~2.5 s per image question.
 Two experiments measure what such a small model can and can't do.
+
+![Chart of this project's measured results](/images/chart-18.svg)
 
 > Example images not shown: the dataset licence (COCO / UR Fall images: mixed Flickr licences and research-only video) does not allow redistribution; see the dataset page.
 
