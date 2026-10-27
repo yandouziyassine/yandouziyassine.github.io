@@ -10,6 +10,7 @@ metric:
   value: 75.2%
   unit: Recall@10 on COCO 5k
 summary: 'CLIP embeddings + FAISS: search photos by typing a description, with a web UI.'
+cover: /images/chart-16.svg
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/16-text-to-image-search
 ---
@@ -17,6 +18,8 @@ links:
 Search a photo collection by **describing what you want**, like "a dog catching a frisbee",
 or by giving an example photo. CLIP embeds images and text into the same vector space, FAISS
 finds the nearest images in milliseconds. No labels or tags needed.
+
+![Chart of this project's measured results](/images/chart-16.svg)
 
 ## Results
 
