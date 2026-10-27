@@ -18,7 +18,10 @@ const data: GameData | null = DEPTH_GAME_LIVE ? JSON.parse(fs.readFileSync("src/
         <div class="panel box"><DepthGame data={data} /></div>
         <h2 class="small">Image credits</h2>
         <ul class="credits">
-          {data.credits.map((c) => <li><a href={c.url} target="_blank" rel="noopener">{c.source}</a>, {c.license}</li>)}
+          {data.credits.map((c) => (
+            <li><a href={c.url} target="_blank" rel="noopener">{c.source}</a>, {c.license}
+              {c.includes && <>, with <a href={c.includes.url} target="_blank" rel="noopener">{c.includes.source}</a>, {c.includes.license} (the combined image is shared under {c.includes.license})</>}</li>
+          ))}
         </ul>
       </>
     ) : (

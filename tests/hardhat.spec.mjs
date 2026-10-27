@@ -19,6 +19,7 @@ const iou = (a, b) => {
 
 test.describe("hard-hat demo matches the Python reference", () => {
   test.skip(!golden || !modelBuilt, "golden samples or model not available here");
+  test.setTimeout(120_000); // the first test loads ~14 MB of WASM + the model; slow on a busy laptop
 
   for (const img of golden?.images ?? []) {
     // FP16 model + browser JPEG decode/resample vs FP32 + PIL/OpenCV: README tolerances, wider when resized.

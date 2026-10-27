@@ -14,7 +14,9 @@ export const FREE_LICENCE = /^(CC0|Public domain|CC BY(-SA)? \d\.\d|MIT|Apache-2
 if (!fs.existsSync(SRC)) { console.log(`depth-game: no ${path.relative(LIB, SRC)} yet, nothing copied`); process.exit(0); }
 const data = JSON.parse(fs.readFileSync(SRC, "utf8"));
 const credit = new Map(data.credits.map((c) => [c.img, c]));
-const bad = data.pairs.filter((p) => !FREE_LICENCE.test(credit.get(p.img)?.license || ""));
+// A composite (a picture pasted on a wall photo) lists the pasted picture under "includes": both must be free.
+const free = (c) => !!c && FREE_LICENCE.test(c.license || "") && (!c.includes || FREE_LICENCE.test(c.includes.license || ""));
+const bad = data.pairs.filter((p) => !free(credit.get(p.img)));
 if (bad.length) throw new Error(`depth-game: ${bad.length} pairs without a free licence, e.g. ${bad[0].img}`);
 
 const OUT = path.join(ROOT, "public", "media", "depth-game");

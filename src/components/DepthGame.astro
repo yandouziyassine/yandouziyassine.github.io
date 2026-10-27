@@ -70,6 +70,7 @@ const { data, size = 12 } = Astro.props;
       mode = (root!.querySelector<HTMLInputElement>('input[name="mode"]:checked')!.value as "free" | "glance");
       round = buildRound(data.pairs, size); i = 0; answers = []; started = new Date().toISOString();
       show("[data-play]"); ask();
+      $("[data-play]").scrollIntoView({ block: "start", behavior: "instant" });
     }
 
     function ask() {
@@ -101,7 +102,9 @@ const { data, size = 12 } = Astro.props;
       pts[p.closer].classList.add("right");
       if (side !== p.closer) pts[side].classList.add("wrong");
       pickBtns.forEach((b) => (b.disabled = true));
-      const said = data.models.map((m) => `${m.name}: ${p.models[m.id] === p.closer ? "right" : "wrong"}`).join(" · ");
+      const wrong = data.models.filter((m) => p.models[m.id] && p.models[m.id] !== p.closer).map((m) => m.name);
+      const asked = data.models.filter((m) => p.models[m.id]).length;
+      const said = `Models right: ${asked - wrong.length} of ${asked}` + (wrong.length ? ` · wrong: ${wrong.join(", ")}` : "");
       feedback.innerHTML = `<b>${side === p.closer ? "Right." : "Wrong."}</b> ${p.closer.toUpperCase()} is closer. ${esc(p.why)}<br><span class="mono">${esc(said)}</span>`;
       feedback.hidden = false;
       next.hidden = false; next.textContent = i + 1 < round.length ? "Next" : "See the result";
@@ -148,8 +151,9 @@ const { data, size = 12 } = Astro.props;
   .mode legend { font-size: 12px; color: var(--ink-3); padding: 0 6px; }
   .mode label { display: flex; gap: 8px; align-items: baseline; color: var(--ink-2); cursor: pointer; }
   .progress { margin: 0 0 8px; font-size: 12px; color: var(--ink-3); }
-  /* Never taller than ~70 % of the window: the width follows the image's aspect ratio, so the points stay aligned. */
-  .stage { position: relative; margin: 0 auto; width: min(100%, calc(70vh * var(--ar, 1.5))); background: #000; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  /* Never taller than ~58 % of the window (answers stay on screen): the width follows the image's aspect ratio, so the
+     points stay aligned. */
+  .stage { position: relative; margin: 0 auto; width: min(100%, calc(58vh * var(--ar, 1.5))); background: #000; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
   .stage img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .veil { position: absolute; inset: 0; display: grid; place-items: center; background: repeating-linear-gradient(45deg, #15171a 0 8px, #1b1d21 8px 16px); color: var(--ink-2); }
   .pt { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; border: 3px solid #fff;
