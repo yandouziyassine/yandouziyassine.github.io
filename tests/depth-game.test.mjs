@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildRound, rng, score, studyFile } from "../src/lib/depth-game.ts";
+import { buildRound, rng, score } from "../src/lib/depth-game.ts";
 
 const pair = (id, category, closer, models) => ({ id, img: `${id}.jpg`, w: 100, h: 100, a: [10, 10], b: [90, 90], closer, category, why: "", models });
 const pairs = [
@@ -39,13 +39,3 @@ describe("score", () => {
   });
 });
 
-describe("studyFile", () => {
-  it("writes the project 14 study format (id, choice, ms, exposure), with nothing personal", () => {
-    const f = studyFile([{ pair: pairs[0], pick: "a", mode: "glance", ms: 812 }, { pair: pairs[6], pick: "b", mode: "free", ms: 1500 }], "abc123", "2026-10-26T00:00:00Z");
-    expect(f.answers).toEqual([
-      { id: "n0", choice: "a", ms: 812, exposure: "flash", transform: "none" },
-      { id: "m0", choice: "b", ms: 1500, exposure: "free", transform: "none" },
-    ]);
-    expect(Object.keys(f).sort()).toEqual(["answers", "n", "plan", "session", "source", "started"]);
-  });
-});

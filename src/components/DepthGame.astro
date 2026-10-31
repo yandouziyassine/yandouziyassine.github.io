@@ -40,17 +40,11 @@ const { data, size = 12 } = Astro.props;
     <table class="table" data-table></table>
     <p class="note">Model answers were computed offline by the project 14 study on exactly these images. Your answers
       stay in this browser.</p>
-    <div class="contribute">
-      <p>Want to help the study? Download your answers and send the file to me on
-        <a href="https://www.linkedin.com/in/yassine-yandouzi" target="_blank" rel="noopener">LinkedIn</a>. It is anonymous:
-        only your choices, response times and a random session code, nothing about you.</p>
-      <button type="button" class="btn" data-download>Download my answers (.json)</button>
-    </div>
     <button type="button" class="btn primary" data-again>Play again</button>
   </div>
 </div>
 <script>
-  import { buildRound, score, studyFile, type Answer, type GameData, type Pair, type Side } from "../lib/depth-game";
+  import { buildRound, score, type Answer, type GameData, type Pair, type Side } from "../lib/depth-game";
 
   const root = document.querySelector<HTMLElement>("[data-game]");
   if (root) {
@@ -62,13 +56,13 @@ const { data, size = 12 } = Astro.props;
     const pickBtns = [...root.querySelectorAll<HTMLButtonElement>("[data-pick]")];
     const label = (c: string) => c.charAt(0).toUpperCase() + c.slice(1);
     const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
-    let round: Pair[] = [], i = 0, answers: Answer[] = [], mode: "free" | "glance" = "free", waiting = false, shownAt = 0, started = "";
+    let round: Pair[] = [], i = 0, answers: Answer[] = [], mode: "free" | "glance" = "free", waiting = false;
 
     const show = (sel: string) => ["[data-intro]", "[data-play]", "[data-result]"].forEach((s) => ($(s).hidden = s !== sel));
 
     function start() {
       mode = (root!.querySelector<HTMLInputElement>('input[name="mode"]:checked')!.value as "free" | "glance");
-      round = buildRound(data.pairs, size); i = 0; answers = []; started = new Date().toISOString();
+      round = buildRound(data.pairs, size); i = 0; answers = [];
       show("[data-play]"); ask();
       $("[data-play]").scrollIntoView({ block: "start", behavior: "instant" });
     }
@@ -85,10 +79,7 @@ const { data, size = 12 } = Astro.props;
       $("[data-stage]").style.aspectRatio = `${p.w} / ${p.h}`;
       $("[data-stage]").style.setProperty("--ar", String(p.w / p.h));
       veil.hidden = true; img.hidden = false;
-      img.onload = () => {
-        shownAt = performance.now();
-        if (mode === "glance") setTimeout(() => { img.hidden = true; veil.hidden = false; }, 200);
-      };
+      img.onload = () => { if (mode === "glance") setTimeout(() => { img.hidden = true; veil.hidden = false; }, 200); };
       img.src = p.img;
       img.alt = `Photo ${i + 1} of the round (${p.category}), with points A and B marked`;
     }
@@ -97,7 +88,7 @@ const { data, size = 12 } = Astro.props;
       if (!waiting) return;
       waiting = false;
       const p = round[i];
-      answers.push({ pair: p, pick: side, mode, ms: shownAt ? Math.round(performance.now() - shownAt) : undefined });
+      answers.push({ pair: p, pick: side, mode });
       img.hidden = false; veil.hidden = true;
       pts[p.closer].classList.add("right");
       if (side !== p.closer) pts[side].classList.add("wrong");
@@ -120,20 +111,12 @@ const { data, size = 12 } = Astro.props;
         ...s.models.map((m) => [esc(data.models.find((x) => x.id === m.id)!.name), m.all, m.byCat] as const)];
       const head = `<thead><tr><th scope="col">On these ${s.you.all.total} pairs</th><th scope="col">All</th>${cats.map((c) => `<th scope="col">${label(c)}</th>`).join("")}</tr></thead>`;
       const body = rows.map(([name, all, by]) => `<tr><th scope="row">${name}</th><td>${pct(all)}</td>${cats.map((c) => `<td>${pct(by.get(c) ?? { correct: 0, total: 0 })}</td>`).join("")}</tr>`).join("");
-      const humans = data.humans ? `<tr><th scope="row">Study volunteers</th><td>–</td>${cats.map((c) => `<td>${data.humans![c] ? Math.round(100 * data.humans![c].acc) + " %" : "–"}</td>`).join("")}</tr>` : "";
-      $("[data-table]").innerHTML = head + `<tbody>${body}${humans}</tbody>`;
+      $("[data-table]").innerHTML = head + `<tbody>${body}</tbody>`;
       show("[data-result]");
     }
 
     $("[data-start]").addEventListener("click", start);
     $("[data-again]").addEventListener("click", () => show("[data-intro]"));
-    $("[data-download]").addEventListener("click", () => {
-      const session = Math.random().toString(36).slice(2, 10);
-      const blob = new Blob([JSON.stringify(studyFile(answers, session, started))], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = `answers_${session}.json`; a.click();
-      URL.revokeObjectURL(a.href);
-    });
     next.addEventListener("click", () => (++i < round.length ? ask() : finish()));
     pickBtns.forEach((b) => b.addEventListener("click", () => pick(b.dataset.pick as Side)));
     (["a", "b"] as Side[]).forEach((s) => pts[s].addEventListener("click", () => pick(s)));
@@ -164,8 +147,6 @@ const { data, size = 12 } = Astro.props;
   .feedback { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--ink-2); }
   .feedback .mono { font-size: 12px; color: var(--ink-3); }
   .score { font: 400 30px var(--serif); margin: 0 0 12px; }
-  .contribute { border-top: 1px solid var(--line); padding-top: 14px; margin-bottom: 14px; }
-  .contribute p { color: var(--ink-2); margin: 0 0 10px; }
   .table { width: 100%; border-collapse: collapse; font-size: 14px; display: block; overflow-x: auto; margin-bottom: 12px; }
   .table :global(th), .table :global(td) { border-bottom: 1px solid var(--line); padding: 7px 10px; text-align: left; white-space: nowrap; }
 </style>
