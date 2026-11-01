@@ -52,6 +52,7 @@
     "/media/projects/document-scanner-ocr/results_chart.png": "own",
     "/media/projects/edge-deployment-benchmark/latency.png": "own",
     "/media/projects/face-recognition/score_distribution.png": "own",
+    "/media/projects/fall-detection/model_comparison.png": "own",
     "/media/projects/fall-detection/probability_traces.png": "own",
     "/media/projects/football-analytics/stats_noise_ablation.png": "own",
     "/media/projects/football-analytics/stats_pass_network.png": "own",
