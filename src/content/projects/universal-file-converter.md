@@ -11,6 +11,7 @@ stack:
   - Spring Boot
   - Apache POI
   - Docker
+cover: /images/file-converter-cover.svg
 links:
   code: https://github.com/yandouziyassine/Universal-File-Converter
 ---

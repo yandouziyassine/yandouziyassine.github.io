@@ -14,7 +14,7 @@ const HERO = { src: "/media/projects/monocular-depth-3d/failure_by_class.png", h
 <Base title="Home" description="Computer engineering student building computer vision you can try: measured projects and live demos.">
   <section class="wrap hero">
     <div class="intro">
-      <p class="eyebrow"><span class="dot"></span> Computer engineering student · uOttawa · open to CV / ML internships</p>
+      <p class="eyebrow"><span class="dot"></span> Computer engineering student · uOttawa · incoming Data Analyst Intern at Health Canada</p>
       <h1 class="name"><DetectionBox>Yassine Yandouzi</DetectionBox></h1>
       <p class="pitch">I build computer vision you can try.</p>
       <p class="lede">{cvCount} measured computer vision projects, from classical OpenCV to foundation models, each with its
@@ -34,17 +34,31 @@ const HERO = { src: "/media/projects/monocular-depth-3d/failure_by_class.png", h
     )}
   </section>
 
+  <section class="wrap section about" aria-labelledby="about">
+    <div class="section-head"><span class="eyebrow">About me</span><h2 id="about">Hi, I'm Yassine</h2></div>
+    <div class="about-grid">
+      <div class="lede">
+        <p>I'm a third-year Computer Engineering (co-op) student at the University of Ottawa. In winter 2027 I join <b>Health Canada as a Data Analyst Intern</b>.</p>
+        <p>I like systems I can measure. My computer vision library holds {cvCount} projects, each tested on a public
+          benchmark with its number and what didn't work. Beside it I build software end to end: a C++ order-execution
+          engine, an AI SaaS for job applications and sports tracking analytics.</p>
+      </div>
+      <dl class="facts">
+        <div><dt>Studying</dt><dd>BASc Computer Engineering (co-op), uOttawa, 2024–2028</dd></div>
+        <div><dt>Next</dt><dd>Data Analyst Intern, Health Canada · winter 2027</dd></div>
+        <div><dt>Focus</dt><dd>Computer vision, machine learning, data analysis</dd></div>
+        <div><dt>Languages</dt><dd>French and English (fluent), Arabic (native)</dd></div>
+        <div><dt>Based in</dt><dd>Ottawa – Gatineau</dd></div>
+      </dl>
+    </div>
+  </section>
+
   <section class="wrap section">
     <div class="section-head"><span class="eyebrow">Featured</span><h2>Three projects, in depth</h2></div>
     <div class="grid">{featured.map((p) => <ProjectCard p={p} />)}</div>
     <p class="more"><a class="btn" href="/projects/computer-vision-project-library/">All {cvCount} CV projects →</a> <a class="btn" href="/projects/">All projects →</a></p>
   </section>
 
-  <section class="wrap section about">
-    <div class="section-head"><span class="eyebrow">About</span><h2>Measured, not just built</h2></div>
-    <p class="lede">Third-year Computer Engineering (co-op) student at the University of Ottawa. I care about systems I can
-      measure: a detector is only as good as its mAP on held-out data. Fluent in French and English, native Arabic.</p>
-  </section>
 </Base>
 <style>
   .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px);
@@ -61,6 +75,13 @@ const HERO = { src: "/media/projects/monocular-depth-3d/failure_by_class.png", h
   .still img { width: 100%; height: auto; display: block; background: #fff; }
   .tag { background: var(--signal); color: #0d0e10; padding: 2px 6px; border-radius: 3px; margin-right: 6px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 18px; margin-top: 24px; }
-  .more { margin-top: 24px; }
+  .more { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .about-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 48px); margin-top: 20px; }
+  .about-grid .lede p { margin: 0 0 14px; } .about-grid b { color: var(--ink); font-weight: 500; }
+  .facts { margin: 0; border-top: 1px solid var(--line); }
+  .facts div { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .facts dt { font: 12px var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; padding-top: 2px; }
+  .facts dd { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+  @media (max-width: 900px) { .about-grid { grid-template-columns: 1fr; } }
   @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
 </style>

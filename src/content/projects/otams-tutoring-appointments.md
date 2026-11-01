@@ -12,6 +12,7 @@ stack:
   - SQLite
   - CircleCI
   - JUnit
+cover: /images/otams-cover.svg
 links:
   code: https://github.com/yandouziyassine/Android_tutoring_app
 ---
