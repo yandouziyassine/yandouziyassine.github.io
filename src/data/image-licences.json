@@ -59,6 +59,8 @@
     "/media/projects/football-analytics/stats_xg_calibration.png": "own",
     "/media/projects/license-plate-recognition/end_to_end.jpg": "plates",
     "/media/projects/license-plate-recognition/ocr_examples.jpg": "uk-plates",
+    "/media/projects/medical-segmentation/dice_by_center.png": "own",
+    "/media/projects/medical-segmentation/threshold_sweep.png": "own",
     "/media/projects/medical-segmentation/training_curves.png": "own",
     "/media/projects/monocular-depth-3d/failure_by_class.png": "own",
     "/media/projects/monocular-depth-3d/illusions.jpg": "wikimedia-illusions",
