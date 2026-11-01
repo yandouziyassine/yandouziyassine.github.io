@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+<defs>
+  <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#141518" stroke-width="1"/></pattern>
+  <g id="doc"><path d="M0 0h86l26 26v114H0z" fill="#17191d" stroke="#33373f" stroke-width="2"/><path d="M86 0v26h26" fill="none" stroke="#33373f" stroke-width="2"/></g>
+</defs>
+<rect width="1200" height="675" fill="#0d0e10"/>
+<rect width="1200" height="675" fill="url(#g)"/>
+<g font-family="'Geist Mono', ui-monospace, monospace" font-size="22" text-anchor="middle">
+  <use href="#doc" x="90" y="90"/><text x="146" y="172" fill="#ecebe6">PDF</text>
+  <use href="#doc" x="90" y="270"/><text x="146" y="352" fill="#ecebe6">DOCX</text>
+  <use href="#doc" x="90" y="450"/><text x="146" y="532" fill="#ecebe6">HEIC</text>
+  <use href="#doc" x="1000" y="90"/><text x="1056" y="172" fill="#ff5b1f">PNG</text>
+  <use href="#doc" x="1000" y="270"/><text x="1056" y="352" fill="#ff5b1f">PDF</text>
+  <use href="#doc" x="1000" y="450"/><text x="1056" y="532" fill="#ff5b1f">TIFF</text>
+</g>
+<g stroke="#6f6e6a" stroke-width="3" fill="none">
+  <path d="M215 160 C 320 160, 330 300, 420 330"/><path d="M215 340 H 420"/><path d="M215 520 C 320 520, 330 380, 420 350"/>
+  <path d="M780 330 C 870 300, 880 160, 985 160"/><path d="M780 340 H 985"/><path d="M780 350 C 870 380, 880 520, 985 520"/>
+</g>
+<rect x="420" y="230" width="360" height="220" rx="8" fill="#17191d" stroke="#ff5b1f" stroke-width="3"/>
+<text x="600" y="290" text-anchor="middle" font-family="'Geist Mono', ui-monospace, monospace" font-size="24" fill="#ff5b1f">POST /convert</text>
+<text x="600" y="340" text-anchor="middle" font-family="'Geist Mono', ui-monospace, monospace" font-size="20" fill="#ecebe6">Spring Boot REST API</text>
+<text x="600" y="375" text-anchor="middle" font-family="'Geist Mono', ui-monospace, monospace" font-size="20" fill="#a9a8a2">Factory → converter</text>
+<text x="600" y="410" text-anchor="middle" font-family="'Geist Mono', ui-monospace, monospace" font-size="20" fill="#a9a8a2">batch · up to 1 GB</text>
+<text x="60" y="635" font-family="'Instrument Serif', Georgia, serif" font-size="38" fill="#ecebe6">7+ file formats, one API</text>
+</svg>

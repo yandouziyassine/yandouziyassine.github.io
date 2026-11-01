@@ -14,6 +14,7 @@ stack:
   - spaCy
   - Docker
   - AWS
+cover: /images/finance-cover.svg
 links:
   code: https://github.com/yandouziyassine/Datathon_Polyfinance_2025
 ---

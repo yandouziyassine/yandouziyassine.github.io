@@ -95,18 +95,18 @@ window.MORE = [
   { title: "Universal File Converter", when: "Dec. 2025",
     summary: "Production REST API for batch conversion of 7+ formats (PDF, DOCX, HEIC, TIFF), up to 1 GB per upload; Factory pattern for strategy selection.",
     stack: ["Java", "Spring Boot", "Apache POI", "Docker"],
-    href: "https://github.com/yandouziyassine/Universal-File-Converter" },
+    image: "images/file-converter-cover.svg", href: "https://github.com/yandouziyassine/Universal-File-Converter" },
   { title: "OTAMS: tutoring appointments", when: "2024 – 2025",
     summary: "Role-based Android booking app for 3 user types with conflict prevention and notifications, tested with JUnit on CircleCI.",
     stack: ["Java", "Android SDK", "SQLite", "CircleCI", "JUnit"],
-    href: "https://github.com/yandouziyassine/Android_tutoring_app" },
+    image: "images/otams-cover.svg", href: "https://github.com/yandouziyassine/Android_tutoring_app" },
   { title: "NFL Big Data Bowl 2027", slug: "nfl-big-data-bowl-2027", when: "Kaggle competition · Oct. 2026",
     area: "Sports analytics",
     metric: { value: "10 Hz", unit: "Combine 40-yard tracking vs rookie game movement" },
     summary: "Does how fast a player builds speed in the first second of the 40-yard dash predict how he moves in NFL games, " +
       "beyond the official 40 time? A reproducible tracking pipeline, cohort-held-out models and an honest answer: mostly no.",
     stack: ["Python", "pandas", "scikit-learn", "NumPy", "Jupyter", "Kaggle"],
-    href: "https://github.com/yandouziyassine/nfl-combine-speed-profiles",
+    image: "images/nfl-cover.svg", href: "https://github.com/yandouziyassine/nfl-combine-speed-profiles",
     details: [
       "## The question",
       "",
@@ -141,7 +141,7 @@ window.MORE = [
   { title: "Financial Risk Analytics Dashboard", when: "PolyFinance Datathon 2025 · top 10",
     summary: "Feature-engineering pipelines (Pandas, scikit-learn) feeding a filterable React risk dashboard over real financial data.",
     stack: ["Python", "FastAPI", "React", "scikit-learn", "spaCy", "Docker", "AWS"],
-    href: "https://github.com/yandouziyassine/Datathon_Polyfinance_2025" },
+    image: "images/finance-cover.svg", href: "https://github.com/yandouziyassine/Datathon_Polyfinance_2025" },
 ];
 
 /* Smaller projects and course work: a compact list at the bottom of /projects/, no page of their own. */

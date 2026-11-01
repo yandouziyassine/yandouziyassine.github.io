@@ -16,6 +16,7 @@ stack:
   - NumPy
   - Jupyter
   - Kaggle
+cover: /images/nfl-cover.svg
 links:
   code: https://github.com/yandouziyassine/nfl-combine-speed-profiles
 ---
