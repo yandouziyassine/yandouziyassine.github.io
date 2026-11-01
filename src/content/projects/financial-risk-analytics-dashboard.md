@@ -2,7 +2,7 @@
 title: Financial Risk Analytics Dashboard
 kind: software
 area: Software
-order: 300
+order: 303
 summary: >-
   Feature-engineering pipelines (Pandas, scikit-learn) feeding a filterable React risk dashboard over real financial
   data.

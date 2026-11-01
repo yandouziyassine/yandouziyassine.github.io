@@ -72,7 +72,8 @@ describe("projects", () => {
   it("every image in a case study has alt text", () => {
     const missing = fs.readdirSync("dist/projects", { recursive: true }).map(String).filter((f) => f.endsWith(".html"))
       .flatMap((f) => {
-        const prose = fs.readFileSync(path.join("dist/projects", f), "utf8").split('class="prose')[1] || "";
+        // Prose only: the library page's project grid after it uses decorative card images (alt="").
+        const prose = (fs.readFileSync(path.join("dist/projects", f), "utf8").split('class="prose')[1] || "").split('class="library')[0];
         return [...prose.matchAll(/<img\b[^>]*>/g)].filter((m) => !/\balt="[^"]+"/.test(m[0])).map((m) => `${f}: ${m[0].slice(0, 80)}`);
       });
     expect(missing).toEqual([]);

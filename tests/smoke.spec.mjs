@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const pages = ["/", "/demos/", "/projects/", "/projects/anomaly-detection-patchcore/", "/projects/slipstream/", "/resume/", "/contact/"];
+const pages = ["/", "/demos/", "/projects/", "/projects/computer-vision-project-library/", "/projects/nfl-big-data-bowl-2027/", "/projects/anomaly-detection-patchcore/", "/projects/slipstream/", "/resume/", "/contact/"];
 
 for (const url of pages) {
   test(`${url} loads without console errors`, async ({ page }) => {
@@ -15,10 +15,10 @@ for (const url of pages) {
 }
 
 test("project filter hides other topics", async ({ page }) => {
-  await page.goto("/projects/");
-  const total = await page.locator(".card").count();
+  await page.goto("/projects/computer-vision-project-library/");
+  const total = await page.locator(".library .card").count();
   await page.locator(".filters button").nth(1).click();
-  const visible = await page.locator(".card:visible").count();
+  const visible = await page.locator(".library .card:visible").count();
   expect(visible).toBeGreaterThan(0);
   expect(visible).toBeLessThan(total);
 });

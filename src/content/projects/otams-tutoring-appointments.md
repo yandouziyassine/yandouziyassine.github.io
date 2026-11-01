@@ -2,7 +2,7 @@
 title: 'OTAMS: tutoring appointments'
 kind: software
 area: Software
-order: 302
+order: 301
 summary: >-
   Role-based Android booking app for 3 user types with conflict prevention and notifications, tested with JUnit on
   CircleCI.

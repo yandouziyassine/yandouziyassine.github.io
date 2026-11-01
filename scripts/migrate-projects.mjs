@@ -14,7 +14,7 @@ const MEDIA = path.join(ROOT, "public", "media", "projects");
 const ctx = { window: {} };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(ROOT, "legacy", "data", "projects.js"), "utf8"), ctx);
-const { FEATURED, PROJECTS, MORE } = ctx.window;
+const { FEATURED, PROJECTS, MORE, SMALL } = ctx.window;
 
 const FEATURED_CV = new Set(["13", "14", "20"]);    // shown on the home page
 
@@ -82,13 +82,13 @@ for (const p of PROJECTS) {
 
 const software = [
   ...FEATURED.map((f, i) => ({ ...f, order: 200 + i })),
-  ...MORE.map((m, i) => ({ title: m.title, kicker: m.when, summary: m.summary, stack: m.stack,
+  ...MORE.map((m, i) => ({ ...m, kicker: m.when, tags: m.area && [m.area],
     links: [{ label: "Repository", href: m.href }], order: 300 + i })),
 ];
 for (const s of software) {
-  const slug = s.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const slug = s.slug || s.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   const code = (s.links || []).find((l) => /^https/.test(l.href))?.href;
-  const body = [`*${s.kicker || ""}*`, "", s.summary, "", s.stack?.length ? `**Stack:** ${s.stack.join(" · ")}` : "",
+  const body = [`*${s.kicker || ""}*`, "", s.details || s.summary, "", s.stack?.length ? `**Stack:** ${s.stack.join(" · ")}` : "",
     "", code ? `[Code and README on GitHub](${code})` : ""].join("\n");
   write(slug, {
     title: s.title, kind: "software", area: (s.tags && s.tags[0]) || "Software", order: s.order,
@@ -96,4 +96,5 @@ for (const s of software) {
     cover: s.image ? `/${s.image}` : undefined, links: { code },
   }, body);
 }
+fs.writeFileSync(path.join(ROOT, "src", "data", "small-projects.json"), JSON.stringify(SMALL, null, 2) + "\n");
 console.log(`wrote ${PROJECTS.length + software.length} projects to ${path.relative(ROOT, OUT)}`);
