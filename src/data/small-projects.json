@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Sorting Algorithm Visualizer",
+    "summary": "Java Swing app animating 9 sorting algorithms with live comparison and swap counts.",
+    "stack": "Java · Swing",
+    "href": "https://github.com/yandouziyassine/Sorting-Algorithm"
+  },
+  {
+    "title": "Live NHL odds calculator",
+    "summary": "Win odds for an NHL game from live NHL API statistics and historical team data.",
+    "stack": "Python · NHL API",
+    "href": "https://github.com/yandouziyassine/nhl-BettingOdds"
+  },
+  {
+    "title": "Simple blockchain",
+    "summary": "Educational blockchain: blocks, SHA-256 hashing, proof-of-work mining and transactions.",
+    "stack": "Python",
+    "href": "https://github.com/yandouziyassine/Blockchain"
+  },
+  {
+    "title": "Minesweeper",
+    "summary": "The classic game in Python.",
+    "stack": "Python",
+    "href": "https://github.com/yandouziyassine/MineSweeper"
+  }
+]

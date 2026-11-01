@@ -92,10 +92,6 @@ window.FEATURED = [
 
 /* Smaller projects, shown as a compact list under the featured ones. */
 window.MORE = [
-  { title: "Financial Risk Analytics Dashboard", when: "PolyFinance Datathon 2025 · top 10",
-    summary: "Feature-engineering pipelines (Pandas, scikit-learn) feeding a filterable React risk dashboard over real financial data.",
-    stack: ["Python", "FastAPI", "React", "scikit-learn", "spaCy", "Docker", "AWS"],
-    href: "https://github.com/yandouziyassine/Datathon_Polyfinance_2025" },
   { title: "Universal File Converter", when: "Dec. 2025",
     summary: "Production REST API for batch conversion of 7+ formats (PDF, DOCX, HEIC, TIFF), up to 1 GB per upload; Factory pattern for strategy selection.",
     stack: ["Java", "Spring Boot", "Apache POI", "Docker"],
@@ -104,6 +100,60 @@ window.MORE = [
     summary: "Role-based Android booking app for 3 user types with conflict prevention and notifications, tested with JUnit on CircleCI.",
     stack: ["Java", "Android SDK", "SQLite", "CircleCI", "JUnit"],
     href: "https://github.com/yandouziyassine/Android_tutoring_app" },
+  { title: "NFL Big Data Bowl 2027", slug: "nfl-big-data-bowl-2027", when: "Kaggle competition · Oct. 2026",
+    area: "Sports analytics",
+    metric: { value: "10 Hz", unit: "Combine 40-yard tracking vs rookie game movement" },
+    summary: "Does how fast a player builds speed in the first second of the 40-yard dash predict how he moves in NFL games, " +
+      "beyond the official 40 time? A reproducible tracking pipeline, cohort-held-out models and an honest answer: mostly no.",
+    stack: ["Python", "pandas", "scikit-learn", "NumPy", "Jupyter", "Kaggle"],
+    href: "https://github.com/yandouziyassine/nfl-combine-speed-profiles",
+    details: [
+      "## The question",
+      "",
+      "The NFL Combine times every prospect over 40 yards. The official numbers are the 40 time and the 10-yard split. " +
+      "The Big Data Bowl 2027 also gives the **10 Hz tracking** of each dash, so the whole speed curve is visible. " +
+      "This project asks whether the shape of that curve, especially how speed builds during the first second, adds " +
+      "information about a player's later NFL movement beyond the 40 time, the split and his body measurements.",
+      "",
+      "## What was built",
+      "",
+      "- A 10 Hz Combine tracking pipeline: early acceleration, later acceleration, speed retention and position-aware drill profiles.",
+      "- Data-quality and linkage audits: trace cadence, movement onset, course-axis assumptions, repeated attempts and Combine-to-game player matching.",
+      "- Player-level models (ridge regression) evaluated **leave-one-draft-cohort-out**, with preprocessing fitted on the training cohorts only.",
+      "- A nested feature-selection audit, measurement-reliability analyses, outcome and role sensitivities, and a registry of every analysis tried.",
+      "- A reproducible Kaggle notebook with pinned requirements and a source bundle.",
+      "",
+      "## What it found",
+      "",
+      "The honest headline is mostly negative. For defensive linemen, first-second acceleration is associated with the " +
+      "90th percentile of rookie peak speed, but that result came out of a feature search and is not confirmatory. The " +
+      "broader selection-aware search showed little average lift over the official 40 time and split, and the direct " +
+      "first-step blitz-speed analysis did not show added predictive value. The project documents these negative and " +
+      "uncertain results instead of turning them into a scouting score.",
+      "",
+      "## Limits",
+      "",
+      "- Only three draft cohorts, and 2025 was used in feature screening, so there is no untouched confirmation set.",
+      "- Rookie tracking exposure depends on playing time, role, health and assignment.",
+      "- Movement onset is a speed threshold, not a reaction time: the data have no start-signal timestamp.",
+      "- The competition data and player-level outputs are not redistributed (Kaggle competition rules).",
+    ].join("\n") },
+  { title: "Financial Risk Analytics Dashboard", when: "PolyFinance Datathon 2025 · top 10",
+    summary: "Feature-engineering pipelines (Pandas, scikit-learn) feeding a filterable React risk dashboard over real financial data.",
+    stack: ["Python", "FastAPI", "React", "scikit-learn", "spaCy", "Docker", "AWS"],
+    href: "https://github.com/yandouziyassine/Datathon_Polyfinance_2025" },
+];
+
+/* Smaller projects and course work: a compact list at the bottom of /projects/, no page of their own. */
+window.SMALL = [
+  { title: "Sorting Algorithm Visualizer", summary: "Java Swing app animating 9 sorting algorithms with live comparison and swap counts.",
+    stack: "Java · Swing", href: "https://github.com/yandouziyassine/Sorting-Algorithm" },
+  { title: "Live NHL odds calculator", summary: "Win odds for an NHL game from live NHL API statistics and historical team data.",
+    stack: "Python · NHL API", href: "https://github.com/yandouziyassine/nhl-BettingOdds" },
+  { title: "Simple blockchain", summary: "Educational blockchain: blocks, SHA-256 hashing, proof-of-work mining and transactions.",
+    stack: "Python", href: "https://github.com/yandouziyassine/Blockchain" },
+  { title: "Minesweeper", summary: "The classic game in Python.", stack: "Python",
+    href: "https://github.com/yandouziyassine/MineSweeper" },
 ];
 
 /* The Computer Vision Library, one card per project. `area` drives the filter chips. */
