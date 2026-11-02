@@ -74,6 +74,7 @@ describe("npm run sync:football", () => {
     expect(bad("padvice", { advice_effect: "advice", a: { pass: 0.5, shot: 0 } }).stderr).toMatch(/change the advice/);
     expect(bad("pa", { a: { pass: 0.5, shot: 0 } }).stderr).toMatch(/change the advice/);
     expect(bad("pplayer", { players: { 5: { pass_skill: { logit: 0, n: 1 } } } }).stderr).toMatch(/player 5 is not in match\.json/);
+    expect(bad("pname", { players: { 0: { name: "B", pass_skill: { logit: 0, n: 1 } } } }).stderr).toMatch(/player 0 is B, match\.json has A/);
     expect(bad("pmal", { players: { 0: { pass_skill: { logit: "x", n: 1 } } } }).stderr).toMatch(/pass_skill is malformed/);
     const big = path.join(tmp, "pbig");
     fakeExport(big, { profiles: JSON.stringify({ ...goodProfiles(), pad: "x".repeat(100_001) }) });

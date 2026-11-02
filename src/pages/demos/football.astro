@@ -8,6 +8,8 @@ import type { ModelsJson } from "../../lib/coach/models";
 
 const match = FOOTBALL_LIVE ? (JSON.parse(fs.readFileSync("public/football/match.json", "utf8")) as MatchMeta) : null;
 const models = FOOTBALL_LIVE ? (JSON.parse(fs.readFileSync("public/football/models.json", "utf8")) as ModelsJson) : null;
+const shots = models?.shot_trained_on?.shots ?? "";
+const sc = models?.shot_trained_on?.skillcorner_matches ?? "";
 const ext = { target: "_blank", rel: "noopener" };
 ---
 <Base title="Football AI coach" description="Replay a full Bundesliga match in 2D or 3D, pause at any moment and see what an AI coach would do with the ball, then what the pro did.">
@@ -29,6 +31,12 @@ const ext = { target: "_blank", rel: "noopener" };
             option is chosen, counting the cost of losing the ball where it would be lost.</li>
           <li><b>Tally</b>: the sum of the coach's value for the options you, the coach and the pros chose. It is the coach's
             opinion of every choice, not a result.</li>
+          <li><b>Player cards</b>: under the options, a small card for the player with the ball, and for the target of a pass
+            while you point at or focus that option. It says how the player's passes compared with what the pass model expected
+            in the other matches of the dataset, and how many passes that is. "Slightly more than expected" is a small
+            difference; "too few to say" means less than 20 passes or shots. If the player has no history in the other matches
+            (the opponent in this replay plays in none), the card says so. The cards are shown for information and
+            <b>do not change the advice</b>: see the limits below.</li>
           <li><b>3D view</b> (button or V): the same moment in 3D; C or the camera buttons switch between the stadium
             camera, a tactical view from above and a player's eyes. Tap a player, or pick him in "Whose eyes", to stand
             at his head height (1.7 m) looking where he is running, or at the ball when he stands still. The arrows lie
@@ -43,7 +51,15 @@ const ext = { target: "_blank", rel: "noopener" };
           <li>The coach plays bolder than the pros: passes it ranks first were completed 69 % of the time, against 85 % for
             its 7th choice and below, and it has the pro's receiver in its top 3 about as often as chance (37 % vs 30 %). It
             gives a value opinion, not a prediction of what a player will do.</li>
-          <li>The shot option uses our own small shot model (160 shots, AUC 0.63; the data provider's xG reaches 0.82).</li>
+          <li>The shot option uses our own small shot model, now trained on {shots} shots from two leagues: the other Bundesliga
+            matches and {sc} A-League matches (SkillCorner open data). On held-out Bundesliga matches this lowered its
+            log-loss from 0.325 to 0.306 and raised its AUC from 0.63 to 0.68, but that rests on 16 goals; the data
+            provider's xG reaches 0.82.</li>
+          <li>The player cards are for information only. In a held-out test (profiles and models built without the match
+            being scored) they did not improve the pass advice on this league, where only 7 matches are available and
+            few players appear in several of them; they gave a small gain on the A-League, with 20 matches; and finishing
+            showed no signal in 160 shots. So the coach ignores them (their weight is 0), and with so little history the
+            estimates are pulled strongly towards "as expected". They describe past matches, not this one.</li>
           <li>The ball carrier is the nearest player of the team in possession within {CARRIER_M} m of the ball (ball height
             is not used); speeds come from positions 0.16 s apart, as in training. "What the pro did" comes from the official
             events when they could be synchronised with the tracking (about two thirds of the passes), otherwise from the tracking.</li>
@@ -57,7 +73,9 @@ const ext = { target: "_blank", rel: "noopener" };
           <a href="https://doi.org/10.1038/s41597-025-04505-y" {...ext}>paper</a>,{" "}
           <a href="https://doi.org/10.6084/m9.figshare.28196177" {...ext}>data</a>;{" "}
           licence <a href="https://creativecommons.org/licenses/by/4.0/" {...ext}>CC BY 4.0</a>. Changes: positions
-          subsampled from 25 to 12.5 frames per second and rounded to the centimetre; events synchronised to the tracking.</p>
+          subsampled from 25 to 12.5 frames per second and rounded to the centimetre; events synchronised to the tracking. The
+          shot model was also fitted on shots from <a href="https://github.com/SkillCorner/opendata" {...ext}>SkillCorner open data</a>
+          (MIT licence), 20 A-League 2024/25 matches; only the fitted weights are used here, none of that data is shown.</p>
       </>
     ) : (
       <p class="panel box soon">Coming soon: the replay match and the coach's model weights are being exported from the project 20 study.</p>

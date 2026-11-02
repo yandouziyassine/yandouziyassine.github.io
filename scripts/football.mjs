@@ -45,6 +45,7 @@ if (hasProfiles) {
   if (!prof.players || typeof prof.players !== "object") throw new Error("football: profiles.json has no players");
   for (const [i, p] of Object.entries(prof.players)) {
     if (!meta.players[Number(i)]) throw new Error(`football: profiles.json player ${i} is not in match.json`);
+    if (p.name && meta.players[Number(i)].name !== p.name) throw new Error(`football: profiles.json player ${i} is ${p.name}, match.json has ${meta.players[Number(i)].name}`);
     for (const f of ["pass_skill", "finishing"]) {
       const o = p[f];
       if (o && !(Number.isFinite(o.logit) && Number.isInteger(o.n) && o.n >= 0)) throw new Error(`football: profiles.json player ${i} ${f} is malformed`);
