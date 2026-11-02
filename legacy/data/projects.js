@@ -200,7 +200,7 @@ window.PROJECTS = [
     links: [{ label: "Code", href: cv("12-satellite-land-cover") }] },
   { n: "13", title: "PatchCore, from scratch", area: "Anomaly detection", depth: 3, image: "media/projects/anomaly-detection-patchcore/results_chart.png",
     metric: { value: "0.989", unit: "image AUROC on all 15 MVTec categories (paper 0.990)" },
-    summary: "Reimplemented an industrial anomaly-detection paper in ~150 lines; finds defects without ever seeing one; 24 ms per image on a laptop iGPU.",
+    summary: "Reimplemented an industrial anomaly-detection paper in ~150 lines; finds defects without ever seeing one; 24 ms per image on a laptop iGPU, 36 ms on its NPU after working around a compiler bug.",
     links: [{ label: "Code", href: cv("13-anomaly-detection-patchcore") }] },
   { n: "14", title: "Human vs Machine 3D Vision", area: "3D", depth: 3, image: "media/projects/monocular-depth-3d/failure_by_class.png",
     metric: { value: "2.4–3×", unit: "more depth error on mirrors, other factors held fixed (8 models)" },
