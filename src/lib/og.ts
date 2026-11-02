@@ -16,7 +16,7 @@ export function ogCards(projects: CollectionEntry<"projects">[]): OgCard[] {
   const cover = (id: string) => projects.find((p) => p.id === id)?.data.cover;
   return [
     { slug: "home", eyebrow: "Computer vision · ML · uOttawa", title: "I build computer vision you can try.",
-      metric: { value: String(cv), unit: "measured projects · 2 live demos" },
+      metric: { value: String(cv), unit: "measured projects · 4 live demos" },
       image: "/images/cv-01.svg" },
     { slug: "demos", eyebrow: "Live demos", title: "Computer vision running in your browser",
       sub: "Virtual painter · Hard-hat safety check · Can you beat the AI? · Football AI coach", image: "/images/cv-01.svg" },
