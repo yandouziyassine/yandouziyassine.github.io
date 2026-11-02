@@ -1,13 +1,14 @@
 ---
 // Football replay (project 20, phase 2): one full Bundesliga match on a 2D pitch. Pause when a player has the ball and
 // the coach (src/lib/coach, a parity-tested port of the library's coach engine) ranks his options; follow or refuse,
-// then see what the pro did. Data in /football/ (scripts/football.mjs): match.json and models.json load after the
-// page, each half's positions (3.2 / 4.5 MB) when first needed. Choices stay in memory; nothing is sent anywhere.
+// then see what the pro did. Data in /football/ (scripts/football.mjs): match.json, models.json and the first half
+// load on the first hover, touch or focus (not on page load), the second half (3.2 / 4.5 MB per half) when first
+// needed. Choices stay in memory; nothing is sent anywhere.
 ---
 <div class="fr" data-football>
   <canvas class="pitch" data-canvas role="img" aria-label="Football pitch; the match is loading"></canvas>
   <div class="bar">
-    <button type="button" class="btn primary ctl" data-play disabled>Play</button>
+    <button type="button" class="btn primary ctl" data-play>Play</button>
     <span class="clock mono" data-clock>00:00</span>
     <div class="group" role="group" aria-label="Playback speed">
       <button type="button" class="btn ctl" data-speed="1" aria-pressed="true">1×</button>
@@ -27,7 +28,7 @@
   <label class="jump mono">Jump to
     <select data-jump disabled><option value="">a goal or a shot…</option></select>
   </label>
-  <p class="status mono" data-status role="status" aria-live="polite">Loading the match…</p>
+  <p class="status mono" data-status role="status" aria-live="polite">The match loads when you hover over, touch or focus this panel (about 3.5 MB for the first half).</p>
   <section class="coach" data-coach hidden aria-labelledby="fr-coach">
     <h2 class="small" id="fr-coach">The coach's options <span data-coach-who></span></h2>
     <ol class="opts" data-options></ol>
@@ -326,7 +327,7 @@
     }
 
     // ---------- wiring ----------
-    playBtn.addEventListener("click", toggle);
+    playBtn.addEventListener("click", () => (ready ? toggle() : start()));
     followBtn.addEventListener("click", () => choose(0));
     time.addEventListener("input", () => seek(Number(time.value)));
     jump.addEventListener("change", () => {
@@ -350,8 +351,12 @@
       else if (/^[1-9]$/.test(e.key)) choose(Number(e.key) - 1);
     });
     new ResizeObserver(resize).observe(canvas);
-    const start = () => init().catch(failed);
-    if (document.readyState === "complete") start(); else window.addEventListener("load", start, { once: true });
+    // The data (about 3.5 MB for the first half) loads on the first hover, touch or keyboard focus, not on page load:
+    // visitors who only read the page download nothing, and the page's Lighthouse performance stays above 0.9.
+    let started = false;
+    const start = () => { if (!started) { started = true; init().catch(failed); } };
+    root.addEventListener("pointerenter", start, { once: true });
+    root.addEventListener("focusin", start, { once: true });
   }
 
   const el = document.querySelector<HTMLElement>("[data-football]");

@@ -24,6 +24,7 @@ test.describe("football replay", () => {
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto("/demos/football/");
     const root = page.locator("[data-football]");
+    await root.hover(); // the data loads on first hover / focus, not on page load
     await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
     const clock = root.locator("[data-clock]");
     await expect(clock).toHaveText("00:00");
@@ -39,6 +40,7 @@ test.describe("football replay", () => {
     const r = fx.frames.find((f) => f.half === 0);
     await page.goto("/demos/football/");
     const root = page.locator("[data-football]");
+    await root.hover(); // the data loads on first hover / focus, not on page load
     await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
     await root.locator("[data-time]").fill(String(r.frame));
     await expect(root).toHaveAttribute("data-options", String(r.options.length));
