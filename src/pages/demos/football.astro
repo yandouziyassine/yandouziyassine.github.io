@@ -1,0 +1,70 @@
+---
+import fs from "node:fs";
+import Base from "../../layouts/Base.astro";
+import FootballReplay from "../../components/FootballReplay.astro";
+import { FOOTBALL_LIVE } from "../../data/flags";
+import { CARRIER_M, type MatchMeta } from "../../lib/coach/replay";
+import type { ModelsJson } from "../../lib/coach/models";
+
+const match = FOOTBALL_LIVE ? (JSON.parse(fs.readFileSync("public/football/match.json", "utf8")) as MatchMeta) : null;
+const models = FOOTBALL_LIVE ? (JSON.parse(fs.readFileSync("public/football/models.json", "utf8")) as ModelsJson) : null;
+const ext = { target: "_blank", rel: "noopener" };
+---
+<Base title="Football AI coach" description="Replay a full Bundesliga match on a 2D pitch, pause at any moment and see what an AI coach would do with the ball, then what the pro did.">
+  <div class="wrap section">
+    <a class="back mono" href="/demos/">← All demos</a>
+    <div class="section-head"><span class="eyebrow">Live demo · project 20</span><h1 class="display">Pause the match. Ask the coach.</h1>
+      <p class="lede">{match ? `${match.meta.home} vs ${match.meta.guest}, 2. Bundesliga 2022/23` : "A full Bundesliga match"},
+        replayed from optical tracking of every player and the ball. Pause when a player has the ball: the coach ranks his
+        passes, carries and shot in expected goals. Follow it or refuse it, then watch what the professional did.</p></div>
+    {match && models ? (
+      <>
+        <div class="panel box"><FootballReplay /></div>
+        <h2 class="small">How to read it</h2>
+        <ul class="notes">
+          <li><b>Arrows</b>: the coach's top three options, the best in orange; once you choose, your option turns green. The % is the chance that the pass arrives
+            (pass model), that the team still has the ball after a 6 m carry (pitch control), or that a shot scores.</li>
+          <li><b>Value</b>: the expected change in net expected goals (xG) over the next {models.value.horizon_s ?? 15} s if the
+            option is chosen, counting the cost of losing the ball where it would be lost.</li>
+          <li><b>Tally</b>: the sum of the coach's value for the options you, the coach and the pros chose. It is the coach's
+            opinion of every choice, not a result.</li>
+        </ul>
+        <h2 class="small">Honest limits</h2>
+        <ul class="notes">
+          <li>The models were trained on the {models.trained_on.length} other matches of the dataset; this match
+            ({models.trained_without}) was never seen in training.</li>
+          <li>The pass model is solid (held-out AUC 0.77–0.84). The value model is weak: it explains about 2 % of what happens
+            in the next 15 s, barely more than "closer to goal is better", so differences of a few thousandths of a goal mean little.</li>
+          <li>The coach plays bolder than the pros: passes it ranks first were completed 69 % of the time, against 85 % for
+            its 7th choice and below, and it has the pro's receiver in its top 3 about as often as chance (37 % vs 30 %). It
+            gives a value opinion, not a prediction of what a player will do.</li>
+          <li>The shot option uses our own small shot model (160 shots, AUC 0.63; the data provider's xG reaches 0.82).</li>
+          <li>The ball carrier is the nearest player of the team in possession within {CARRIER_M} m of the ball (ball height
+            is not used); speeds come from positions 0.16 s apart, as in training. "What the pro did" comes from the official
+            events when they could be synchronised with the tracking (about two thirds of the passes), otherwise from the tracking.</li>
+          <li>Everything runs in your browser; your choices stay in memory and are gone when you leave. A 3D view (stadium,
+            a player's eyes) is the next phase.</li>
+        </ul>
+        <p><a class="case" href="/projects/football-analytics/">How the coach was built and evaluated →</a></p>
+        <h2 class="small">Data credit</h2>
+        <p class="credit">{match.credit}. Bassek et al. (2025), <i>Scientific Data</i>:{" "}
+          <a href="https://doi.org/10.1038/s41597-025-04505-y" {...ext}>paper</a>,{" "}
+          <a href="https://doi.org/10.6084/m9.figshare.28196177" {...ext}>data</a>;{" "}
+          licence <a href="https://creativecommons.org/licenses/by/4.0/" {...ext}>CC BY 4.0</a>. Changes: positions
+          subsampled from 25 to 12.5 frames per second and rounded to the centimetre; events synchronised to the tracking.</p>
+      </>
+    ) : (
+      <p class="panel box soon">Coming soon: the replay match and the coach's model weights are being exported from the project 20 study.</p>
+    )}
+  </div>
+</Base>
+<style>
+  .back { font-size: 13px; color: var(--ink-3); text-decoration: none; } .back:hover { color: var(--signal); }
+  .box { padding: clamp(12px, 3vw, 22px); margin-top: 24px; }
+  .soon { color: var(--ink-2); }
+  .small { font: 500 15px var(--sans); margin: 28px 0 8px; }
+  .notes { max-width: 760px; padding-left: 18px; font-size: 15px; color: var(--ink-2); }
+  .notes li { margin-bottom: 6px; }
+  .credit { max-width: 760px; font-size: 13px; color: var(--ink-3); }
+  .credit a, .case { color: var(--ink); text-decoration-color: var(--signal); }
+</style>

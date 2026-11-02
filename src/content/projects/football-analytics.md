@@ -15,6 +15,7 @@ summary: >-
 cover: /media/projects/football-analytics/stats_pass_network.png
 links:
   code: https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/20-football-analytics
+  demo: /demos/football/
 ---
 
 Detects **players and the ball** in broadcast football frames, splits players into **two teams by jersey
