@@ -2,6 +2,7 @@
 // public/football/. Run by hand after a re-export; the output is committed (CC BY 4.0 data, credited on the page;
 // CI has no cv-data checkout):
 //   npm run sync:football        FOOTBALL_EXPORT overrides ../cv-data/football-coach/site-export (FOOTBALL_OUT: tests)
+// z<i>.bin (the ball's height per frame, int16 cm, for the 3D view) is copied when the export has it.
 import fs from "node:fs";
 import path from "node:path";
 
@@ -22,7 +23,14 @@ meta.halves.forEach((h, i) => {
   const size = fs.statSync(path.join(SRC, `h${i}.bin`)).size, want = h.frames * (h.slots.length + 1) * 4;
   if (size !== want) throw new Error(`football: h${i}.bin is ${size} bytes, expected ${want}`);
 });
-const files = ["match.json", "models.json", ...meta.halves.map((_, i) => `h${i}.bin`)];
+const zFiles = meta.halves.flatMap((h, i) => {
+  const f = `z${i}.bin`, p = path.join(SRC, f);
+  if (!fs.existsSync(p)) return [];
+  const size = fs.statSync(p).size;
+  if (size !== h.frames * 2) throw new Error(`football: ${f} is ${size} bytes, expected ${h.frames * 2}`);
+  return [f];
+});
+const files = ["match.json", "models.json", ...meta.halves.map((_, i) => `h${i}.bin`), ...zFiles];
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 for (const f of files) fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
