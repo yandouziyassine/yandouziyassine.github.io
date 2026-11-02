@@ -12,6 +12,13 @@ test.describe("football replay", () => {
   test.skip(!live, "football data or parity fixture not here");
   test.setTimeout(60_000);
 
+  test("the demos page links to the replay", async ({ page }) => {
+    await page.goto("/demos/");
+    await page.getByRole("link", { name: "▶ Watch and coach" }).click();
+    await expect(page).toHaveURL(/\/demos\/football\/$/);
+    await expect(page.locator("h1")).toHaveText("Pause the match. Ask the coach.");
+  });
+
   test("loads, plays and pauses", async ({ page }) => {
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));

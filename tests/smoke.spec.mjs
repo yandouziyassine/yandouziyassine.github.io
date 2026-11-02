@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const pages = ["/", "/demos/", "/projects/", "/projects/computer-vision-project-library/", "/projects/nfl-big-data-bowl-2027/", "/projects/anomaly-detection-patchcore/", "/projects/slipstream/", "/resume/", "/contact/"];
+const pages = ["/", "/demos/", "/demos/football/", "/projects/", "/projects/computer-vision-project-library/", "/projects/nfl-big-data-bowl-2027/", "/projects/anomaly-detection-patchcore/", "/projects/slipstream/", "/resume/", "/contact/"];
 
 for (const url of pages) {
   test(`${url} loads without console errors`, async ({ page }) => {

@@ -2,7 +2,7 @@
 import Base from "../layouts/Base.astro";
 import Painter from "../components/Painter.astro";
 import HardHat from "../components/HardHat.astro";
-import { DEPTH_GAME_LIVE, HARDHAT_LIVE, PAINTER_LIVE } from "../data/flags";
+import { DEPTH_GAME_LIVE, FOOTBALL_LIVE, HARDHAT_LIVE, PAINTER_LIVE } from "../data/flags";
 const demos = [
   { title: "Virtual painter", where: PAINTER_LIVE ? "Runs in your browser (webcam)" : "Will run in your browser (webcam)",
     status: PAINTER_LIVE ? "live" : "soon", painter: PAINTER_LIVE,
@@ -11,6 +11,8 @@ const demos = [
     text: "Pick a site photo: YOLO11n (0.939 mAP50) boxes every head and raises a site alert when one has no hard hat. On 2,001 test images it caught 97.6 % of the violations at 96.2 % precision.", project: "/projects/ppe-safety-monitor/" },
   { title: "Can you beat the AI?", where: DEPTH_GAME_LIVE ? "Runs in your browser" : "Will run in your browser", status: DEPTH_GAME_LIVE ? "live" : "soon", game: true,
     text: "Which of two points is closer? Play against the depth models of project 14 on ordinary rooms, mirrors, glass and illusions, at your own pace or in a 0.2 s glance.", project: "/projects/monocular-depth-3d/" },
+  { title: "Football AI coach", where: FOOTBALL_LIVE ? "Runs in your browser" : "Will run in your browser", status: FOOTBALL_LIVE ? "live" : "soon", football: true,
+    text: "Replay a full Bundesliga match on a 2D pitch and pause at any moment: an AI coach ranks the ball carrier's passes, carries and shot in expected goals. Follow it or refuse it, then see what the pro did.", project: "/projects/football-analytics/" },
 ];
 ---
 <Base title="Demos" description="Computer vision demos you can try in your browser.">
@@ -23,7 +25,7 @@ const demos = [
           <div class="meta">
             <span class={`status mono ${d.status}`}>{d.status === "live" ? "LIVE" : "COMING SOON"}</span>
             <h2>{d.title}</h2><p class="where mono">{d.where}</p><p>{d.text}</p>
-            <p class="links">{d.game && DEPTH_GAME_LIVE && <a class="play-link" href="/demos/depth-challenge/">▶ Play</a>}<a href={d.project}>Case study →</a></p>
+            <p class="links">{d.game && DEPTH_GAME_LIVE && <a class="play-link" href="/demos/depth-challenge/">▶ Play</a>}{d.football && FOOTBALL_LIVE && <a class="play-link" href="/demos/football/">▶ Watch and coach</a>}<a href={d.project}>Case study →</a></p>
           </div>
           {d.painter && <div class="embed"><Painter /></div>}
           {d.hardhat && <div class="embed"><HardHat /></div>}
