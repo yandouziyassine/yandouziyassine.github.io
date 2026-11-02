@@ -6,7 +6,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     // Chromium's fake camera (a moving test pattern) for the painter test; harmless for the other pages.
-    launchOptions: { args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"] },
+    // SwiftShader WebGL for the football 3D view: Linux CI Chromium refuses software WebGL without this flag.
+    launchOptions: { args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", "--enable-unsafe-swiftshader"] },
   },
   webServer: { command: `npx astro preview --port ${PORT}`, url: `http://localhost:${PORT}`, reuseExistingServer: false, timeout: 60_000 },
 });
