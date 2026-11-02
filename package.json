@@ -15,6 +15,7 @@
     "test:smoke": "playwright test",
     "test:lhci": "lhci autorun",
     "test:lh-all": "node scripts/lighthouse-all.mjs .lighthouseci",
+    "test:bundle": "node scripts/bundle-3d.mjs",
     "build:hf": "node scripts/build-hf-hub.mjs",
     "sync:depth-game": "node scripts/depth-game.mjs",
     "sync:football": "node scripts/football.mjs"
@@ -24,11 +25,13 @@
     "@astrojs/sitemap": "3.7.4",
     "astro": "7.4.2",
     "js-yaml": "5.5.0",
-    "onnxruntime-web": "1.30.0"
+    "onnxruntime-web": "1.30.0",
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@lhci/cli": "0.15.1",
     "@playwright/test": "1.64.1",
+    "@types/three": "0.186.0",
     "linkinator": "8.1.0",
     "sharp": "0.35.5",
     "vitest": "5.0.5"

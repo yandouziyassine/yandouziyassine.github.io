@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ABSENT, ballAt, carrierAt, clock, decodeHalf, eventFrame, frameDots, markers, nearestCarrierFrame, ownerAt, playerAt, stateAt, trail, velocityAt } from "../src/lib/coach/replay.ts";
+import { ABSENT, ballAt, carrierAt, clock, decodeHalf, eventFrame, frameDots, markers, nearestCarrierFrame, ownerAt, playerAt, scoreAt, stateAt, trail, velocityAt } from "../src/lib/coach/replay.ts";
 
 const players = [
   { team: 0, shirt: 10, name: "A" }, { team: 0, shirt: 8, name: "B" }, { team: 1, shirt: 4, name: "C" },
@@ -137,5 +137,21 @@ describe("drawing helpers", () => {
       { half: 0, frame: 8, kind: "goal", team: 0, label: "Goal 00:00 · Home · #10 A" },
       { half: 0, frame: 12, kind: "shot", team: 1, label: "Shot 00:00 · Away · #4 C" },
     ]);
+  });
+});
+
+describe("score", () => {
+  it("counts goals up to the frame, by the scoring team, with nominal frames when not synced", () => {
+    const events = [
+      { type: "shot", half: 0, frame: 8, team: 0, player: 0, goal: true },
+      { type: "shot", half: 1, frame: null, nominal: 3, team: 1, player: 2, goal: true },
+      { type: "shot", half: 0, frame: 5, team: 1, player: 2, goal: false },
+      { type: "shot", half: null, frame: null, team: 0, player: 0, goal: true },
+    ];
+    const m = { ...meta, events };
+    expect(scoreAt(m, 0, 7)).toEqual([0, 0]);
+    expect(scoreAt(m, 0, 8)).toEqual([1, 0]);
+    expect(scoreAt(m, 1, 2)).toEqual([1, 0]);
+    expect(scoreAt(m, 1, 3)).toEqual([1, 1]);
   });
 });

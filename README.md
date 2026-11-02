@@ -34,7 +34,7 @@ All run entirely in the browser; nothing the visitor shows them is uploaded.
   MediaPipe's wasm runtime and hand model self-hosted in `public/mediapipe/` (Apache-2.0 notice there).
 - **Hard-hat check** (`src/components/HardHat.astro`, `src/lib/ppe/`): the project 07 YOLO11n model
   (`public/models/ppe_yolo11n_fp16.onnx`) in ONNX Runtime Web; decode and NMS ported from the Python reference.
-- **Football AI coach** (`src/components/FootballReplay.astro`, `src/lib/coach/`): one IDSSE Bundesliga match (CC BY 4.0, committed in `public/football/`, refreshed with `npm run sync:football` from `../cv-data/football-coach/site-export` or `FOOTBALL_EXPORT`); the coach engine is a TypeScript port of the library's `coach/` (pitch control, features, logistic / ridge from `models.json`, advice), checked against Python on 30 real frames (`tests/coach-parity.test.mjs`, fixture from `coach/parity_fixtures.py`).
+- **Football AI coach** (`src/components/FootballReplay.astro`, `src/lib/coach/`): one IDSSE Bundesliga match (CC BY 4.0, committed in `public/football/`, refreshed with `npm run sync:football` from `../cv-data/football-coach/site-export` or `FOOTBALL_EXPORT`); the coach engine is a TypeScript port of the library's `coach/` (pitch control, features, logistic / ridge from `models.json`, advice), checked against Python on 30 real frames (`tests/coach-parity.test.mjs`, fixture from `coach/parity_fixtures.py`). Phase 3 adds a 3D view (`src/lib/football3d/`; three.js loaded with `import()` on the first "3D view" press, ball height from `public/football/z0.bin` / `z1.bin`): stadium, tactical and player's-eyes cameras, 13 draw calls, rendered only when something moves.
 
 Ship switches are in `src/data/flags.ts`. Details: `docs/superpowers/plans/2026-10-25-portfolio-v2-phase2-demos.md`.
 
@@ -51,9 +51,10 @@ npm run dev          # http://localhost:4321
 npm run build        # site + PDF resume in dist/
 npm test             # Vitest: content, privacy (no phone or email anywhere), hard-hat decode, coach port + Python parity
 npm run test:links   # internal links in dist/
-npm run test:smoke   # Playwright: pages, filter, painter with a fake camera, football replay, hard-hat parity (local only)
+npm run test:smoke   # Playwright: pages, filter, painter with a fake camera, football replay + 3D (skips without WebGL 2), hard-hat parity (local only)
 npm run test:lhci    # Lighthouse CI on 7 pages (3 runs each): performance and accessibility >= 0.9
 npm run test:lh-all  # one Lighthouse run on every page (2026-10-26: performance 0.95-1.0, accessibility 1.0)
+npm run test:bundle  # the football page loads no three.js up front; prints the lazy 3D chunk's gzip size (fails above 200 kB)
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of these on every branch except `main`; `pages.yml` builds, tests and
