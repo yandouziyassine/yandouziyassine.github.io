@@ -40,3 +40,32 @@ describe.skipIf(!fx)("coach parity with Python on real frames", () => {
     });
   }
 });
+
+import { carrierAt, decodeHalf, stateAt } from "../src/lib/coach/replay.ts";
+
+const DATA = "public/football";
+const shipped = !!fx && fs.existsSync(`${DATA}/h0.bin`) && fs.existsSync(`${DATA}/h1.bin`);
+const meta = shipped ? JSON.parse(fs.readFileSync(`${DATA}/match.json`, "utf8")) : null;
+const halves = shipped ? meta.halves.map((info, i) => {
+  const b = fs.readFileSync(`${DATA}/h${i}.bin`);
+  return decodeHalf(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), info, meta.players.length);
+}) : [];
+
+describe.skipIf(!shipped)("the shipped replay files rebuild the same frames", () => {
+  it("the fixture was made from the shipped match and models", () => {
+    expect(fx.match_id).toBe(meta.match_id);
+    expect(fx.models).toEqual(JSON.parse(fs.readFileSync(`${DATA}/models.json`, "utf8")));
+  });
+  for (const r of fx?.frames ?? []) {
+    it(`half ${r.half}, frame ${r.frame}: carrier and state`, () => {
+      const h = halves[r.half];
+      expect(carrierAt(meta, r.half, h, r.frame)).toEqual({ player: r.carrier, team: r.team });
+      const s = stateAt(meta, r.half, h, r.frame, r.team);
+      expect(s.attIdx).toEqual(r.state.att_idx);
+      expect(s.defIdx).toEqual(r.state.def_idx);
+      expect(s.direction).toBe(r.state.direction);
+      for (const [k, py] of [["att", "att"], ["attV", "att_v"], ["def", "def"], ["defV", "def_v"]])
+        s[k].forEach((v, i) => expect(Math.max(Math.abs(v[0] - r.state[py][i][0]), Math.abs(v[1] - r.state[py][i][1])), `${k}[${i}]`).toBeLessThan(1e-9));
+    });
+  }
+});
