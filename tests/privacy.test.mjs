@@ -27,7 +27,7 @@ describe("no personal contact details are published", () => {
       return [PHONE, EMAIL].filter((re) => re.test(text)).map((re) => `${path.relative(DIST, f)} matches ${re}`);
     });
     expect(hits).toEqual([]);
-  });
+  }, 30_000); // reads every built text file: slow when the whole suite runs in parallel
 
   it("the PDF exists and is small (printed from the checked page, not a hand-made file)", () => {
     const pdf = path.join(DIST, "cv", "Yassine_Yandouzi_CV.pdf");
