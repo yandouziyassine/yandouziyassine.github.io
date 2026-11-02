@@ -53,4 +53,36 @@ test.describe("football replay", () => {
     await root.getByRole("button", { name: "Play" }).click();
     await expect(root.locator("[data-reveal]")).toContainText("Outcome within 15 s", { timeout: 10_000 });
   });
+
+  test("pausing in open play snaps to the nearest moment someone has the ball", async ({ page }) => {
+    await page.goto("/demos/football/");
+    const root = page.locator("[data-football]");
+    await root.hover();
+    await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
+    const clock = root.locator("[data-clock]"), status = root.locator("[data-status]");
+    const seconds = async () => { const [m, s] = (await clock.innerText()).split(":").map(Number); return 60 * m + s; };
+    // Several pauses a few seconds apart: the ball is between players at most instants, yet each pause must end on a
+    // moment with options, and whenever it moved the status says by how much.
+    let moved = 0;
+    for (const at of [3, 6, 9]) { // the ball is in play for the first 12 s
+      await root.getByRole("button", { name: "Play" }).click();
+      await expect.poll(seconds, { timeout: 20_000 }).toBeGreaterThanOrEqual(at);
+      await root.getByRole("button", { name: "Pause" }).click();
+      await expect(root).not.toHaveAttribute("data-options", "0");
+      const text = await status.innerText();
+      if (/^Paused \d\.\d s (earlier|later), when #\d+ .* had the ball: \d+ options/.test(text)) moved++;
+      else expect(text).toMatch(/^Paused\. #\d+ .* has the ball: \d+ options/);
+    }
+    expect(moved).toBeGreaterThan(0); // at 3 s, 6 s and 9 s of this match the ball is between players
+  });
+
+  test("Jump to a shot lands where the shooter has the ball", async ({ page }) => {
+    await page.goto("/demos/football/");
+    const root = page.locator("[data-football]");
+    await root.hover();
+    await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
+    await root.locator("[data-jump]").selectOption({ index: 1 });
+    await expect(root).not.toHaveAttribute("data-options", "0", { timeout: 10_000 });
+    await expect(root.locator("[data-options] button").first()).toBeVisible();
+  });
 });
