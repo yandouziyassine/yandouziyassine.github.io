@@ -47,6 +47,23 @@ describe("3D scene", () => {
     expect(s.parts.arrows.geometry.drawRange.count).toBe(18);
     expect(s.parts.trail.geometry.drawRange.count).toBe(5);
   });
+  it("in the player's eyes the arrows are thin ribbons that start 2.5 m ahead, and the best one stays orange", () => {
+    const s = createScene(null);
+    const arrows = [{ from: [10, 5], to: [30, 5], label: "best", tone: "best" }, { from: [10, 5], to: [10, 25], label: "other", tone: "other" }];
+    const pos = () => s.parts.arrows.geometry.getAttribute("position"), col = () => s.parts.arrows.geometry.getAttribute("color");
+    s.update(frame({ arrows }), null, 1, false);
+    expect(Math.hypot(pos().getX(0) - 10, pos().getZ(0) + 5)).toBeLessThan(0.3); // normal arrow: starts at the player
+    s.update(frame({ arrows }), 0, 1, true);
+    expect(s.parts.arrows.geometry.drawRange.count).toBe(18);
+    expect(pos().getX(0)).toBeCloseTo(12.5, 5);        // best: 2.5 m along +x, 0.15 m to the side
+    expect(Math.abs(pos().getZ(0) + 5)).toBeCloseTo(0.15, 5);
+    expect(Math.abs(pos().getZ(1) - pos().getZ(0))).toBeCloseTo(0.3, 5); // shaft 0.3 m wide
+    expect(pos().getX(6)).toBeCloseTo(30, 5);          // tip at the target
+    const best = new Color("#ff5b1f"), other = new Color("#ecebe6");
+    expect(col().getX(0)).toBeCloseTo(best.r, 5);
+    expect(col().getY(0)).toBeCloseTo(best.g, 5);
+    expect(col().getX(9)).toBeCloseTo(other.r, 5);     // second arrow keeps its own tone
+  });
   it("scales the figures up for the tactical view", () => {
     const s = createScene(null);
     s.update(frame(), null, 2.5);

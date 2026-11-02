@@ -104,7 +104,7 @@ export function createView3D(o: ViewOptions): View3D {
     }
     if (!flying) scale = goal;
     current = pose;
-    if (frame) world.update(frame, mode === "eyes" ? frame.focus?.player ?? null : null, scale);
+    if (frame) world.update(frame, mode === "eyes" ? frame.focus?.player ?? null : null, scale, mode === "eyes" && !!frame.focus);
     if (mode === "tactical" && !flying) {
       const { halfW, halfH } = tacticalExtent(aspect());
       ortho.left = -halfW; ortho.right = halfW; ortho.top = halfH; ortho.bottom = -halfH;

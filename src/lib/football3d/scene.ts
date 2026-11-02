@@ -13,7 +13,7 @@ import {
 } from "three";
 import { GOAL_HALF_WIDTH, HALF_LENGTH, HALF_WIDTH, type Vec } from "../coach/geometry";
 import type { Frame3D, Tone } from "./frame";
-import { arrowTriangles, atlasCell, pitchMarkings, ribbon } from "./shapes";
+import { arrowTriangles, atlasCell, eyesArrow, pitchMarkings, ribbon } from "./shapes";
 
 export const MAX_FIGURES = 40;  // instances per body part (22 on the pitch; spare room for data with more slots)
 export const BODY_Y = 0.78;     // capsule centre: a 1.0 m cylinder + two 0.28 m caps = 1.56 m tall
@@ -47,8 +47,9 @@ void main() {
 export interface Scene3D {
   scene: Scene;
   parts: { bodies: InstancedMesh; heads: InstancedMesh; numbers: InstancedMesh; shadows: InstancedMesh; ring: Mesh; ball: Mesh; arrows: Mesh; trail: Line };
-  /** Place everything for this frame; `hide` = the player whose eyes we look through; `scale` enlarges the figures. */
-  update(frame: Frame3D, hide: number | null, scale?: number): void;
+  /** Place everything for this frame; `hide` = the player whose eyes we look through; `scale` enlarges the figures;
+   *  `eyes` draws the arrows as thin ribbons that start 2.5 m ahead (the camera stands where they start). */
+  update(frame: Frame3D, hide: number | null, scale?: number, eyes?: boolean): void;
   /** The player under a point in normalised device coordinates ([-1, 1], y up), or null. */
   pick(ndc: Vec, camera: Camera): number | null;
   dispose(): void;
@@ -132,7 +133,7 @@ export function createScene(atlas: Texture | null): Scene3D {
 
   let slots: number[] = [], spots: Vec[] = [], hidden: number | null = null;
 
-  function update(f: Frame3D, hide: number | null, scale = 1) {
+  function update(f: Frame3D, hide: number | null, scale = 1, eyes = false) {
     const n = Math.min(MAX_FIGURES, f.figures.length);
     slots = []; spots = []; hidden = hide;
     q.identity();
@@ -167,7 +168,7 @@ export function createScene(atlas: Texture | null): Scene3D {
 
     let v = 0;
     for (const a of f.arrows.slice(0, MAX_ARROWS)) {
-      const tri = arrowTriangles(a.from, a.to);
+      const tri = eyes ? eyesArrow(a.from, a.to) : arrowTriangles(a.from, a.to);
       colour.set(TONES[a.tone]);
       for (let i = 0; i < tri.length; i += 2, v++) {
         arrowPos.setXYZ(v, tri[i], 0.03, -tri[i + 1]);

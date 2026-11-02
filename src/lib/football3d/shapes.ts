@@ -73,3 +73,12 @@ export function atlasCell(n: number): Vec {
   const k = Math.max(0, Math.min(99, Math.round(n)));
   return [k % 10, 9 - Math.floor(k / 10)];
 }
+
+/** The arrow as seen from a player's eyes: the camera stands where the arrow starts, so a normal arrow would fill the
+ *  screen. Draw a thin ribbon (0.3 m, head 1 m) that starts `lead` m ahead of the player along the arrow (at most
+ *  half of it, so a short arrow still shows). */
+export const EYES_ARROW = { width: 0.3, head: 1, lead: 2.5 };
+export function eyesArrow(from: Vec, to: Vec): Float32Array {
+  const dx = to[0] - from[0], dy = to[1] - from[1], len = Math.hypot(dx, dy) || 1, k = Math.min(EYES_ARROW.lead, len / 2) / len;
+  return arrowTriangles([from[0] + dx * k, from[1] + dy * k], to, EYES_ARROW.width, EYES_ARROW.head);
+}
