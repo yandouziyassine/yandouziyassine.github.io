@@ -13,6 +13,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
+      - run: npm run test:bundle
       - run: npm test
       - run: npm run test:links
       - run: npm run test:smoke

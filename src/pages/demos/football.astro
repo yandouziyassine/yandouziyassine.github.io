@@ -10,13 +10,14 @@ const match = FOOTBALL_LIVE ? (JSON.parse(fs.readFileSync("public/football/match
 const models = FOOTBALL_LIVE ? (JSON.parse(fs.readFileSync("public/football/models.json", "utf8")) as ModelsJson) : null;
 const ext = { target: "_blank", rel: "noopener" };
 ---
-<Base title="Football AI coach" description="Replay a full Bundesliga match on a 2D pitch, pause at any moment and see what an AI coach would do with the ball, then what the pro did.">
+<Base title="Football AI coach" description="Replay a full Bundesliga match in 2D or 3D, pause at any moment and see what an AI coach would do with the ball, then what the pro did.">
   <div class="wrap section">
     <a class="back mono" href="/demos/">← All demos</a>
     <div class="section-head"><span class="eyebrow">Live demo · project 20</span><h1 class="display">Pause the match. Ask the coach.</h1>
       <p class="lede">{match ? `${match.meta.home} vs ${match.meta.guest}, 2. Bundesliga 2022/23` : "A full Bundesliga match"},
         replayed from optical tracking of every player and the ball. Pause when a player has the ball: the coach ranks his
-        passes, carries and shot in expected goals. Follow it or refuse it, then watch what the professional did.</p></div>
+        passes, carries and shot in expected goals. Follow it or refuse it, then watch what the professional did. Switch to 3D
+        at any moment: stadium camera, tactical view or a player's eyes.</p></div>
     {match && models ? (
       <>
         <div class="panel box"><FootballReplay /></div>
@@ -28,6 +29,10 @@ const ext = { target: "_blank", rel: "noopener" };
             option is chosen, counting the cost of losing the ball where it would be lost.</li>
           <li><b>Tally</b>: the sum of the coach's value for the options you, the coach and the pros chose. It is the coach's
             opinion of every choice, not a result.</li>
+          <li><b>3D view</b> (button or V): the same moment in 3D; C or the camera buttons switch between the stadium
+            camera, a tactical view from above and a player's eyes. Tap a player, or pick him in "Whose eyes", to stand
+            at his head height (1.7 m) looking where he is running, or at the ball when he stands still. The arrows lie
+            on the grass; the full list of options stays below the pitch.</li>
         </ul>
         <h2 class="small">Honest limits</h2>
         <ul class="notes">
@@ -42,8 +47,9 @@ const ext = { target: "_blank", rel: "noopener" };
           <li>The ball carrier is the nearest player of the team in possession within {CARRIER_M} m of the ball (ball height
             is not used); speeds come from positions 0.16 s apart, as in training. "What the pro did" comes from the official
             events when they could be synchronised with the tracking (about two thirds of the passes), otherwise from the tracking.</li>
-          <li>Everything runs in your browser; your choices stay in memory and are gone when you leave. A 3D view (stadium,
-            a player's eyes) is the next phase.</li>
+          <li>The 3D figures come from the tracking positions only: there is no body pose, so the player's-eyes camera
+            follows his movement, not his head. The ball's height comes from the same optical tracking.</li>
+          <li>Everything runs in your browser; your choices stay in memory and are gone when you leave.</li>
         </ul>
         <p><a class="case" href="/projects/football-analytics/">How the coach was built and evaluated →</a></p>
         <h2 class="small">Data credit</h2>

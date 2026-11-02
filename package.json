@@ -15,6 +15,7 @@
     "test:smoke": "playwright test",
     "test:lhci": "lhci autorun",
     "test:lh-all": "node scripts/lighthouse-all.mjs .lighthouseci",
+    "test:bundle": "node scripts/bundle-3d.mjs",
     "build:hf": "node scripts/build-hf-hub.mjs",
     "sync:depth-game": "node scripts/depth-game.mjs",
     "sync:football": "node scripts/football.mjs"
