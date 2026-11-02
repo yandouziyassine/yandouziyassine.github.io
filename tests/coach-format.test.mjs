@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrowLabel, direction, optionLabel, outcomeLabel, pct, proLabel, signedXg, textOn } from "../src/lib/coach/format.ts";
+import { arrowLabel, direction, frameLabel, optionLabel, outcomeLabel, pct, proLabel, signedXg, textOn } from "../src/lib/coach/format.ts";
 
 const players = [{ team: 0, shirt: 10, name: "D. Ginczek" }, { team: 0, shirt: 8, name: "B" }];
 const pass = { kind: "pass", target: 1, to: [0, 0], p: 0.736, value: 0, score: 0.0312 };
@@ -34,5 +34,15 @@ describe("labels", () => {
   it("picks readable shirt-number ink for a team colour", () => {
     expect(textOn("#9F1922")).toBe("#ffffff");
     expect(textOn("#FFFFFF")).toBe("#0d0e10");
+  });
+});
+
+describe("canvas summary", () => {
+  const m = { players, meta: { home: "Home", guest: "Away" } };
+  it("says which view, when, the score and who has the ball", () => {
+    expect(frameLabel(m, "Pitch", "12:34, first half", [1, 0], { player: 0, team: 0 }))
+      .toBe("Pitch, 12:34, first half, Home 1–0 Away: #10 D. Ginczek (Home) has the ball.");
+    expect(frameLabel(m, "3D view (tactical view)", "45:00, second half", [2, 3], null))
+      .toBe("3D view (tactical view), 45:00, second half, Home 2–3 Away: no player has the ball.");
   });
 });

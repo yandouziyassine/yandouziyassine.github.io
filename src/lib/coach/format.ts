@@ -2,7 +2,7 @@
 // choosing that option.
 import type { CoachOption } from "./advice";
 import type { Outcome, ProChoice } from "./decision";
-import type { PlayerInfo } from "./replay";
+import type { Carrier, MatchMeta, PlayerInfo } from "./replay";
 
 export const pct = (p: number) => `${Math.round(p * 100)} %`;
 
@@ -50,4 +50,11 @@ export const outcomeLabel = (o: Outcome): string => ({ goal: "goal", shot: "a sh
 export function textOn(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
   return 0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255) > 140 ? "#0d0e10" : "#ffffff";
+}
+
+/** The canvases' aria-label: "<view>, <when>, Home 1–0 Away: #10 Name (Home) has the ball." */
+export function frameLabel(m: Pick<MatchMeta, "players" | "meta">, view: string, when: string, score: [number, number], carrier: Carrier | null): string {
+  const p = carrier ? m.players[carrier.player] : undefined;
+  const who = p ? `#${p.shirt} ${p.name} (${carrier!.team ? m.meta.guest : m.meta.home}) has the ball` : "no player has the ball";
+  return `${view}, ${when}, ${m.meta.home} ${score[0]}–${score[1]} ${m.meta.guest}: ${who}.`;
 }

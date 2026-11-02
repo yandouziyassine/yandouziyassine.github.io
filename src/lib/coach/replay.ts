@@ -148,3 +148,14 @@ export function markers(m: MatchMeta): Marker[] {
   }
   return out.sort((a, b) => a.half - b.half || a.frame - b.frame);
 }
+
+/** Goals scored up to (half, frame), as [home, guest]: shot events with goal = true, credited to the shooting team. */
+export function scoreAt(m: MatchMeta, half: number, frame: number): [number, number] {
+  const s: [number, number] = [0, 0];
+  for (const e of m.events) {
+    const f = eventFrame(e);
+    if (e.type !== "shot" || !e.goal || e.half === null || f === null || (e.team !== 0 && e.team !== 1)) continue;
+    if (e.half < half || (e.half === half && f <= frame)) s[e.team]++;
+  }
+  return s;
+}
