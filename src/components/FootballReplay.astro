@@ -3,10 +3,17 @@
 // the coach (src/lib/coach, a parity-tested port of the library's coach engine) ranks his options; follow or refuse,
 // then see what the pro did. Data in /football/ (scripts/football.mjs): match.json, models.json and the first half
 // load on the first hover, touch or focus (not on page load), the second half (3.2 / 4.5 MB per half) when first
-// needed. Choices stay in memory; nothing is sent anywhere.
+// needed. Choices stay in memory; nothing is sent anywhere. Phase 3: a 3D view of the same moment (stadium camera,
+// tactical view, a player's eyes) from src/lib/football3d/, loaded with import() on the first "3D view" press so
+// three.js never weighs on the 2D page; the ball's height (z0/z1.bin, 68 kB per half) loads with it.
 ---
 <div class="fr" data-football>
-  <canvas class="pitch" data-canvas role="img" aria-label="Football pitch; the match is loading"></canvas>
+  <div class="stage">
+    <canvas class="pitch" data-canvas role="img" aria-label="Football pitch; the match is loading"></canvas>
+    <div class="stage3d" data-stage3d hidden>
+      <div class="labels3d" data-labels3d aria-hidden="true"></div>
+    </div>
+  </div>
   <div class="bar">
     <button type="button" class="btn primary ctl" data-play>Play</button>
     <span class="clock mono" data-clock>00:00</span>
@@ -19,6 +26,19 @@
       <button type="button" class="btn ctl" data-half="0" aria-pressed="true" disabled>1st half</button>
       <button type="button" class="btn ctl" data-half="1" aria-pressed="false" disabled>2nd half</button>
     </div>
+    <button type="button" class="btn ctl" data-view3d aria-pressed="false" aria-describedby="fr-3d-note" disabled>3D view</button>
+  </div>
+  <div class="view3d">
+    <fieldset class="cams" data-cams hidden>
+      <legend class="sr-only">Camera</legend>
+      <label class="cam"><input type="radio" name="fr-cam" value="broadcast" checked /> Stadium</label>
+      <label class="cam"><input type="radio" name="fr-cam" value="tactical" /> Tactical</label>
+      <label class="cam"><input type="radio" name="fr-cam" value="eyes" /> Player's eyes</label>
+    </fieldset>
+    <label class="jump mono" data-eyes-row hidden>Whose eyes
+      <select data-eyes></select>
+    </label>
+    <span class="note3d mono" id="fr-3d-note" data-note3d>3D view: stadium camera, tactical view or a player's eyes (tap a player). Loaded only when you ask for it.</span>
   </div>
   <div class="timeline">
     <div class="marks" data-marks aria-hidden="true"></div>
@@ -47,15 +67,19 @@
       <tr><th scope="row">Pros</th><td data-tally-pro-n>0</td><td data-tally-pro>+0.000 xG</td></tr>
     </tbody>
   </table>
-  <p class="keys mono">You followed the coach <span data-tally-followed>0 of 0</span> times · Keys: Space play / pause · ← → 5 s · F follow · 1–9 pick</p>
+  <p class="keys mono">You followed the coach <span data-tally-followed>0 of 0</span> times · Keys: Space play / pause · ← → 5 s · F follow · 1–9 pick · V 3D view · C camera</p>
 </div>
 <script>
   import { options as rankOptions, type Coach, type CoachOption } from "../lib/coach/advice";
   import { decide, emptyTally, outcome, proChoice, reveal, type Outcome, type ProChoice, type Tally } from "../lib/coach/decision";
-  import { arrowLabel, optionLabel, outcomeLabel, proLabel, signedXg, textOn } from "../lib/coach/format";
+  import { arrowLabel, frameLabel, optionLabel, outcomeLabel, proLabel, signedXg, textOn } from "../lib/coach/format";
   import { HALF_LENGTH, HALF_WIDTH, normalise, type Vec } from "../lib/coach/geometry";
   import { coachFromModels, type ModelsJson } from "../lib/coach/models";
-  import { carrierAt, clock, decodeHalf, frameDots, markers, nearestCarrierFrame, playerAt, stateAt, trail, type Carrier, type HalfData, type MatchMeta } from "../lib/coach/replay";
+  import { carrierAt, clock, decodeHalf, frameDots, markers, nearestCarrierFrame, playerAt, scoreAt, stateAt, trail, type Carrier, type HalfData, type MatchMeta } from "../lib/coach/replay";
+  import { nextCamera, type CameraMode } from "../lib/football3d/camera";
+  import { buildFrame, decodeBallZ, eyesChoices, type ArrowSpec, type Tone } from "../lib/football3d/frame";
+  import { hasWebGL } from "../lib/football3d/webgl";
+  import type { View3D } from "../lib/football3d/view3d"; // type only: three.js is loaded by import() in open3d()
 
   const BASE = "/football/";
   const MARGIN = 3; // metres drawn around the pitch (the goals stick out 2 m)
@@ -68,11 +92,16 @@
     const time = $<HTMLInputElement>("[data-time]"), jump = $<HTMLSelectElement>("[data-jump]");
     const status = $("[data-status]"), coachBox = $("[data-coach]"), list = $("[data-options]"), revealBox = $("[data-reveal]");
     const halfBtns = [...root.querySelectorAll<HTMLButtonElement>("[data-half]")];
+    const stage3d = $("[data-stage3d]"), labels3d = $("[data-labels3d]"), view3dBtn = $<HTMLButtonElement>("[data-view3d]");
+    const cams = $<HTMLFieldSetElement>("[data-cams]"), eyesRow = $("[data-eyes-row]"), eyesSel = $<HTMLSelectElement>("[data-eyes]");
+    const note3d = $("[data-note3d]");
     const css = getComputedStyle(document.documentElement);
     const SIGNAL = css.getPropertyValue("--signal").trim() || "#ff5b1f";
     const OK = css.getPropertyValue("--ok").trim() || "#7fd18b";
     const MONO = css.getPropertyValue("--font-mono").trim() || "monospace";
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const TONE: Record<Tone, string> = { best: SIGNAL, pick: OK, other: "rgba(236, 235, 230, 0.85)" };
+    const CAMERA_NAMES: Record<CameraMode, string> = { broadcast: "stadium camera", tactical: "tactical view", eyes: "player's eyes" };
 
     let meta = null as unknown as MatchMeta;
     let coach = null as unknown as Coach;
@@ -83,6 +112,8 @@
     let chosen: { half: number; frame: number; option: CoachOption } | null = null;
     let pending: { half: number; pro: ProChoice; result: Outcome } | null = null;
     let tally: Tally = emptyTally();
+    let view3d: View3D | null = null, opening3d = false, webgl = false, camMode: CameraMode = "broadcast", eyesOf: number | null = null;
+    const zHalves: (Int16Array | null | undefined)[] = []; // ball height per half: undefined = not asked yet, null = none
 
     const say = (text: string) => { status.textContent = text; };
     const failed = (err: unknown) => { say("Could not load the match data. Please reload the page."); console.warn(err); };
@@ -94,6 +125,20 @@
         .then((r) => { if (!r.ok) throw new Error(`h${i}.bin: HTTP ${r.status}`); return r.arrayBuffer(); })
         .then((buf) => (halves[i] = decodeHalf(buf, meta.halves[i], meta.players.length)))
         .catch((e) => { loads[i] = undefined; throw e; }));
+    }
+
+    // The ball's height (z<i>.bin, 68 kB per half) is only drawn in 3D: fetched the first time 3D shows that half.
+    // Missing file or failed fetch: the 3D ball rests on the grass.
+    async function getBallZ(i: number): Promise<Int16Array | null> {
+      if (zHalves[i] !== undefined) return zHalves[i]!;
+      try {
+        const r = await fetch(`${BASE}z${i}.bin`);
+        zHalves[i] = r.ok ? decodeBallZ(await r.arrayBuffer(), meta.halves[i].frames) : null;
+      } catch (e) {
+        console.warn(e);
+        zHalves[i] = null;
+      }
+      return zHalves[i]!;
     }
 
     // ---------- drawing ----------
@@ -146,7 +191,34 @@
       ctx.fillStyle = colour; ctx.fillText(label, lx + 5, ly + hgt / 2);
     }
 
+    const shownAdvice = () => (!playing && advice && advice.half === half && advice.frame === frameNow() ? advice : null);
+
+    /** The coach's arrows at this moment (top 3 + the viewer's pick), for the 2D canvas and the 3D view alike. */
+    function arrowsNow(h: HalfData): ArrowSpec[] {
+      const shown = shownAdvice();
+      if (!shown) return [];
+      const from = playerAt(h, shown.frame, shown.carrier.player), dir = meta.halves[half].attack[shown.carrier.team];
+      if (!from) return [];
+      const pick = chosen && chosen.half === half && chosen.frame === shown.frame ? shown.opts.find((o) => same(o, chosen!.option)) ?? null : null;
+      const drawn = shown.opts.slice(0, 3);
+      if (pick && !drawn.includes(pick)) drawn.push(pick);
+      return drawn.map((o): ArrowSpec => ({
+        from, to: normalise(o.to, dir), label: arrowLabel(o, meta.players),
+        tone: o === pick ? "pick" : o === shown.opts[0] ? "best" : "other",
+      }));
+    }
+
+    function draw3d() {
+      const h = halves[half];
+      if (!ready || !h || !view3d) return;
+      view3d.show(buildFrame(meta, h, {
+        t, z: zHalves[half] ?? null, carrier: shownAdvice()?.carrier.player ?? null, arrows: arrowsNow(h),
+        focus: camMode === "eyes" ? eyesOf : null, trail: !reduced,
+      }));
+    }
+
     function draw() {
+      if (view3d) { draw3d(); return; } // same clock, same frame: only the target differs
       const k = scale();
       drawPitch(k);
       const h = halves[half];
@@ -158,15 +230,8 @@
         tr.forEach((p, i) => { const [x, y] = px(p); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
         ctx.stroke();
       }
-      const shown = !playing && advice && advice.half === half && advice.frame === frameNow() ? advice : null;
-      if (shown) {
-        const from = playerAt(h, shown.frame, shown.carrier.player), dir = meta.halves[half].attack[shown.carrier.team];
-        const pick = chosen && chosen.half === half && chosen.frame === shown.frame ? shown.opts.find((o) => same(o, chosen!.option)) ?? null : null;
-        const drawn = shown.opts.slice(0, 3);
-        if (pick && !drawn.includes(pick)) drawn.push(pick);
-        if (from) for (const o of [...drawn].reverse())
-          arrow(from, normalise(o.to, dir), o === pick ? OK : o === shown.opts[0] ? SIGNAL : "rgba(236, 235, 230, 0.85)", arrowLabel(o, meta.players), k);
-      }
+      const shown = shownAdvice();
+      for (const a of arrowsNow(h).reverse()) arrow(a.from, a.to, TONE[a.tone], a.label, k); // best drawn last, on top
       const { players, ball } = frameDots(h, t);
       const r = Math.max(7 * dpr, 1.1 * k);
       ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = `600 ${Math.round(r * 1.05)}px ${MONO}`;
@@ -187,11 +252,14 @@
       time.setAttribute("aria-valuetext", `${c}, ${half ? "second" : "first"} half`);
     }
 
+    function cameraName(): string {
+      return camMode === "eyes" && eyesOf !== null ? `the eyes of #${meta.players[eyesOf].shirt} ${meta.players[eyesOf].name}` : CAMERA_NAMES[camMode];
+    }
+
     function describe(c: Carrier | null) {
-      const when = `${clock(half, frameNow(), meta.fps)}, ${half ? "second" : "first"} half`, p = c && meta.players[c.player];
-      canvas.setAttribute("aria-label", p
-        ? `Pitch at ${when}: #${p.shirt} ${p.name} (${c!.team ? meta.meta.guest : meta.meta.home}) has the ball.`
-        : `Pitch at ${when}: no player has the ball.`);
+      const f = frameNow(), when = `${clock(half, f, meta.fps)}, ${half ? "second" : "first"} half`, score = scoreAt(meta, half, f);
+      canvas.setAttribute("aria-label", frameLabel(meta, "Pitch", when, score, c));
+      view3d?.canvas.setAttribute("aria-label", frameLabel(meta, `3D view (${cameraName()})`, when, score, c));
     }
 
     // `shift`: frames the pause was moved to reach a moment with a ball carrier (negative = earlier).
@@ -305,6 +373,7 @@
       pause();
       if (!halves[i]) { say(`Loading the ${i ? "second" : "first"} half…`); playBtn.disabled = true; }
       await getHalf(i);
+      if (view3d) await getBallZ(i);
       playBtn.disabled = false;
       half = i; time.max = String(meta.halves[i].frames - 1);
       halfBtns.forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.half) === i)));
@@ -314,6 +383,7 @@
         s.className = `mark ${m.kind}`; s.style.left = `${(100 * m.frame) / n}%`;
         return s;
       }));
+      if (view3d) fillEyes();
       seek(frame);
     }
 
@@ -327,9 +397,78 @@
       for (const mk of markers(meta)) jump.add(new Option(mk.label, `${mk.half}:${mk.frame}`));
       playBtn.disabled = false; time.disabled = false; jump.disabled = false;
       halfBtns.forEach((b) => (b.disabled = false));
+      webgl = hasWebGL();
+      root.dataset.webgl = String(webgl);
+      view3dBtn.disabled = !webgl;
+      if (!webgl) note3d.textContent = "The 3D view needs WebGL 2, which this browser does not offer; the 2D pitch shows everything.";
       await setHalf(0, 0);
       root.dataset.ready = "true";
       say(`Ready: ${meta.meta.home} vs ${meta.meta.guest}. Press Play (or Space) and pause whenever a player has the ball.`);
+    }
+
+    // ---------- 3D view ----------
+    function fillEyes() {
+      const list = eyesChoices(meta, halves[half]!);
+      eyesSel.replaceChildren(...list.map((c) => new Option(c.label, String(c.player))));
+      if (!list.some((c) => c.player === eyesOf)) eyesOf = null;
+      if (eyesOf !== null) eyesSel.value = String(eyesOf);
+    }
+
+    function setCamera(mode: CameraMode) {
+      camMode = mode;
+      if (mode === "eyes" && eyesOf === null) eyesOf = shownAdvice()?.carrier.player ?? (eyesSel.value ? Number(eyesSel.value) : null);
+      if (eyesOf !== null) eyesSel.value = String(eyesOf);
+      cams.querySelectorAll<HTMLInputElement>("input").forEach((r) => (r.checked = r.value === mode));
+      eyesRow.hidden = mode !== "eyes";
+      root.dataset.camera = mode;
+      view3d?.setMode(mode);
+      describe(carrierAt(meta, half, halves[half]!, frameNow()));
+      say(`3D view: ${cameraName()}. C changes the camera, V goes back to 2D.`);
+      draw();
+    }
+
+    async function open3d() {
+      if (view3d || opening3d || !ready || !webgl) return;
+      opening3d = true;
+      view3dBtn.disabled = true;
+      say("Loading the 3D view…");
+      try {
+        const [{ createView3D }] = await Promise.all([import("../lib/football3d/view3d"), getBallZ(half)]);
+        view3d = createView3D({
+          host: stage3d, labels: labels3d, reduced,
+          onRender: (calls) => { root.dataset.drawCalls = String(calls); },
+          onLost: () => { close3d(); say("The 3D view stopped (the browser dropped its graphics context). Press 3D view to try again."); },
+        });
+      } catch (err) {
+        console.warn(err);
+        say("The 3D view could not start in this browser; the 2D pitch shows everything.");
+        return;
+      } finally {
+        opening3d = false;
+        view3dBtn.disabled = false;
+      }
+      stage3d.hidden = false; canvas.hidden = true; cams.hidden = false;
+      view3dBtn.setAttribute("aria-pressed", "true");
+      root.dataset.view = "3d";
+      fillEyes();
+      setCamera(camMode);
+    }
+
+    function close3d() {
+      if (!view3d) return;
+      view3d.dispose(); // frees the GPU memory and removes the 3D canvas
+      view3d = null;
+      stage3d.hidden = true; canvas.hidden = false; cams.hidden = true; eyesRow.hidden = true;
+      view3dBtn.setAttribute("aria-pressed", "false");
+      root.dataset.view = "2d";
+      delete root.dataset.drawCalls;
+      say("Back to the 2D pitch.");
+      resize();
+    }
+
+    function flip3d() {
+      if (view3d) close3d();
+      else open3d().catch(failed);
     }
 
     // ---------- wiring ----------
@@ -348,9 +487,25 @@
       root.querySelectorAll("[data-speed]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     }));
     halfBtns.forEach((b) => b.addEventListener("click", () => { if (ready) setHalf(Number(b.dataset.half), 0).catch(failed); }));
+    view3dBtn.addEventListener("click", flip3d);
+    cams.addEventListener("change", (e) => setCamera((e.target as HTMLInputElement).value as CameraMode));
+    eyesSel.addEventListener("change", () => { eyesOf = Number(eyesSel.value); setCamera("eyes"); });
+    stage3d.addEventListener("click", (e) => { // click / tap a player: see through his eyes
+      const p = view3d?.pickAt(e.clientX, e.clientY);
+      if (p == null) return;
+      eyesOf = p;
+      setCamera("eyes");
+    });
     window.addEventListener("keydown", (e) => {
       if (!ready || e.altKey || e.ctrlKey || e.metaKey) return;
-      const tag = (e.target as HTMLElement | null)?.tagName ?? "";
+      const el = e.target as HTMLElement | null, tag = el?.tagName ?? "";
+      const radio = tag === "INPUT" && (el as HTMLInputElement).type === "radio"; // the camera radios do not use V or C
+      if (/^[vVcC]$/.test(e.key) && (radio || (tag !== "INPUT" && tag !== "SELECT" && tag !== "TEXTAREA"))) {
+        e.preventDefault();
+        if (e.key === "v" || e.key === "V") { if (webgl) flip3d(); }
+        else if (view3d) setCamera(nextCamera(camMode));
+        return;
+      }
       if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return; // the control handles its own keys
       if (e.key === " " && tag !== "BUTTON") { e.preventDefault(); toggle(); }
       else if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); seek(frameNow() + (e.key === "ArrowLeft" ? -1 : 1) * Math.round(5 * meta.fps)); }
@@ -400,4 +555,20 @@
   .reveal { margin: 0; padding: 12px 14px; color: var(--ink-2); border: 1px solid var(--line); border-radius: var(--radius); }
   .tally { width: 100%; max-width: 480px; border-collapse: collapse; font-size: 14px; }
   .tally th, .tally td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+  .stage { position: relative; }
+  .stage3d { position: relative; width: 100%; aspect-ratio: 111 / 74; overflow: hidden; background: #0d0e10;
+    border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; }
+  .stage3d :global(canvas) { display: block; width: 100%; height: 100%; }
+  .labels3d { position: absolute; inset: 0; pointer-events: none; }
+  .labels3d :global(span) { position: absolute; left: 0; top: 0; padding: 2px 6px; font: 500 12px var(--font-mono, monospace);
+    color: var(--ink); background: rgba(13, 14, 16, 0.85); border-radius: 4px; white-space: nowrap; }
+  .labels3d :global(span.best) { color: var(--signal); }
+  .labels3d :global(span.pick) { color: var(--ok); }
+  .view3d { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .cams { display: inline-flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; }
+  .cam { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; font-size: 14px;
+    border: 1px solid var(--line-2); border-radius: var(--radius); cursor: pointer; }
+  .cam:has(input:checked) { border-color: var(--signal); }
+  .cam input { accent-color: var(--signal); }
+  .note3d { font-size: 12px; color: var(--ink-3); }
 </style>
