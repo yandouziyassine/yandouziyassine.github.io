@@ -228,7 +228,7 @@ window.PROJECTS = [
     links: [{ label: "Code", href: cv("19-edge-deployment-benchmark") }] },
   { n: "20", title: "Football Analytics", area: "Video", depth: 3, image: "media/projects/football-analytics/stats_pass_network.png",
     metric: { value: "2.5 m", unit: "median player position error on the tactical map" },
-    summary: "Players, ball and teams from broadcast frames, then 32 pitch landmarks and a homography put everyone on a top-down map.",
+    summary: "Players, ball and teams from broadcast frames onto a top-down map, then an AI coach that ranks the passes on real Bundesliga tracking (pass-success AUC 0.77–0.84 on held-out matches).",
     links: [{ label: "Code", href: cv("20-football-analytics") }] },
   { n: "01", title: "Virtual Painter", area: "Classical CV", depth: 1, image: "images/cv-01.svg",
     metric: { value: "live", unit: "draw in the air with hand gestures" },
