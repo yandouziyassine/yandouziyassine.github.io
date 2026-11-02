@@ -9,3 +9,6 @@ export const DEPTH_GAME_LIVE = fs.existsSync("src/data/depth-game.json");
 
 // The hard-hat demo is live when its model was copied into public/models by scripts/demo-assets.mjs.
 export const HARDHAT_LIVE = fs.existsSync("public/models/ppe_yolo11n_fp16.onnx");
+
+// The football replay is live once scripts/football.mjs has copied the project 20 export into public/football/.
+export const FOOTBALL_LIVE = fs.existsSync("public/football/models.json");
