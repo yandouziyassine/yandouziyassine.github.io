@@ -55,7 +55,7 @@
   import { arrowLabel, optionLabel, outcomeLabel, proLabel, signedXg, textOn } from "../lib/coach/format";
   import { HALF_LENGTH, HALF_WIDTH, normalise, type Vec } from "../lib/coach/geometry";
   import { coachFromModels, type ModelsJson } from "../lib/coach/models";
-  import { carrierAt, clock, decodeHalf, frameDots, markers, playerAt, stateAt, trail, type Carrier, type HalfData, type MatchMeta } from "../lib/coach/replay";
+  import { carrierAt, clock, decodeHalf, frameDots, markers, nearestCarrierFrame, playerAt, stateAt, trail, type Carrier, type HalfData, type MatchMeta } from "../lib/coach/replay";
 
   const BASE = "/football/";
   const MARGIN = 3; // metres drawn around the pitch (the goals stick out 2 m)
@@ -194,7 +194,8 @@
         : `Pitch at ${when}: no player has the ball.`);
     }
 
-    function updateCoach() {
+    // `shift`: frames the pause was moved to reach a moment with a ball carrier (negative = earlier).
+    function updateCoach(shift = 0) {
       const h = halves[half]!, f = frameNow();
       list.replaceChildren();
       advice = null;
@@ -220,8 +221,9 @@
       const p = meta.players[c.player];
       $("[data-coach-who]").textContent = `for #${p.shirt} ${p.name}`;
       followBtn.disabled = done; coachBox.hidden = false; root.dataset.options = String(opts.length);
+      const moved = shift ? `Paused ${(Math.abs(shift) / meta.fps).toFixed(1)} s ${shift < 0 ? "earlier" : "later"}, when` : "Paused.";
       say(done ? "You already chose here. Press Play to see what the pro did."
-        : `Paused. #${p.shirt} ${p.name} has the ball: ${opts.length} options, best first. Follow the coach or pick another (1–9).`);
+        : `${moved} #${p.shirt} ${p.name} ${shift ? "had" : "has"} the ball: ${opts.length} options, best first. Follow the coach or pick another (1–9).`);
       draw();
     }
 
@@ -290,7 +292,11 @@
     function pause() {
       if (!playing) return;
       playing = false; playBtn.textContent = "Play";
-      t = frameNow(); time.value = String(t); showClock(); updateCoach();
+      t = frameNow();
+      // The ball is usually between two players at a random instant: move to the nearest moment someone has it.
+      const from = t, snap = carrierAt(meta, half, halves[half]!, t) ? null : nearestCarrierFrame(meta, half, halves[half]!, t);
+      if (snap !== null) t = snap;
+      time.value = String(t); showClock(); updateCoach(t - from);
     }
 
     const toggle = () => (playing ? pause() : play());
@@ -334,7 +340,8 @@
       if (!jump.value) return;
       const [hh, f] = jump.value.split(":").map(Number);
       jump.value = "";
-      setHalf(hh, Math.max(0, f - Math.round(5 * meta.fps))).catch(failed); // 5 s before the shot
+      // The shot frame itself has the ball in flight: land on the last moment the shooter (or a team-mate) had it.
+      getHalf(hh).then((h) => setHalf(hh, nearestCarrierFrame(meta, hh, h, f, 4, 0) ?? f)).catch(failed);
     });
     root.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach((b) => b.addEventListener("click", () => {
       speed = Number(b.dataset.speed);

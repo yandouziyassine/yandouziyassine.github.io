@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ABSENT, ballAt, carrierAt, clock, decodeHalf, eventFrame, frameDots, markers, ownerAt, playerAt, stateAt, trail, velocityAt } from "../src/lib/coach/replay.ts";
+import { ABSENT, ballAt, carrierAt, clock, decodeHalf, eventFrame, frameDots, markers, nearestCarrierFrame, ownerAt, playerAt, stateAt, trail, velocityAt } from "../src/lib/coach/replay.ts";
 
 const players = [
   { team: 0, shirt: 10, name: "A" }, { team: 0, shirt: 8, name: "B" }, { team: 1, shirt: 4, name: "C" },
@@ -66,6 +66,42 @@ describe("ball carrier", () => {
     expect(ownerAt(meta, 0, 12)).toBe(1);
     expect(carrierAt(meta, 0, h, 12)).toBeNull(); // C is 17 m from the ball
     expect(carrierAt(meta, 0, h, 19)).toBeNull(); // ball out of play
+  });
+});
+
+describe("nearest carrier frame", () => {
+  // Frames 0-9: A has the ball (home in possession); 10 unknown owner; 11-18 guests own the ball but C is far away
+  // (no carrier); 19 ball dead. So the only carriers are frames 0-9.
+  it("is the frame itself when someone has the ball there", () => {
+    expect(nearestCarrierFrame(meta, 0, h, 5)).toBe(5);
+    expect(nearestCarrierFrame(meta, 0, h, 5, 0, 0)).toBe(5);
+  });
+  it("prefers the most recent past frame, within the backward window", () => {
+    expect(nearestCarrierFrame(meta, 0, h, 12, 2, 0)).toBe(9);
+    expect(nearestCarrierFrame(meta, 0, h, 12)).toBe(9); // 3 frames back (0.24 s), nothing nearer ahead
+    expect(nearestCarrierFrame(meta, 0, h, 12, 0.2, 0)).toBe(9); // 0.2 s = 3 frames at 12.5 fps
+    expect(nearestCarrierFrame(meta, 0, h, 12, 0.1, 0)).toBeNull(); // 0.1 s = 1 frame: frame 11 has no carrier
+  });
+  it("falls forward when nothing is behind", () => {
+    // a half in which the carriers are at frames 14-16 only
+    const late = { ...meta, owner: ["2".repeat(FR)], alive: ["1".repeat(FR)] };
+    const only = decodeHalf(halfFile(FR, info.slots, (f) => [[0, 0], [5, 5], f >= 14 && f <= 16 ? [0.5, 0] : [30, 0], [0, 30], [0, 0.5]]), info, players.length);
+    expect(nearestCarrierFrame(late, 0, only, 10, 2, 2)).toBe(14);
+    expect(nearestCarrierFrame(late, 0, only, 10, 2, 0.2)).toBeNull(); // 0.2 s = 3 frames: 14 is 4 ahead
+    expect(nearestCarrierFrame(late, 0, only, 18, 2, 0)).toBe(16);
+  });
+  it("takes the nearer side, the earlier frame on a tie", () => {
+    const two = { ...meta, owner: ["2".repeat(FR)], alive: ["1".repeat(FR)] };
+    const hh = (c) => decodeHalf(halfFile(FR, info.slots, (f) => [[0, 0], [5, 5], c.includes(f) ? [0.5, 0] : [30, 0], [0, 30], [0, 0.5]]), info, players.length);
+    expect(nearestCarrierFrame(two, 0, hh([6, 11]), 9)).toBe(11); // 3 back vs 2 ahead
+    expect(nearestCarrierFrame(two, 0, hh([6, 12]), 9)).toBe(6); // 3 vs 3: the past one
+    expect(nearestCarrierFrame(two, 0, hh([4, 12]), 9, 0.2, 0.2)).toBe(12); // 5 back is out of reach (0.2 s = 3 frames), 3 ahead is not
+  });
+  it("stays inside the half and returns null when nobody has the ball in the window", () => {
+    expect(nearestCarrierFrame(meta, 0, h, 19, 0.5, 0.5)).toBeNull(); // 19: dead; 13..18 no carrier either
+    expect(nearestCarrierFrame(meta, 0, h, 0, 5, 0)).toBe(0);
+    expect(nearestCarrierFrame(meta, 0, h, 19, 5, 5)).toBe(9); // clamped at the end, searched back
+    expect(nearestCarrierFrame(meta, 0, h, 0, 1, 1)).toBe(0);
   });
 });
 

@@ -87,6 +87,21 @@ export function carrierAt(m: MatchMeta, half: number, h: HalfData, frame: number
   return best >= 0 && bestD <= CARRIER_M ? { player: best, team } : null;
 }
 
+/**
+ * The frame closest to `frame` (within `maxBack` s before and `maxForward` s after) at which someone has the ball,
+ * or null. The ball-carrier rule above is strict on purpose (the library's parity tests depend on it), so a viewer who
+ * pauses while the ball is between two players is moved to the nearest moment where the coach has a player to advise.
+ * Ties go to the earlier frame; `frame` itself comes first when it has a carrier.
+ */
+export function nearestCarrierFrame(m: MatchMeta, half: number, h: HalfData, frame: number, maxBack = 2, maxForward = 2): number | null {
+  const back = Math.round(maxBack * m.fps), forward = Math.round(maxForward * m.fps), last = h.info.frames - 1;
+  for (let d = 0; d <= Math.max(back, forward); d++) {
+    if (d <= back && frame - d >= 0 && frame - d <= last && carrierAt(m, half, h, frame - d)) return frame - d;
+    if (d > 0 && d <= forward && frame + d >= 0 && frame + d <= last && carrierAt(m, half, h, frame + d)) return frame + d;
+  }
+  return null;
+}
+
 /** Positions at a fractional frame t (linear between frames; a player missing at either end shows at the nearer). */
 export function frameDots(h: HalfData, t: number): { players: { player: number; at: Vec }[]; ball: Vec | null } {
   const last = h.info.frames - 1;
