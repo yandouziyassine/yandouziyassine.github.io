@@ -8,6 +8,8 @@ import type { PitchControlParams } from "./pitchControl";
 export interface LinearModel { features: string[]; link: "logit" | "identity"; mean: number[]; scale: number[]; coef: number[]; intercept: number }
 export interface ModelsJson {
   trained_without: string; trained_on: string[];
+  /** The shot model's training data: IDSSE matches (Bundesliga), SkillCorner matches (A-League) and the shots used. */
+  shot_trained_on?: { idsse: string[]; skillcorner_matches: number; shots: number };
   pass: LinearModel; value: LinearModel & { horizon_s?: number }; shot: LinearModel;
   pitch_control: PitchControlParams; advice: AdviceParams;
 }
