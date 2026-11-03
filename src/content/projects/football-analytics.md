@@ -18,6 +18,14 @@ links:
   demo: /demos/football/
 ---
 
+<figure class="replay-preview">
+<img src="/media/projects/football-analytics/coach_replay.webp" alt="Animated preview of the football replay: a Bundesliga match on a 2D pitch played at double speed, paused on a ball carrier with the coach's three best options drawn as arrows with their chances, then the same moment in the 3D stadium view.">
+<figcaption>The replay at 2×: play, pause on the ball carrier to see the coach's arrows, then the same moment in 3D.
+<a href="/demos/football/">Try it live</a>. Own rendering of Bundesliga tracking data (Bassek et al. 2025, DFL / Sportec Solutions,
+<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>).</figcaption>
+</figure>
+
+
 Detects **players and the ball** in broadcast football frames, splits players into **two teams by jersey
 color without any team labels**, and decides **which team has the ball**. A YOLO11n detector fine-tuned
 on a laptop CPU, plus unsupervised color clustering and simple geometry: the pieces of a match-analytics

@@ -51,9 +51,20 @@ function readmeBody(folder, slug) {
 
 const slugOf = (folder) => folder.replace(/^\d+-/, "");
 
+// Football analytics: an animated preview of the replay (scripts/media.mjs animates and sizes it) opens the page.
+const REPLAY_PREVIEW = `<figure class="replay-preview">
+<img src="/media/projects/football-analytics/coach_replay.webp" alt="Animated preview of the football replay: a Bundesliga match on a 2D pitch played at double speed, paused on a ball carrier with the coach's three best options drawn as arrows with their chances, then the same moment in the 3D stadium view.">
+<figcaption>The replay at 2×: play, pause on the ball carrier to see the coach's arrows, then the same moment in 3D.
+<a href="/demos/football/">Try it live</a>. Own rendering of Bundesliga tracking data (Bassek et al. 2025, DFL / Sportec Solutions,
+<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>).</figcaption>
+</figure>
+`;
+
 // Site-only edits that a re-migration must keep. The PatchCore Hugging Face demo is not advertised on the site
 // (owner decision 2026-10-24: it does not work well enough); the Space itself stays up.
 const OVERRIDES = {
+  "football-analytics": (body) => `${REPLAY_PREVIEW}
+${body}`,
   "anomaly-detection-patchcore": (body) => body
     .replace(/^\*\*▶ Try it live:\*\*.*\n/m, "")
     .replace("The [live demo](https://huggingface.co/spaces/yandyassine/patchcore-defect-detection) runs", "A browser version runs"),

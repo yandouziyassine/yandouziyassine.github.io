@@ -83,6 +83,10 @@ const { Content } = await render(p);
   .head { display: grid; gap: 16px; margin: 18px 0 30px; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; }
   .prose :global(img.paused) { cursor: pointer; }
+  .prose :global(figure.replay-preview) { margin: 0 0 28px; }
+  .prose :global(figure.replay-preview img) { display: block; width: 100%; max-width: 880px; height: auto; border-radius: var(--radius); }
+  .prose :global(figure.replay-preview figcaption) { max-width: 760px; margin-top: 8px; font-size: 13px; color: var(--ink-3); }
+  .prose :global(figure.replay-preview a) { color: var(--ink); text-decoration-color: var(--signal); }
   .library { margin-top: 40px; padding-top: 30px; border-top: 1px solid var(--line); }
   .library h2 { font: 500 22px var(--sans); margin: 0; }
   .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
