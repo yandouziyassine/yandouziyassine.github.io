@@ -18,6 +18,7 @@ export const SNAP_M = 25;        // a jump in the replay that moves the ball thi
 export const FLY_S = 0.9;        // s, flight between two cameras
 export const BROADCAST = { back: 30, height: 20, fov: 38, follow: 0.8 }; // 30 m behind the near touchline, 20 m up
 export const TACTICAL_MARGIN = 4; // m of grass shown around the pitch
+export const EYES_FOV = 70;       // degrees, the player's-eyes camera before the visitor zooms
 const TACTICAL_FOV = 30;
 
 export const toWorld = (p: Vec, h = 0): V3 => [p[0], h, -p[1]];
@@ -73,19 +74,31 @@ export function tacticalExtent(aspect: number): { halfW: number; halfH: number }
   return a >= w / h ? { halfW: h * a, halfH: h } : { halfW: w, halfH: w / a };
 }
 
-/** Perspective twin of the orthographic tactical view, used during flights: same ground extent, straight above. */
-export function tacticalPose(aspect: number): Pose {
-  const { halfH } = tacticalExtent(aspect);
-  return { position: [0, halfH / Math.tan((TACTICAL_FOV * Math.PI) / 360), 0], target: [0, 0, 0], up: [0, 0, -1], fov: TACTICAL_FOV };
+/** Perspective twin of the orthographic tactical view, used during flights: same ground extent, straight above.
+ *  `view` is the visitor's pan (pitch metres of the view centre) and zoom (1 = the whole pitch). */
+export function tacticalPose(aspect: number, view: { x: number; y: number; zoom: number } = { x: 0, y: 0, zoom: 1 }): Pose {
+  const halfH = tacticalExtent(aspect).halfH / view.zoom;
+  return {
+    position: [view.x, halfH / Math.tan((TACTICAL_FOV * Math.PI) / 360), -view.y],
+    target: [view.x, 0, -view.y],
+    up: [0, 0, -1],
+    fov: TACTICAL_FOV,
+  };
 }
 
-/** Head height, looking 20 m ahead along `dir` (a unit vector), slightly down so the grass is in view. */
-export function eyesPose(pos: Vec, dir: Vec): Pose {
+/** Head height, looking 20 m ahead along `dir` (a unit vector), slightly down so the grass is in view.
+ *  `look` is the visitor's free look on top of that: yaw to the left and pitch up, in radians (0 = straight ahead).
+ *  The camera stays at his head; only the aim turns. */
+export function eyesPose(pos: Vec, dir: Vec, look: { yaw: number; pitch: number } = { yaw: 0, pitch: 0 }, fov = EYES_FOV): Pose {
+  const c = Math.cos(look.yaw), s = Math.sin(look.yaw);
+  const d: Vec = [dir[0] * c - dir[1] * s, dir[0] * s + dir[1] * c];
+  const down = Math.atan2(EYE_HEIGHT - 0.8, 20); // the resting pitch: 20 m ahead, 0.8 m up
+  const rise = look.pitch === 0 ? -(EYE_HEIGHT - 0.8) : 20 * Math.tan(look.pitch - down);
   return {
     position: toWorld(pos, EYE_HEIGHT),
-    target: toWorld([pos[0] + 20 * dir[0], pos[1] + 20 * dir[1]], 0.8),
+    target: toWorld([pos[0] + 20 * d[0], pos[1] + 20 * d[1]], EYE_HEIGHT + rise),
     up: [0, 1, 0],
-    fov: 70,
+    fov,
   };
 }
 

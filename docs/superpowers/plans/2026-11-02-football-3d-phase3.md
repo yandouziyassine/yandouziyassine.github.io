@@ -35,7 +35,7 @@ It builds on `docs/superpowers/plans/2026-11-02-football-replay-phase2.md`.
    - A Node test asserts the count is ≤ 40.
    - The Playwright spec reads `renderer.info.render.calls` from `data-draw-calls`.
 4. **Arrow labels** are DOM spans in an `aria-hidden` overlay, projected from the 3D arrow tips. Text stays sharp, they add no draw calls, and the option list stays in the DOM panel as in 2D.
-5. **No orbit controls.** The cameras are the three in the spec. A click or tap picks a player: first by a ray against the bodies, then by the nearest player within 2.5 m of where the ray meets the grass, which is easier on phones. Keyboard users get the "Whose eyes" select.
+5. **No orbit controls.** (Superseded by the addendum at the end: the visitor can now steer each camera, with our own small functions and no OrbitControls.) The cameras are the three in the spec. A click or tap picks a player: first by a ray against the bodies, then by the nearest player within 2.5 m of where the ray meets the grass, which is easier on phones. Keyboard users get the "Whose eyes" select.
 6. **Tactical view.** The view is an `OrthographicCamera` at rest. Flights into or out of it use a perspective top pose whose ground extent matches the orthographic one, so the switch at the end of a flight cannot be seen. In the tactical view, figures are drawn 2.5× larger so they stay readable from 140 m up.
 7. **A fresh canvas for every open.** `view3d.ts` creates its own canvas, and `dispose()` calls `forceContextLoss()` and removes it. A lost WebGL context cannot be reused, so reopening needs a new canvas.
 8. **Rendering on demand.** The view renders only when:
@@ -2469,3 +2469,21 @@ Merging to `main` and deploying are the owner's call and are not part of this pl
 | Lighthouse on /demos/football/ unchanged | 4 (baseline), 13 |
 | Bundle size: gzip of the lazy three chunk reported | 12, 14 |
 | Final task: push v2 + CI; merge / deploy by the owner | 14 |
+
+---
+
+## Addendum (2026-11-02): the visitor steers the camera
+
+Owner request: "when I click on a player I need to be able to move the camera around to see the view."
+
+- `src/lib/football3d/controls.ts` (pure, unit-tested in `tests/football3d-controls.test.mjs`):
+  - Player's eyes: free look. Drag turns the view (yaw unlimited, pitch clamped to -60°..+45°) on top of the automatic direction, so the camera stays at his head and keeps following him. Wheel and pinch change the field of view (30°..90°).
+  - Stadium: orbit round the aim point (elevation 8°..85°, distance 0.35..1.8 times). Tactical: pan and zoom 1×..4×, always inside the pitch view.
+  - A pointer that moves less than 6 px is a click (picks a player); a double click or double tap re-centres; `0` re-centres.
+  - Keys only when the 3D stage has focus: Q/E turn or orbit, R/F up and down, + / - zoom, 0 re-centres. The stage handler stops the event, so F still means "follow the coach" everywhere else.
+  - A short inertia after a flick; none with reduced motion. Render on demand is unchanged: each input requests one frame.
+- No OrbitControls: the maths are about 150 lines and the lazy chunk is 137 kB gzip in total (budget 200).
+- `view3d.ts` owns the pointer events (`setPointerCapture`, `touch-action: none` on the canvas, a non-passive wheel listener) and exposes `key()` and `reset()`. A tap in the stadium and tactical views waits 300 ms in case it is the first half of a double tap; in the player's eyes it picks at once.
+- The stage carries read-only `data-camera-yaw|pitch|fov|azimuth|elevation|zoom|tzoom|panx|pany` (rounded) for the Playwright spec.
+- The 3D canvas now captures touch drags and the wheel, so the page does not scroll while the pointer or finger is on it.
+
