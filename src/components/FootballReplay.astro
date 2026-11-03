@@ -5,14 +5,17 @@
 // load on the first hover, touch or focus (not on page load), the second half (3.2 / 4.5 MB per half) when first
 // needed. Choices stay in memory; nothing is sent anywhere. Phase 3: a 3D view of the same moment (stadium camera,
 // tactical view, a player's eyes) from src/lib/football3d/, loaded with import() on the first "3D view" press so
-// three.js never weighs on the 2D page; the ball's height (z0/z1.bin, 68 kB per half) loads with it.
+// three.js never weighs on the 2D page; the ball's height (z0/z1.bin, 68 kB per half) loads with it. The visitor steers
+// the 3D camera: drag to look around (eyes) or orbit (stadium) or pan (tactical), wheel or pinch to zoom, double tap or 0
+// to re-centre, and Q/E R/F when the 3D stage has focus (controls in src/lib/football3d/controls.ts).
 ---
 <div class="fr" data-football>
   <div class="stage">
     <canvas class="pitch" data-canvas role="img" aria-label="Football pitch; the match is loading"></canvas>
-    <div class="stage3d" data-stage3d hidden>
+    <div class="stage3d" data-stage3d hidden tabindex="0" role="group" aria-label="3D scene" aria-describedby="fr-3d-hint">
       <div class="labels3d" data-labels3d aria-hidden="true"></div>
     </div>
+    <p class="hint3d mono" id="fr-3d-hint" data-hint3d hidden></p>
   </div>
   <div class="bar">
     <button type="button" class="btn primary ctl" data-play>Play</button>
@@ -38,6 +41,7 @@
     <label class="jump mono" data-eyes-row hidden>Whose eyes
       <select data-eyes></select>
     </label>
+    <button type="button" class="btn ctl" data-recentre hidden>Re-centre view</button>
     <span class="note3d mono" id="fr-3d-note" data-note3d>3D view: stadium camera, tactical view or a player's eyes (tap a player). Loaded only when you ask for it.</span>
   </div>
   <div class="timeline">
@@ -71,7 +75,7 @@
       <tr><th scope="row">Pros</th><td data-tally-pro-n>0</td><td data-tally-pro>+0.000 xG</td></tr>
     </tbody>
   </table>
-  <p class="keys mono">You followed the coach <span data-tally-followed>0 of 0</span> times · Keys: Space play / pause · ← → 5 s · F follow · 1–9 pick · V 3D view · C camera</p>
+  <p class="keys mono">You followed the coach <span data-tally-followed>0 of 0</span> times · Keys: Space play / pause · ← → 5 s · F follow · 1–9 pick · V 3D view · C camera · in the 3D view: Q/E R/F look, 0 re-centre</p>
 </div>
 <script>
   import { options as rankOptions, type Coach, type CoachOption } from "../lib/coach/advice";
@@ -99,7 +103,7 @@
     const halfBtns = [...root.querySelectorAll<HTMLButtonElement>("[data-half]")];
     const stage3d = $("[data-stage3d]"), labels3d = $("[data-labels3d]"), view3dBtn = $<HTMLButtonElement>("[data-view3d]");
     const cams = $<HTMLFieldSetElement>("[data-cams]"), eyesRow = $("[data-eyes-row]"), eyesSel = $<HTMLSelectElement>("[data-eyes]");
-    const note3d = $("[data-note3d]");
+    const note3d = $("[data-note3d]"), hint3d = $("[data-hint3d]"), recentre = $<HTMLButtonElement>("[data-recentre]");
     const cards = $("[data-cards]"), carrierCard = $("[data-card=carrier]"), targetCard = $("[data-card=target]");
     const css = getComputedStyle(document.documentElement);
     const SIGNAL = css.getPropertyValue("--signal").trim() || "#ff5b1f";
@@ -107,6 +111,11 @@
     const MONO = css.getPropertyValue("--font-mono").trim() || "monospace";
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const TONE: Record<Tone, string> = { best: SIGNAL, pick: OK, other: "rgba(236, 235, 230, 0.85)" };
+    const HINTS: Record<CameraMode, string> = {
+      eyes: "Drag to look around · Q/E R/F · 0 re-centres",
+      broadcast: "Drag to orbit · wheel or pinch to zoom · Q/E R/F · 0 re-centres",
+      tactical: "Drag to pan · wheel or pinch to zoom · Q/E R/F · 0 re-centres",
+    };
     const CAMERA_NAMES: Record<CameraMode, string> = { broadcast: "stadium camera", tactical: "tactical view", eyes: "player's eyes" };
 
     let meta = null as unknown as MatchMeta;
@@ -450,6 +459,7 @@
       if (eyesOf !== null) eyesSel.value = String(eyesOf);
       cams.querySelectorAll<HTMLInputElement>("input").forEach((r) => (r.checked = r.value === mode));
       eyesRow.hidden = mode !== "eyes";
+      hint3d.textContent = HINTS[mode];
       root.dataset.camera = mode;
       view3d?.setMode(mode);
       describe(carrierAt(meta, half, halves[half]!, frameNow()));
@@ -467,6 +477,13 @@
         view3d = createView3D({
           host: stage3d, labels: labels3d, reduced,
           onRender: (calls) => { root.dataset.drawCalls = String(calls); },
+          onCamera: (r) => { for (const [k, v] of Object.entries(r)) stage3d.setAttribute(`data-camera-${k}`, String(v)); }, // read-only, for tests
+          onTap: (x, y) => { // a click or tap that was not a drag: see through that player's eyes
+            const p = view3d?.pickAt(x, y);
+            if (p == null) return;
+            eyesOf = p;
+            setCamera("eyes");
+          },
           onLost: () => { close3d(); say("The 3D view stopped (the browser dropped its graphics context). Press 3D view to try again."); },
         });
       } catch (err) {
@@ -477,7 +494,7 @@
         opening3d = false;
         view3dBtn.disabled = false;
       }
-      stage3d.hidden = false; canvas.hidden = true; cams.hidden = false;
+      stage3d.hidden = false; canvas.hidden = true; cams.hidden = false; hint3d.hidden = false; recentre.hidden = false;
       view3dBtn.setAttribute("aria-pressed", "true");
       root.dataset.view = "3d";
       fillEyes();
@@ -488,7 +505,8 @@
       if (!view3d) return;
       view3d.dispose(); // frees the GPU memory and removes the 3D canvas
       view3d = null;
-      stage3d.hidden = true; canvas.hidden = false; cams.hidden = true; eyesRow.hidden = true;
+      stage3d.hidden = true; canvas.hidden = false; cams.hidden = true; eyesRow.hidden = true; hint3d.hidden = true; recentre.hidden = true;
+      for (const a of stage3d.getAttributeNames()) if (a.startsWith("data-camera-")) stage3d.removeAttribute(a);
       view3dBtn.setAttribute("aria-pressed", "false");
       root.dataset.view = "2d";
       delete root.dataset.drawCalls;
@@ -520,11 +538,11 @@
     view3dBtn.addEventListener("click", flip3d);
     cams.addEventListener("change", (e) => setCamera((e.target as HTMLInputElement).value as CameraMode));
     eyesSel.addEventListener("change", () => { eyesOf = Number(eyesSel.value); setCamera("eyes"); });
-    stage3d.addEventListener("click", (e) => { // click / tap a player: see through his eyes
-      const p = view3d?.pickAt(e.clientX, e.clientY);
-      if (p == null) return;
-      eyesOf = p;
-      setCamera("eyes");
+    recentre.addEventListener("click", () => { view3d?.reset(); stage3d.focus({ preventScroll: true }); });
+    stage3d.addEventListener("keydown", (e) => { // only with focus on the 3D stage, so F (follow) and the digits keep their meaning elsewhere
+      if (e.altKey || e.ctrlKey || e.metaKey || e.target !== stage3d || !view3d?.key(e.key)) return;
+      e.preventDefault();
+      e.stopPropagation(); // the global shortcuts below do not see it
     });
     window.addEventListener("keydown", (e) => {
       if (!ready || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -593,8 +611,11 @@
   .tally th, .tally td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); }
   .stage { position: relative; }
   .stage3d { position: relative; width: 100%; aspect-ratio: 111 / 74; overflow: hidden; background: #0d0e10;
-    border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; }
-  .stage3d :global(canvas) { display: block; width: 100%; height: 100%; }
+    border: 1px solid var(--line); border-radius: var(--radius); cursor: grab; touch-action: none; }
+  .stage3d:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .stage3d :global(canvas) { display: block; width: 100%; height: 100%; touch-action: none; }
+  .hint3d { margin: 6px 0 0; font-size: 12px; color: var(--ink-3); }
+  .hint3d[hidden] { display: none; }
   .labels3d { position: absolute; inset: 0; pointer-events: none; }
   .labels3d :global(span) { position: absolute; left: 0; top: 0; padding: 2px 6px; font: 500 12px var(--font-mono, monospace);
     color: var(--ink); background: rgba(13, 14, 16, 0.85); border-radius: 4px; white-space: nowrap; }
