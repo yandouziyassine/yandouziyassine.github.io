@@ -85,4 +85,46 @@ test.describe("football replay", () => {
     await expect(root).not.toHaveAttribute("data-options", "0", { timeout: 10_000 });
     await expect(root.locator("[data-options] button").first()).toBeVisible();
   });
+  test("pausing on a ball carrier shows the carrier's card; hovering or focusing a pass option shows the target's", async ({ page }) => {
+    const r = fx.frames.find((f) => f.half === 0 && f.options.some((o) => o.kind === "pass"));
+    await page.goto("/demos/football/");
+    const root = page.locator("[data-football]");
+    await root.hover();
+    await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
+    await root.locator("[data-time]").fill(String(r.frame));
+    await expect(root).toHaveAttribute("data-options", String(r.options.length));
+    const cards = root.locator("[data-cards]"), carrier = root.locator("[data-card=carrier]"), target = root.locator("[data-card=target]");
+    const text = /Passing:|No history for this player in the other matches\./;
+    await expect(cards).toBeVisible();
+    await expect(cards).toHaveAttribute("aria-label", /do not change the advice/);
+    await expect(carrier.locator("[data-card-who]")).toContainText("ball carrier");
+    await expect(carrier).toContainText(text);
+    await expect(target).toBeHidden();
+    const pass = root.locator("[data-options] li").filter({ hasText: "Pass to" }).first();
+    await pass.hover();
+    await expect(target.locator("[data-card-who]")).toContainText("pass target");
+    await expect(target).toContainText(text);
+    await root.locator("[data-time]").hover();
+    await expect(target).toBeHidden();
+    await pass.locator("button").focus(); // keyboard: the focus shows it too, and a screen reader reads it as the description
+    await expect(target).toBeVisible();
+    const desc = await pass.locator("button").getAttribute("aria-describedby");
+    await expect(page.locator(`#${desc}`)).toContainText("pass target");
+    await root.locator("[data-time]").focus();
+    await expect(target).toBeHidden();
+    await root.getByRole("button", { name: "Play" }).click();
+    await expect(cards).toBeHidden();
+  });
+
+  test("without profiles.json there are no cards and the coach still works", async ({ page }) => {
+    const r = fx.frames.find((f) => f.half === 0);
+    await page.route("**/football/profiles.json", (route) => route.fulfill({ status: 404, body: "" }));
+    await page.goto("/demos/football/");
+    const root = page.locator("[data-football]");
+    await root.hover();
+    await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
+    await root.locator("[data-time]").fill(String(r.frame));
+    await expect(root).toHaveAttribute("data-options", String(r.options.length));
+    await expect(root.locator("[data-cards]")).toBeHidden();
+  });
 });

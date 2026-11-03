@@ -52,6 +52,10 @@
   <section class="coach" data-coach hidden aria-labelledby="fr-coach">
     <h2 class="small" id="fr-coach">The coach's options <span data-coach-who></span></h2>
     <ol class="opts" data-options></ol>
+    <div class="cards" data-cards role="group" aria-label="Player cards, for information only: they do not change the advice" hidden>
+      <div class="card" data-card="carrier"><p class="who" data-card-who></p><ul data-card-lines></ul></div>
+      <div class="card target" data-card="target" hidden><p class="who" data-card-who></p><ul data-card-lines></ul></div>
+    </div>
     <div class="actions">
       <button type="button" class="btn primary ctl" data-follow>Follow the coach</button>
       <span class="hint mono">or pick another option (keys 1–9) to refuse</span>
@@ -75,6 +79,7 @@
   import { arrowLabel, frameLabel, optionLabel, outcomeLabel, proLabel, signedXg, textOn } from "../lib/coach/format";
   import { HALF_LENGTH, HALF_WIDTH, normalise, type Vec } from "../lib/coach/geometry";
   import { coachFromModels, type ModelsJson } from "../lib/coach/models";
+  import { cardLines, cardText, readProfiles, type ProfilesJson } from "../lib/coach/profiles";
   import { carrierAt, clock, decodeHalf, frameDots, markers, nearestCarrierFrame, playerAt, scoreAt, stateAt, trail, type Carrier, type HalfData, type MatchMeta } from "../lib/coach/replay";
   import { nextCamera, type CameraMode } from "../lib/football3d/camera";
   import { buildFrame, decodeBallZ, eyesChoices, type ArrowSpec, type Tone } from "../lib/football3d/frame";
@@ -95,6 +100,7 @@
     const stage3d = $("[data-stage3d]"), labels3d = $("[data-labels3d]"), view3dBtn = $<HTMLButtonElement>("[data-view3d]");
     const cams = $<HTMLFieldSetElement>("[data-cams]"), eyesRow = $("[data-eyes-row]"), eyesSel = $<HTMLSelectElement>("[data-eyes]");
     const note3d = $("[data-note3d]");
+    const cards = $("[data-cards]"), carrierCard = $("[data-card=carrier]"), targetCard = $("[data-card=target]");
     const css = getComputedStyle(document.documentElement);
     const SIGNAL = css.getPropertyValue("--signal").trim() || "#ff5b1f";
     const OK = css.getPropertyValue("--ok").trim() || "#7fd18b";
@@ -104,6 +110,7 @@
     const CAMERA_NAMES: Record<CameraMode, string> = { broadcast: "stadium camera", tactical: "tactical view", eyes: "player's eyes" };
 
     let meta = null as unknown as MatchMeta;
+    let profiles: ProfilesJson | null = null; // display-only player cards; null = file missing, no cards
     let coach = null as unknown as Coach;
     let ready = false, half = 0, t = 0, playing = false, speed = 1, last = 0, dpr = 1;
     const halves: (HalfData | undefined)[] = [];
@@ -262,15 +269,24 @@
       view3d?.canvas.setAttribute("aria-label", frameLabel(meta, `3D view (${cameraName()})`, when, score, c));
     }
 
+    // ---------- player cards (display-only: profiles never change the advice) ----------
+    const cardTitle = (player: number, role: string) => { const p = meta.players[player]; return `#${p.shirt} ${p.name}, ${role}`; };
+    const cardOf = (player: number) => profiles?.players[String(player)];
+    function fillCard(card: HTMLElement, player: number, role: string) {
+      card.querySelector("[data-card-who]")!.textContent = cardTitle(player, role);
+      card.querySelector("[data-card-lines]")!.replaceChildren(...cardLines(cardOf(player)).map((l) => { const li = document.createElement("li"); li.textContent = l; return li; }));
+    }
+    const hideTargetCard = () => { targetCard.hidden = true; };
+
     // `shift`: frames the pause was moved to reach a moment with a ball carrier (negative = earlier).
     function updateCoach(shift = 0) {
       const h = halves[half]!, f = frameNow();
       list.replaceChildren();
-      advice = null;
+      advice = null; hideTargetCard();
       const c = carrierAt(meta, half, h, f);
       describe(c);
       if (!c) {
-        coachBox.hidden = true; root.dataset.options = "0";
+        coachBox.hidden = true; root.dataset.options = "0"; cards.hidden = true;
         say("Paused. Nobody has the ball at this moment: step on a little (→) and the coach will look again.");
         draw(); return;
       }
@@ -285,7 +301,20 @@
         b.classList.toggle("chosen", done && same(o, chosen!.option));
         b.addEventListener("click", () => choose(i));
         const li = document.createElement("li"); li.append(b); list.append(li);
+        if (profiles && o.kind === "pass" && o.target != null && meta.players[o.target]) {
+          // The target's card shows while the pointer is over the option or the option has the focus; a screen reader
+          // reads the same text as the button's description.
+          const target = o.target;
+          const role = "pass target", desc = document.createElement("span");
+          desc.className = "sr-only"; desc.id = `fr-card-${i}`; desc.textContent = cardText(cardTitle(target, role), cardOf(target));
+          li.append(desc); b.setAttribute("aria-describedby", desc.id);
+          const show = () => { fillCard(targetCard, target, role); targetCard.hidden = false; };
+          li.addEventListener("pointerenter", show); li.addEventListener("pointerleave", hideTargetCard);
+          li.addEventListener("focusin", show);
+          li.addEventListener("focusout", (e) => { if (!li.contains(e.relatedTarget as Node | null)) hideTargetCard(); });
+        }
       });
+      if (profiles) { fillCard(carrierCard, c.player, "ball carrier"); cards.hidden = false; }
       const p = meta.players[c.player];
       $("[data-coach-who]").textContent = `for #${p.shirt} ${p.name}`;
       followBtn.disabled = done; coachBox.hidden = false; root.dataset.options = String(opts.length);
@@ -353,7 +382,7 @@
 
     function play() {
       if (playing || !ready || frameNow() >= meta.halves[half].frames - 1) return;
-      playing = true; playBtn.textContent = "Pause"; coachBox.hidden = true; advice = null; root.dataset.options = "0"; say("");
+      playing = true; playBtn.textContent = "Pause"; coachBox.hidden = true; advice = null; root.dataset.options = "0"; cards.hidden = true; say("");
       last = performance.now(); requestAnimationFrame(tick);
     }
 
@@ -389,8 +418,9 @@
 
     async function init() {
       const get = (f: string) => fetch(BASE + f).then((r) => { if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`); return r.json(); });
-      const [m, w] = await Promise.all([get("match.json"), get("models.json")]);
-      meta = m as MatchMeta; coach = coachFromModels(w as ModelsJson);
+      // The cards are optional: a missing or unreadable profiles.json only means no cards.
+      const [m, w, prof] = await Promise.all([get("match.json"), get("models.json"), get("profiles.json").catch(() => null)]);
+      meta = m as MatchMeta; coach = coachFromModels(w as ModelsJson); profiles = readProfiles(prof);
       say("Loading the first half…");
       await getHalf(0);
       ready = true;
@@ -550,6 +580,12 @@
   .opts :global(.opt.chosen) { border-color: var(--ok); }
   .opts :global(.opt:hover:not(:disabled)) { border-color: var(--signal); }
   .opts :global(.opt:disabled) { cursor: default; color: var(--ink-2); }
+  .cards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .card { flex: 1 1 260px; max-width: 420px; padding: 8px 12px; font-size: 13px; color: var(--ink-2); border: 1px solid var(--line); border-radius: var(--radius); }
+  .card.target { border-color: var(--signal); }
+  .card .who { margin: 0 0 4px; font: 500 13px var(--sans); color: var(--ink); }
+  .card ul { margin: 0; padding-left: 16px; }
+  .card[hidden], .cards[hidden] { display: none; }
   .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 10px; }
   .hint { font-size: 12px; color: var(--ink-3); }
   .reveal { margin: 0; padding: 12px 14px; color: var(--ink-2); border: 1px solid var(--line); border-radius: var(--radius); }

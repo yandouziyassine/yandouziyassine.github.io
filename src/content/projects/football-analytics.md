@@ -18,6 +18,14 @@ links:
   demo: /demos/football/
 ---
 
+<figure class="replay-preview">
+<img src="/media/projects/football-analytics/coach_replay.webp" alt="Animated preview of the football replay: a Bundesliga match on a 2D pitch played at double speed, paused on a ball carrier with the coach's three best options drawn as arrows with their chances, then the same moment in the 3D stadium view.">
+<figcaption>The replay at 2×: play, pause on the ball carrier to see the coach's arrows, then the same moment in 3D.
+<a href="/demos/football/">Try it live</a>. Own rendering of Bundesliga tracking data (Bassek et al. 2025, DFL / Sportec Solutions,
+<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>).</figcaption>
+</figure>
+
+
 Detects **players and the ball** in broadcast football frames, splits players into **two teams by jersey
 color without any team labels**, and decides **which team has the ball**. A YOLO11n detector fine-tuned
 on a laptop CPU, plus unsupervised color clustering and simple geometry: the pieces of a match-analytics
@@ -295,8 +303,130 @@ data [10.6084/m9.figshare.28196177](https://doi.org/10.6084/m9.figshare.28196177
 
 **Limits.** 7 matches from one league; event sync drops a third of the passes; failed-pass targets are inferred;
 associations, not causal effects (players choose their passes). Logistic and ridge models were kept on purpose: the
-browser runs the exact same formulas. Next: a cross-league check on SkillCorner's open A-League data (MIT), then
-the website replay (phase 2).
+browser runs the exact same formulas.
+
+### Cross-league check: SkillCorner A-League (20 matches)
+
+Tracking and event data: SkillCorner open data (MIT), 20 A-League 2024/25 matches. **Broadcast** tracking at 10 fps
+(players off screen are extrapolated), events derived from it. [`coach/skillcorner.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/coach/skillcorner.py)
+streams each 89 MB tracking file and converts it in memory to the same match format (metres, centred, each pitch
+rescaled to 105 × 68, owner, ball in play = inside a SkillCorner phase of play); only small derived tables are kept.
+[`coach/cross_league.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/coach/cross_league.py) scores every model on held-out matches with four training sets:
+own league (plain leave-one-match-out), other league (the cross-league test), both leagues, both + a league flag.
+
+**Data checks.** Event coordinates are attack-normalised (checked against the passer's tracked position: 0.1 m
+after rotation, 60 m without). Events carry frame numbers on the tracking clock, so no offset has to be estimated:
+at the event frame the passer is a median **1.1–1.4 m** from the ball (90th percentile 2.0–2.8 m) per match, and
+91–97 % of passes and shots have their actor within 3 m (kept; 92–98 % of passes survive, vs 66 % for the
+hand-logged Bundesliga events). While the ball is in play ~21.6 players are present per frame but only **54–73 %**
+of positions are detected (12–16 players), the rest extrapolated; the ball is detected 90–95 % of the time. The
+intended receiver of failed passes is given by SkillCorner (no inference needed). There is **no xG**: shots are
+possessions ending in a shot (526, 61 of the 66 goals scored are attached to one; the rest fall in gaps such as
+replays). Value labels there use an **xG proxy**: a logistic model fitted on the Bundesliga shots to reproduce the
+provider's xG from our shot features. It is rough (correlation 0.44 with the provider's xG on held-out Bundesliga
+matches, goal AUC 0.67 vs 0.81 for the provider; 0.75 on the A-League goals, 51.5 proxy xG for 61 goals).
+
+| Pass model, logistic (log-loss / AUC) | own league | other league | both | both + flag |
+|---|---|---|---|---|
+| held-out Bundesliga (3,464 passes) | **0.378** / 0.838 | 0.399 / 0.839 | 0.391 / 0.841 | 0.387 / 0.840 |
+| held-out A-League (14,844 passes) | **0.309** / 0.860 | 0.330 / 0.837 | 0.310 / 0.857 | 0.310 / 0.857 |
+
+| Value model, ridge (MSE skill / Spearman) | own league | other league | both |
+|---|---|---|---|
+| held-out Bundesliga (provider xG labels) | **2.2 %** / 0.235 | 1.9 % / 0.239 | 2.1 % / 0.239 |
+| held-out A-League (proxy xG labels) | **5.1 %** / 0.273 | 4.8 % / 0.274 | 5.1 % / 0.274 |
+
+| Shot → goal, logistic (log-loss / AUC) | own league | other league | both |
+|---|---|---|---|
+| held-out Bundesliga (168 shots) | 0.319 / 0.617 | **0.298 / 0.686** | 0.301 / 0.667 |
+| held-out A-League (526 shots) | 0.322 / 0.735 | 0.320 / 0.749 | 0.321 / 0.738 |
+
+<img src="/media/projects/football-analytics/coach_skillcorner_pass_reliability.png" alt="Pass model reliability on held-out A-League matches by training set" width="40%"> <img src="/media/projects/football-analytics/coach_skillcorner_rules.png" alt="Held-out pass log-loss and value skill by training set and league" width="58%">
+
+- **The pass model travels.** Trained on 7 Bundesliga matches it ranks A-League passes almost as well as an
+  A-League model (AUC 0.837 vs 0.860), also when passer and target are both detected (0.824, 12,237 passes). What
+  breaks is calibration: it predicts 81 % completion where 84.9 % happen (A-League passes complete more for the same
+  geometry). The leak check transfers too (interceptor removed: AUC 0.77 cross-league, 0.80 in-league).
+  SkillCorner's own xPass column scores higher (AUC 0.90) but is a reference, not a like-for-like rival: it is
+  computed by the provider with its own inputs.
+- **More matches do not help the browser models.** Pooling both leagues leaves the A-League pass model unchanged
+  (0.310 vs 0.309) and makes the Bundesliga one worse (0.391; 0.387 with a league flag), because the two datasets
+  define failed-pass targets differently (inferred vs given) and the coefficients differ. Only gradient boosting
+  with a league flag gains on the Bundesliga (0.369 vs 0.381). The value model is the same "closer is better"
+  with any training set (2.1–2.2 % skill on the Bundesliga).
+- **The A-League value skill (5 %) is a label artefact**: the same Bundesliga matches scored with proxy-xG labels
+  give 6.0 %. Proxy labels are a smooth function of position, so position predicts them better; they are not
+  evidence of a better value model.
+- **Shots are where more data helps.** The Bundesliga shot model goes from AUC 0.62 (168 shots) to 0.69 when trained
+  on the 526 A-League shots (0.67 pooled). The engine still prefers the provider's xG where it exists.
+
+**The website's shot model is trained on both leagues.** `coach.export` fits its shot logistic on the placed
+non-penalty Bundesliga shots of the 6 matches other than the replay match plus the 526 open-play A-League shots (663
+shots; `models.json` records them in `shot_trained_on`); the pass and value models stay Bundesliga-only. Held-out
+evidence for this exact recipe ([`coach/shot_pooled.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/coach/shot_pooled.py),
+[`docs/coach_shot_pooled_results.json`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/docs/coach_shot_pooled_results.json)): leave-one-match-out over the 7
+Bundesliga matches (160 placed open-play shots, 16 goals), each fold adding all 526 A-League shots to the training
+set, gives log-loss **0.306** vs 0.325 Bundesliga-only, Brier **0.0867** vs 0.0912 and AUC **0.677** vs 0.634 (paired
+bootstrap over shots, 95 % interval of the difference: log-loss -0.032 to -0.006, Brier -0.008 to -0.001, AUC +0.010
+to +0.074). The gain is real but rests on 16 goals, and the AUC varies a lot from match to match (0.12 to 1.00 with
+1 to 4 goals each). It differs from the 0.62 → 0.69 in the table above, which trains on the A-League shots alone and
+scores 168 shots (unplaced ones included). Limits: broadcast tracking (a third of positions extrapolated), no xG (proxy labels), goals missing
+from 5 of 66, crosses approximated (wide channel to a target in the box), set-piece deliveries absent from the
+events, 20 matches of one season.
+
+### Player profiles: do per-player offsets help on unseen matches?
+
+Design: [`docs/superpowers/specs/2026-11-02-player-profiles-design.md`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/docs/superpowers/specs/2026-11-02-player-profiles-design.md).
+Before a match, the coach can load a `profiles.json`: for each player, an **offset on the logit scale** of an
+existing model, with its sample size. Pass: `logit(p) += a · pass_skill(passer)`; shot: `logit(xG) += a ·
+finishing(shooter)`. A missing player or field leaves the coach exactly as before.
+
+- **Offsets** ([`coach/profiles.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/coach/profiles.py)): completions minus the pass model's expectation (goals minus
+  the provider's xG for finishing), shrunk towards 0 by empirical Bayes: `Σ w(y − p) / (Σ w p(1 − p) + k)`. A player
+  with 5 passes stays at about 0. `k` is chosen by held-out log-loss with the offsets used as estimated (`a` = 1),
+  then the scale `a` is fitted for that `k`. Both are chosen inside the training matches (each training match scored
+  with offsets from the others). The expectations behind the offsets are themselves out-of-fold.
+- **Providers**: `open_data` (this phase) builds offsets from our tracked matches, plus display-only descriptors from
+  the SkillCorner season aggregates (dangerous passes / 30 min, completion vs SkillCorner xPass, off-ball runs / 30
+  min, top speed; 248 of the 267 A-League passers are covered). An `api` interface (season goals / xG / passes from
+  a live provider) is defined and tested with a fake. This phase makes no real API calls and handles no keys.
+- **Test** ([`coach/profiles_eval.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/coach/profiles_eval.py)): leave-one-match-out. For each held-out match, the
+  model *and* the profiles come only from the other matches. The 95 % CI resamples whole matches (2,000 draws).
+
+| Held-out (leave-one-match-out) | log-loss without → with | Brier without → with | log-loss difference, 95 % CI | held-out rows with a profile |
+|---|---|---|---|---|
+| Pass, Bundesliga (3,464 passes, 7 matches) | 0.3776 → 0.3779 | 0.1245 → 0.1247 | +0.0003 [−0.0006, +0.0011] | 35.8 % |
+| Pass, A-League (14,844 passes, 20 matches) | 0.3094 → 0.3086 | 0.0960 → 0.0958 | **−0.0008 [−0.0015, −0.00003]** | 85.9 % |
+| Shot, provider xG (160 shots) | 0.2537 → 0.2537 | 0.0716 → 0.0716 | 0 (`a` = 0 in every fold) | 35.6 % |
+| Shot, coach logistic (160 shots) | 0.3246 → 0.3246 | 0.0912 → 0.0912 | 0 (`a` = 0 in every fold) | 35.6 % |
+
+<img src="/media/projects/football-analytics/coach_profiles.png" alt="Player offsets vs sample size, held-out log-loss vs k, and the held-out effect of the offsets with 95 % CIs" width="100%">
+
+- **Bundesliga passes: no measurable gain.** Only 36 % of held-out passes have a profile: Düsseldorf plays in 5 of
+  the 7 matches and every other team in one. The folds disagree on the settings (`k` from 10 to 1,000, `a` from 0.5
+  to 2), which is what noise looks like. With all 7 matches, the best `k` is 30. The offsets then stay small: 5–95 %
+  range −0.10 to +0.10 logit (about ±1.6 points at p = 0.8), largest 0.27, median 15 passes per player.
+- **A-League passes: a small real gain.** Teams meet several times in 20 matches, so 86 % of held-out passes have a
+  profile. Every fold picks `k` = 10, and `a` = 0.75 in 18 of the 20 folds. The gain is 0.0008 log-loss (0.3 %),
+  with a CI just below 0. The Brier CI still overlaps 0 ([−0.0004, +0.0001]). Offsets with all 20 matches: 5–95 %
+  range −0.26 to +0.28 logit, median 36 passes per player.
+- **Finishing: nothing to learn from 160 shots.** The median shooter has 1 shot (75 shooters, 16 goals). The best
+  `k` is the largest on the grid (1,000), and `a` = 0 in every fold. Raw "goals minus xG" per player is pure noise.
+
+**Ship decision (rule from the spec): display-only.** The rule is applied to the models the website uses: the
+Bundesliga pass model and the provider's xG. Offsets may change the advice only if the 95 % CI of the held-out
+log-loss difference lies entirely below 0. Neither CI does, so the website shows the profiles as player cards
+(offsets with sample sizes, no "good / bad" labels) and the advice is unchanged. The A-League result shows that
+per-player pass offsets help once players have tens of passes in several training matches. They are worth enabling
+when more Bundesliga matches per team are available.
+
+`profiles.json` for the replay match J03WOH ([`coach/export_profiles.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/coach/export_profiles.py), separate from
+`coach/export.py`) is built from the 6 other matches only (`built_without: ["J03WOH"]`). It is 3 KB, with 13 players
+(Düsseldorf, from the 4 other Düsseldorf matches). Regensburg plays in no other match, so its players have no profile.
+The file carries `a = 0` for both models, the fitted values (`a_fitted`) and `advice_effect: "display-only"`. Players
+are keyed by their index in `match.json`, with the DFL PersonId kept in `id` / `mapping`. Not tried yet: a receiver
+term and team-level offsets. Season aggregates include every match of the season, so they are never used in the
+held-out offsets. Numbers: [`docs/coach_profiles_results.json`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/docs/coach_profiles_results.json).
 
 ### Run the coach
 
@@ -304,11 +434,18 @@ the website replay (phase 2).
 cd 20-football-analytics
 python -m coach.prepare --raw D:/football-coach/idsse-raw    # 7 matches, ~15 min, restartable
 python -m coach.evaluate                                     # all numbers + charts (~10 min on CPU)
-python -m coach.export --match J03WOH --site <folder>        # one match (h0.bin / h1.bin, int16 cm, 12.5 fps) + weights
+python -m coach.export --match J03WOH --site <folder>        # one match (h0/h1.bin int16 cm 12.5 fps, z0/z1.bin ball height) + weights
 python -m coach.parity_fixtures                              # Python <-> TypeScript parity frames for the website
+python -m coach.skillcorner                                  # 20 A-League matches streamed (1.7 GB), ~5 min
+python -m coach.cross_league                                 # cross-league + combined numbers and charts (~3 min)
+python -m coach.shot_pooled                                  # held-out check of the pooled shot model (~10 s after cross_league)
+python -m coach.profiles_eval                                # player profiles held-out test + chart (~1 min after cross_league)
+python -m coach.export_profiles --match J03WOH --site <folder>   # profiles.json for the replay match, built without it
 ```
 
-All numbers: [`docs/coach_results.json`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/docs/coach_results.json). Tests: `tests/test_20_coach.py` (34).
+All numbers: [`docs/coach_results.json`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/docs/coach_results.json),
+[`docs/coach_skillcorner_results.json`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/docs/coach_skillcorner_results.json),
+[`docs/coach_shot_pooled_results.json`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/docs/coach_shot_pooled_results.json). Tests: `tests/test_20_coach.py` (47), `tests/test_20_profiles.py` (15).
 
 ## How it works
 
@@ -341,6 +478,10 @@ All numbers: [`docs/coach_results.json`](https://github.com/yandouziyassine/COMP
 - **IDSSE Bundesliga tracking + events** (Bassek et al. 2025, figshare 10.6084/m9.figshare.28196177, CC BY 4.0,
   data owner DFL): 7 matches, used for the v3 coach. Raw XML (2.6 GB) on the USB key, compact matches in
   `../../cv-data/football-coach/`; never committed.
+- **SkillCorner open data** (github.com/SkillCorner/opendata, **MIT**; "Tracking and event data: SkillCorner open
+  data (MIT)"): 20 A-League 2024/25 matches, broadcast tracking at 10 fps + dynamic events + phases of play, used for
+  the coach's cross-league test. Tracking streamed and parsed in memory; only derived tables in
+  `../../cv-data/skillcorner/`; never committed.
 - **Location:** `../../cv-data/football/` (not committed).
 
 ## Run it
