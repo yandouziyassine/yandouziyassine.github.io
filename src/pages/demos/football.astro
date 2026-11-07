@@ -2,12 +2,15 @@
 import fs from "node:fs";
 import Base from "../../layouts/Base.astro";
 import FootballReplay from "../../components/FootballReplay.astro";
+import ReportSection from "../../components/ReportSection.astro";
 import { FOOTBALL_LIVE } from "../../data/flags";
 import { CARRIER_M, type MatchMeta } from "../../lib/coach/replay";
 import type { ModelsJson } from "../../lib/coach/models";
 
 const match = FOOTBALL_LIVE ? (JSON.parse(fs.readFileSync("public/football/match.json", "utf8")) as MatchMeta) : null;
 const models = FOOTBALL_LIVE ? (JSON.parse(fs.readFileSync("public/football/models.json", "utf8")) as ModelsJson) : null;
+// The match report is optional: without public/football/report.json (sync:football) the section is not built.
+const REPORT_LIVE = FOOTBALL_LIVE && fs.existsSync("public/football/report.json");
 const shots = models?.shot_trained_on?.shots ?? "";
 const sc = models?.shot_trained_on?.skillcorner_matches ?? "";
 const ext = { target: "_blank", rel: "noopener" };
@@ -23,6 +26,7 @@ const ext = { target: "_blank", rel: "noopener" };
     {match && models ? (
       <>
         <div class="panel box"><FootballReplay /></div>
+        {REPORT_LIVE && <ReportSection />}
         <h2 class="small">How to read it</h2>
         <ul class="notes">
           <li><b>Arrows</b>: the coach's top three options, the best in orange; once you choose, your option turns green. The % is the chance that the pass arrives
