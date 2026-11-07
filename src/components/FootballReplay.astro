@@ -8,6 +8,8 @@
 // three.js never weighs on the 2D page; the ball's height (z0/z1.bin, 68 kB per half) loads with it. The visitor steers
 // the 3D camera: drag to look around (eyes) or orbit (stadium) or pan (tactical), wheel or pinch to zoom, double tap or 0
 // to re-centre, and Q/E R/F when the 3D stage has focus (controls in src/lib/football3d/controls.ts).
+// Coach insight B: each option lists its 2-3 reasons (src/lib/coach/explain.ts); on pause a "Show ghosts" toggle (off by
+// default, remembered in localStorage) draws ghost runs and ghost defenders (src/lib/coach/ghosts.ts, computed only on pause).
 ---
 <div class="fr" data-football>
   <div class="stage">
@@ -15,6 +17,7 @@
     <div class="stage3d" data-stage3d hidden tabindex="0" role="group" aria-label="3D scene" aria-describedby="fr-3d-hint">
       <div class="labels3d" data-labels3d aria-hidden="true"></div>
     </div>
+    <p class="tip mono" data-tip hidden aria-hidden="true"></p>
     <p class="hint3d mono" id="fr-3d-hint" data-hint3d hidden></p>
   </div>
   <div class="bar">
@@ -63,6 +66,12 @@
     <div class="actions">
       <button type="button" class="btn primary ctl" data-follow>Follow the coach</button>
       <span class="hint mono">or pick another option (keys 1–9) to refuse</span>
+      <button type="button" class="btn ctl" data-ghosts aria-pressed="false" aria-describedby="fr-ghost-legend">Show ghosts</button>
+    </div>
+    <div class="ghostbox" id="fr-ghost-legend" data-ghost-legend hidden>
+      <p class="ghostline">Faint teammates: a run that would raise a pass's value (+xG). Faint defenders: a move that would lower the coach's best option (−xG).</p>
+      <p class="ghostline limit">Model suggestion, not ground truth: in real matches only 3 % of the predicted gain was still there at the pass, because defenders react.</p>
+      <ul class="sr-only" data-ghost-list></ul>
     </div>
   </section>
   <p class="reveal" data-reveal role="status" aria-live="polite" hidden></p>
@@ -83,20 +92,24 @@
   <p class="keys mono">You followed the coach <span data-tally-followed>0 of 0</span> times · Keys: Space play / pause · ← → 5 s · F follow · 1–9 pick · V 3D view · C camera · in the 3D view: Q/E R/F look, 0 re-centre</p>
 </div>
 <script>
-  import { options as rankOptions, type Coach, type CoachOption } from "../lib/coach/advice";
+  import { options as rankOptions, valueAt, type Coach, type CoachOption } from "../lib/coach/advice";
   import { decide, emptyTally, outcome, proChoice, reveal, type Outcome, type ProChoice, type Tally } from "../lib/coach/decision";
   import { arrowLabel, frameLabel, optionLabel, outcomeLabel, proLabel, signedXg, textOn } from "../lib/coach/format";
+  import { explainOptions, fmt } from "../lib/coach/explain";
+  import type { State } from "../lib/coach/features";
   import { HALF_LENGTH, HALF_WIDTH, normalise, type Vec } from "../lib/coach/geometry";
+  import { ghosts as computeGhosts, type Ghosts } from "../lib/coach/ghosts";
   import { sameOption, spotLegend, type Spot } from "../lib/coach/report";
   import { coachFromModels, type ModelsJson } from "../lib/coach/models";
   import { cardLines, cardText, readProfiles, type ProfilesJson } from "../lib/coach/profiles";
   import { carrierAt, clock, decodeHalf, frameDots, markers, nearestCarrierFrame, playerAt, scoreAt, stateAt, trail, type Carrier, type HalfData, type MatchMeta } from "../lib/coach/replay";
   import { nextCamera, type CameraMode } from "../lib/football3d/camera";
-  import { buildFrame, decodeBallZ, eyesChoices, type ArrowSpec, type Tone } from "../lib/football3d/frame";
+  import { buildFrame, decodeBallZ, eyesChoices, type ArrowSpec, type GhostSpec, type Tone } from "../lib/football3d/frame";
   import { hasWebGL } from "../lib/football3d/webgl";
   import type { View3D } from "../lib/football3d/view3d"; // type only: three.js is loaded by import() in open3d()
 
   const BASE = "/football/";
+  const GHOST_KEY = "football-ghosts";
   const MARGIN = 3; // metres drawn around the pitch (the goals stick out 2 m)
   const same = (a: CoachOption, b: CoachOption) => a.kind === b.kind && a.target === b.target && a.angle === b.angle;
 
@@ -111,6 +124,7 @@
     const cams = $<HTMLFieldSetElement>("[data-cams]"), eyesRow = $("[data-eyes-row]"), eyesSel = $<HTMLSelectElement>("[data-eyes]");
     const note3d = $("[data-note3d]"), hint3d = $("[data-hint3d]"), recentre = $<HTMLButtonElement>("[data-recentre]");
     const spotBox = $("[data-spot]");
+    const tipBox = $("[data-tip]"), ghostBtn = $<HTMLButtonElement>("[data-ghosts]"), ghostLegend = $("[data-ghost-legend]"), ghostList = $("[data-ghost-list]");
     const cards = $("[data-cards]"), carrierCard = $("[data-card=carrier]"), targetCard = $("[data-card=target]");
     const css = getComputedStyle(document.documentElement);
     const SIGNAL = css.getPropertyValue("--signal").trim() || "#ff5b1f";
@@ -128,10 +142,13 @@
     let meta = null as unknown as MatchMeta;
     let profiles: ProfilesJson | null = null; // display-only player cards; null = file missing, no cards
     let coach = null as unknown as Coach;
+    let weights = null as unknown as ModelsJson; // the exported weights: the explanations need each feature's share
     let ready = false, half = 0, t = 0, playing = false, speed = 1, last = 0, dpr = 1;
     const halves: (HalfData | undefined)[] = [];
     const loads: (Promise<HalfData> | undefined)[] = [];
-    let advice: { half: number; frame: number; carrier: Carrier; opts: CoachOption[] } | null = null;
+    let advice: { half: number; frame: number; carrier: Carrier; opts: CoachOption[]; state: State; row: number; why: string[][]; ghosts: Ghosts | null } | null = null;
+    let ghostsOn = false; // remembered; ghosts are computed only on pause, when shown
+    try { ghostsOn = localStorage.getItem(GHOST_KEY) === "1"; } catch { /* storage blocked: off */ }
     let chosen: { half: number; frame: number; option: CoachOption } | null = null;
     let pending: { half: number; pro: ProChoice; result: Outcome } | null = null;
     let tally: Tally = emptyTally();
@@ -216,6 +233,31 @@
       ctx.fillStyle = colour; ctx.fillText(label, lx + 5, ly + hgt / 2);
     }
 
+    /** Faint disc where the player would stand, a dashed path from where he is and the gain, for each ghost. */
+    function drawGhosts(specs: GhostSpec[], k: number, r: number) {
+      if (!specs.length) return;
+      ctx.save();
+      ctx.setLineDash([6 * dpr, 5 * dpr]); ctx.lineWidth = Math.max(1.5 * dpr, 0.2 * k);
+      for (const g of specs) {
+        const [x0, y0] = px(g.from), [x1, y1] = px(g.to);
+        ctx.globalAlpha = 0.7; ctx.strokeStyle = g.colour.toLowerCase() === "#ffffff" ? "#ecebe6" : g.colour;
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      const size = Math.round(Math.max(10 * dpr, 1.1 * k));
+      ctx.font = `500 ${size}px ${MONO}`; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      for (const g of specs) {
+        ctx.globalAlpha = 0.38; circle(g.to, r); ctx.fillStyle = g.colour; ctx.fill();
+        ctx.globalAlpha = 0.8; ctx.lineWidth = 1.5 * dpr; ctx.strokeStyle = g.kind === "run" ? "#ecebe6" : "#f0b4a0";
+        ctx.setLineDash([3 * dpr, 3 * dpr]); ctx.stroke(); ctx.setLineDash([]);
+        const [x, y] = px(g.to), w = ctx.measureText(g.label).width + 10, hgt = size + 8;
+        const lx = Math.min(canvas.width - w - 2, Math.max(2, x + r + 3)), ly = Math.min(canvas.height - hgt - 2, Math.max(2, y - hgt / 2));
+        ctx.globalAlpha = 0.85; ctx.fillStyle = "rgba(13, 14, 16, 0.85)"; ctx.fillRect(lx, ly, w, hgt);
+        ctx.globalAlpha = 1; ctx.fillStyle = g.kind === "run" ? "#cfe9d4" : "#f0b4a0"; ctx.fillText(g.label, lx + 5, ly + hgt / 2);
+      }
+      ctx.restore();
+    }
+
     const shownAdvice = () => (!playing && advice && advice.half === half && advice.frame === frameNow() ? advice : null);
 
     /** The coach's arrows at this moment (top 3 + the viewer's pick), for the 2D canvas and the 3D view alike. */
@@ -227,15 +269,16 @@
       const both = spotOptions();
       if (both) { // a report decision: only the player's choice (green) and the coach's preference (orange)
         const out: ArrowSpec[] = [];
-        if (!both.same) out.push({ from, to: normalise(both.best.to, dir), label: arrowLabel(both.best, meta.players), tone: "best" });
-        out.push({ from, to: normalise(both.chosen.to, dir), label: arrowLabel(both.chosen, meta.players), tone: "pick" });
+        const why = (o: CoachOption) => shown.why[shown.opts.indexOf(o)]?.join(" · ");
+        if (!both.same) out.push({ from, to: normalise(both.best.to, dir), label: arrowLabel(both.best, meta.players), tone: "best", why: why(both.best) });
+        out.push({ from, to: normalise(both.chosen.to, dir), label: arrowLabel(both.chosen, meta.players), tone: "pick", why: why(both.chosen) });
         return out;
       }
       const pick = chosen && chosen.half === half && chosen.frame === shown.frame ? shown.opts.find((o) => same(o, chosen!.option)) ?? null : null;
       const drawn = shown.opts.slice(0, 3);
       if (pick && !drawn.includes(pick)) drawn.push(pick);
       return drawn.map((o): ArrowSpec => ({
-        from, to: normalise(o.to, dir), label: arrowLabel(o, meta.players),
+        from, to: normalise(o.to, dir), label: arrowLabel(o, meta.players), why: shown.why[shown.opts.indexOf(o)]?.join(" · "),
         tone: o === pick ? "pick" : o === shown.opts[0] ? "best" : "other",
       }));
     }
@@ -247,6 +290,44 @@
       const find = (o: Spot["chosen"]) => shown.opts.find((x) => sameOption(x, o));
       const chosen = find(spot.chosen), best = find(spot.best);
       return chosen && best ? { chosen, best, same: chosen === best } : null;
+    }
+
+    /** The ghosts of the moment shown, computed on first use (only ever while paused) and kept until the next pause. */
+    function ghostsNow(): Ghosts | null {
+      const a = shownAdvice();
+      if (!ghostsOn || !a) return null;
+      return (a.ghosts ??= computeGhosts(a.state, a.row, coach));
+    }
+
+    /** The ghosts as drawable specs in pitch coordinates (the model's frame is rotated back for a team attacking -x). */
+    function ghostSpecs(): GhostSpec[] {
+      const a = shownAdvice(), g = ghostsNow();
+      if (!a || !g) return [];
+      const dir = meta.halves[half].attack[a.carrier.team];
+      const colour = (player: number) => { const t = meta.players[player].team; return t === 0 || t === 1 ? meta.meta.colors[t] : "#777777"; };
+      return [
+        ...g.runs.map((r): GhostSpec => ({ from: normalise(r.from, dir), to: normalise(r.to, dir), colour: colour(r.player), label: `+${fmt(r.gain, 3)} xG`, kind: "run" })),
+        ...g.defence.map((d): GhostSpec => ({ from: normalise(d.from, dir), to: normalise(d.to, dir), colour: colour(d.player), label: `\u2212${fmt(d.gain, 3)} xG`, kind: "defender" })),
+      ];
+    }
+
+    /** Toggle state, legend and a text list of the ghosts (for screen readers) for the moment shown. */
+    function showGhostUi() {
+      ghostBtn.setAttribute("aria-pressed", String(ghostsOn));
+      ghostBtn.textContent = ghostsOn ? "Hide ghosts" : "Show ghosts";
+      const a = shownAdvice(), g = ghostsNow();
+      ghostLegend.hidden = !ghostsOn || !a;
+      root.dataset.ghosts = g ? String(g.runs.length + g.defence.length) : "off";
+      const who = (p: number) => `#${meta.players[p].shirt} ${meta.players[p].name}`;
+      ghostList.replaceChildren(...(g ? [
+        ...g.runs.map((r) => `Ghost run: ${who(r.player)} running there would add ${fmt(r.gain, 3)} xG to the pass to him.`),
+        ...g.defence.map((d) => `Ghost defender: ${who(d.player)} standing there would take ${fmt(d.gain, 3)} xG off the coach's best option.`),
+      ] : []).map((text) => { const li = document.createElement("li"); li.textContent = text; return li; }));
+    }
+
+    function showTip(text: string | undefined) {
+      tipBox.hidden = !text;
+      if (text) tipBox.textContent = text;
     }
 
     function showSpot() {
@@ -264,7 +345,7 @@
       const h = halves[half];
       if (!ready || !h || !view3d) return;
       view3d.show(buildFrame(meta, h, {
-        t, z: zHalves[half] ?? null, carrier: shownAdvice()?.carrier.player ?? null, arrows: arrowsNow(h),
+        t, z: zHalves[half] ?? null, carrier: shownAdvice()?.carrier.player ?? null, arrows: arrowsNow(h), ghosts: ghostSpecs(),
         focus: camMode === "eyes" ? eyesOf : null, trail: !reduced,
       }));
     }
@@ -286,6 +367,7 @@
       for (const a of arrowsNow(h).reverse()) arrow(a.from, a.to, TONE[a.tone], a.label, k); // best drawn last, on top
       const { players, ball } = frameDots(h, t);
       const r = Math.max(7 * dpr, 1.1 * k);
+      drawGhosts(ghostSpecs(), k, r); // under the players, over the arrows
       ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = `600 ${Math.round(r * 1.05)}px ${MONO}`;
       for (const d of players) {
         const info = meta.players[d.player];
@@ -327,7 +409,7 @@
     function updateCoach(shift = 0) {
       const h = halves[half]!, f = frameNow();
       list.replaceChildren();
-      advice = null; hideTargetCard();
+      advice = null; hideTargetCard(); showTip(undefined);
       // A report decision names its passer: the report ranked his options at the release frame, where the strict
       // ball-carrier rule (ball within 2 m, ball alive) may not hold yet, so he is the carrier here.
       const named = spot && spot.half === half && spot.frame === f && playerAt(h, f, spot.carrier) ? { player: spot.carrier, team: meta.players[spot.carrier].team } : null;
@@ -335,13 +417,14 @@
       describe(c);
       if (!c) {
         spotBox.hidden = true; root.dataset.spot = "false";
-        coachBox.hidden = true; root.dataset.options = "0"; cards.hidden = true;
+        coachBox.hidden = true; root.dataset.options = "0"; cards.hidden = true; showGhostUi();
         say("Paused. Nobody has the ball at this moment: step on a little (→) and the coach will look again.");
         draw(); return;
       }
       const s = stateAt(meta, half, h, f, c.team);
-      const opts = rankOptions(s, s.attIdx.indexOf(c.player), coach);
-      advice = { half, frame: f, carrier: c, opts };
+      const row = s.attIdx.indexOf(c.player), opts = rankOptions(s, row, coach);
+      const why = explainOptions(s, row, opts, weights, valueAt(coach, s.att[row]), coach.pc).map((e) => e.phrases);
+      advice = { half, frame: f, carrier: c, opts, state: s, row, why, ghosts: null };
       const done = !!chosen && chosen.half === half && chosen.frame === f;
       opts.forEach((o, i) => {
         const b = document.createElement("button");
@@ -350,13 +433,21 @@
         b.classList.toggle("chosen", done && same(o, chosen!.option));
         b.addEventListener("click", () => choose(i));
         const li = document.createElement("li"); li.append(b); list.append(li);
+        // The reasons: plain small text under the option, and the button's description for a screen reader.
+        const reasons = document.createElement("span");
+        reasons.className = "why"; reasons.id = `fr-why-${i}`; reasons.textContent = `Why: ${why[i].join(" · ")}`;
+        li.append(reasons); b.setAttribute("aria-describedby", reasons.id);
+        const tip = `${arrowLabel(o, meta.players)}: ${why[i].join(" · ")}`; // also shown over the pitch on hover or focus
+        li.addEventListener("pointerenter", () => showTip(tip)); li.addEventListener("pointerleave", () => showTip(undefined));
+        li.addEventListener("focusin", () => showTip(tip));
+        li.addEventListener("focusout", (e) => { if (!li.contains(e.relatedTarget as Node | null)) showTip(undefined); });
         if (profiles && o.kind === "pass" && o.target != null && meta.players[o.target]) {
           // The target's card shows while the pointer is over the option or the option has the focus; a screen reader
           // reads the same text as the button's description.
           const target = o.target;
           const role = "pass target", desc = document.createElement("span");
           desc.className = "sr-only"; desc.id = `fr-card-${i}`; desc.textContent = cardText(cardTitle(target, role), cardOf(target));
-          li.append(desc); b.setAttribute("aria-describedby", desc.id);
+          li.append(desc); b.setAttribute("aria-describedby", `${reasons.id} ${desc.id}`);
           const show = () => { fillCard(targetCard, target, role); targetCard.hidden = false; };
           li.addEventListener("pointerenter", show); li.addEventListener("pointerleave", hideTargetCard);
           li.addEventListener("focusin", show);
@@ -367,7 +458,7 @@
       const p = meta.players[c.player];
       $("[data-coach-who]").textContent = `for #${p.shirt} ${p.name}`;
       followBtn.disabled = done; coachBox.hidden = false; root.dataset.options = String(opts.length);
-      showSpot();
+      showSpot(); showGhostUi();
       const moved = shift ? `Paused ${(Math.abs(shift) / meta.fps).toFixed(1)} s ${shift < 0 ? "earlier" : "later"}, when` : "Paused.";
       say(done ? "You already chose here. Press Play to see what the pro did."
         : `${moved} #${p.shirt} ${p.name} ${shift ? "had" : "has"} the ball: ${opts.length} options, best first. Follow the coach or pick another (1–9).`);
@@ -433,7 +524,7 @@
 
     function play() {
       if (playing || !ready || frameNow() >= meta.halves[half].frames - 1) return;
-      playing = true; playBtn.textContent = "Pause"; spot = null; spotBox.hidden = true; root.dataset.spot = "false"; coachBox.hidden = true; advice = null; root.dataset.options = "0"; cards.hidden = true; say("");
+      playing = true; playBtn.textContent = "Pause"; spot = null; spotBox.hidden = true; root.dataset.spot = "false"; coachBox.hidden = true; advice = null; root.dataset.options = "0"; cards.hidden = true; showTip(undefined); showGhostUi(); say("");
       last = performance.now(); requestAnimationFrame(tick);
     }
 
@@ -471,7 +562,7 @@
       const get = (f: string) => fetch(BASE + f).then((r) => { if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`); return r.json(); });
       // The cards are optional: a missing or unreadable profiles.json only means no cards.
       const [m, w, prof] = await Promise.all([get("match.json"), get("models.json"), get("profiles.json").catch(() => null)]);
-      meta = m as MatchMeta; coach = coachFromModels(w as ModelsJson); profiles = readProfiles(prof);
+      meta = m as MatchMeta; weights = w as ModelsJson; coach = coachFromModels(weights); profiles = readProfiles(prof);
       say("Loading the first half…");
       await getHalf(0);
       ready = true;
@@ -564,6 +655,28 @@
     // ---------- wiring ----------
     playBtn.addEventListener("click", () => (ready ? toggle() : void start()));
     followBtn.addEventListener("click", () => choose(0));
+    ghostBtn.addEventListener("click", () => {
+      ghostsOn = !ghostsOn;
+      try { localStorage.setItem(GHOST_KEY, ghostsOn ? "1" : "0"); } catch { /* not remembered */ }
+      showGhostUi(); draw();
+      const g = ghostsNow();
+      say(g ? `Ghosts shown: ${g.runs.length} run${g.runs.length === 1 ? "" : "s"}, ${g.defence.length} defender${g.defence.length === 1 ? "" : "s"}. Model suggestion, not ground truth.` : "Ghosts hidden.");
+    });
+    // On the 2D pitch the reasons of an arrow show when the pointer is near it (the same text as under the option).
+    canvas.addEventListener("pointermove", (e) => {
+      const h = halves[half];
+      if (!ready || !h || view3d) return;
+      const k = canvas.width / Math.max(1, canvas.clientWidth), mx = e.offsetX * k, my = e.offsetY * k;
+      let hit: ArrowSpec | undefined, best = 18 * dpr;
+      for (const a of arrowsNow(h)) {
+        const [x0, y0] = px(a.from), [x1, y1] = px(a.to), dx = x1 - x0, dy = y1 - y0;
+        const u = Math.max(0, Math.min(1, ((mx - x0) * dx + (my - y0) * dy) / Math.max(1e-9, dx * dx + dy * dy)));
+        const d = Math.hypot(mx - (x0 + u * dx), my - (y0 + u * dy));
+        if (d < best) { best = d; hit = a; }
+      }
+      showTip(hit?.why ? `${hit.label}: ${hit.why}` : undefined);
+    });
+    canvas.addEventListener("pointerleave", () => showTip(undefined));
     time.addEventListener("input", () => seek(Number(time.value)));
     jump.addEventListener("change", () => {
       if (!jump.value) return;
@@ -652,6 +765,15 @@
   .opts :global(.opt.chosen) { border-color: var(--ok); }
   .opts :global(.opt:hover:not(:disabled)) { border-color: var(--signal); }
   .opts :global(.opt:disabled) { cursor: default; color: var(--ink-2); }
+  .opts li { display: grid; gap: 2px; }
+  .opts :global(.why) { padding: 0 4px; font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+  .tip { position: absolute; left: 8px; right: 8px; bottom: 8px; margin: 0; padding: 6px 10px; font-size: 12px; line-height: 1.4;
+    color: var(--ink); background: rgba(13, 14, 16, 0.92); border: 1px solid var(--line-2); border-radius: var(--radius); pointer-events: none; }
+  .tip[hidden] { display: none; }
+  .ghostbox { display: grid; gap: 4px; margin-top: 8px; }
+  .ghostbox[hidden] { display: none; }
+  .ghostline { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+  .ghostline.limit { color: var(--ink); }
   .cards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
   .card { flex: 1 1 260px; max-width: 420px; padding: 8px 12px; font-size: 13px; color: var(--ink-2); border: 1px solid var(--line); border-radius: var(--radius); }
   .card.target { border-color: var(--signal); }
@@ -683,6 +805,9 @@
     color: var(--ink); background: rgba(13, 14, 16, 0.85); border-radius: 4px; white-space: nowrap; }
   .labels3d :global(span.best) { color: var(--signal); }
   .labels3d :global(span.pick) { color: var(--ok); }
+  .labels3d :global(span.ghost) { opacity: 0.85; }
+  .labels3d :global(span.run) { color: #cfe9d4; }
+  .labels3d :global(span.defender) { color: #f0b4a0; }
   .view3d { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .cams { display: inline-flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; }
   .cam { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; font-size: 14px;

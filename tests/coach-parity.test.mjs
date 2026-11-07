@@ -69,3 +69,80 @@ describe.skipIf(!shipped)("the shipped replay files rebuild the same frames", ()
     });
   }
 });
+
+import { PHRASES, explainOptions } from "../src/lib/coach/explain.ts";
+import { FAN_DEG, HORIZON_S, MAX_GHOSTS, MIN_SPEED, REACH, DEF_MIN_GAIN, RUN_MIN_GAIN, SPEED, ghostDefence, ghostRuns } from "../src/lib/coach/ghosts.ts";
+import { valueAt } from "../src/lib/coach/advice.ts";
+
+describe.skipIf(!fx?.explain)("explanations: same contributions and phrases as Python", () => {
+  const coach = fx ? coachFromModels(fx.models) : null;
+  it("the phrase table and ghost constants are the library's", () => {
+    expect(PHRASES).toEqual(fx.explain.phrases);
+    const p = fx.ghost_params;
+    expect([SPEED, HORIZON_S, REACH, MIN_SPEED, RUN_MIN_GAIN, DEF_MIN_GAIN, MAX_GHOSTS]).toEqual([p.speed, p.horizon_s, p.reach_m, p.min_speed, p.run_min_gain, p.def_min_gain, p.max_ghosts]);
+    expect(FAN_DEG).toEqual(p.fan_deg);
+  });
+  let compared = 0;
+  for (const r of fx?.frames ?? []) {
+    it(`half ${r.half}, frame ${r.frame}: contributions to 1e-9, phrases identical unless fragile`, () => {
+      const s = stateOf(r);
+      const opts = options(s, r.carrier_row, coach);
+      const vNow = valueAt(coach, s.att[r.carrier_row]);
+      expect(Math.abs(vNow - r.v_now)).toBeLessThan(TOL);
+      const got = explainOptions(s, r.carrier_row, opts, fx.models, vNow, coach.pc);
+      expect(got.length).toBe(r.explanations.length);
+      got.forEach((g, i) => {
+        const w = r.explanations[i];
+        expect(g.kind).toBe(w.kind);
+        expect(g.contributions.map((c) => c.feature)).toEqual(w.contributions.map((c) => c.feature));
+        g.contributions.forEach((c, k) => expect(Math.abs(c.contribution - w.contributions[k].contribution), `${w.kind} ${c.feature}`).toBeLessThan(1e-9));
+        for (const k of Object.keys(w.value_terms)) expect(Math.abs(g.valueTerms[k] - w.value_terms[k]), `${w.kind} ${k}`).toBeLessThan(1e-9);
+        expect(g.phrases.length).toBe(w.phrases.length);
+        if (!w.fragile) { expect(g.phrases).toEqual(w.phrases); expect(g.signs).toEqual(w.signs); compared++; }
+      });
+    });
+  }
+  it("most options were compared by text", () => {
+    const total = fx.frames.reduce((n, r) => n + r.explanations.length, 0);
+    expect(compared).toBeGreaterThan(total * 0.9);
+  });
+});
+
+describe.skipIf(!fx?.ghost_params)("ghosts: same positions, gains and choices as Python", () => {
+  const coach = fx ? coachFromModels(fx.models) : null;
+  const same = (got, want, what) => {
+    expect(got.length, `${what} count`).toBe(want.length);
+    got.forEach((g, i) => {
+      const w = want[i];
+      if (w.fragile) return;
+      expect([g.row, g.player, g.fanIndex], `${what} ${i} choice`).toEqual([w.row, w.player, w.fan_index]);
+      expect(Math.abs(g.gain - w.gain), `${what} ${i} gain`).toBeLessThan(TOL);
+      for (const [a, b] of [[g.from, w.from], [g.to, w.to]]) expect(Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])), `${what} ${i} position`).toBeLessThan(TOL);
+    });
+  };
+  for (const r of fx?.frames ?? []) {
+    it(`half ${r.half}, frame ${r.frame}: ghost runs and ghost defence`, () => {
+      const s = stateOf(r);
+      const runs = ghostRuns(s, r.carrier_row, coach), def = ghostDefence(s, r.carrier_row, coach);
+      const fragile = (l) => l.some((g) => g.fragile);
+      if (fragile(r.ghosts.runs) || fragile(r.ghosts.defence)) {
+        // a near tie could flip a choice: compare what is stable (the best gain of each list, numerically)
+        for (const [got, want] of [[runs, r.ghosts.runs], [def, r.ghosts.defence]]) if (got.length && want.length) expect(Math.abs(got[0].gain - want[0].gain)).toBeLessThan(TOL);
+        return;
+      }
+      same(runs, r.ghosts.runs, "run");
+      same(def, r.ghosts.defence, "defender");
+    });
+  }
+  it("each frame's ghosts stay within the 50 ms budget in node", () => {
+    const ms = [];
+    for (const r of fx.frames) {
+      const s = stateOf(r), t0 = performance.now();
+      ghostRuns(s, r.carrier_row, coach); ghostDefence(s, r.carrier_row, coach);
+      ms.push(performance.now() - t0);
+    }
+    const max = Math.max(...ms);
+    console.info(`ghosts per frame: mean ${(ms.reduce((a, b) => a + b, 0) / ms.length).toFixed(1)} ms, max ${max.toFixed(1)} ms over ${ms.length} frames`);
+    expect(max).toBeLessThan(50);
+  });
+});

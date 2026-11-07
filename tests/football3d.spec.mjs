@@ -69,6 +69,31 @@ test.describe("football replay 3D", () => {
     expect(errors).toEqual([]);
   });
 
+  test("ghosts in 3D: faint figures with gain labels on request", async ({ page }) => {
+    const r = fx.frames.find((f) => f.half === 0 && f.ghosts.runs.length && f.ghosts.defence.length);
+    const n = r.ghosts.runs.length + r.ghosts.defence.length;
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto("/demos/football/");
+    const root = page.locator("[data-football]");
+    await root.hover();
+    await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
+    test.skip((await root.getAttribute("data-webgl")) !== "true", "no WebGL 2 in this browser");
+    await root.getByRole("button", { name: "3D view" }).click();
+    await expect(root).toHaveAttribute("data-view", "3d", { timeout: 20_000 });
+    await root.locator("[data-time]").fill(String(r.frame));
+    await expect(root).toHaveAttribute("data-options", String(r.options.length));
+    const labels = root.locator("[data-labels3d] span.ghost:not([hidden])");
+    await expect(labels).toHaveCount(0);
+    await root.getByRole("button", { name: "Show ghosts" }).click();
+    await expect(root).toHaveAttribute("data-ghosts", String(n));
+    await root.getByRole("radio", { name: "Tactical" }).check(); // the whole pitch is in view
+    await expect.poll(() => root.locator("[data-labels3d] span.ghost:not([hidden])").count()).toBe(n);
+    await expect(root.locator("[data-labels3d] span.run").first()).toHaveText(/^\+0\.\d{3} xG$/);
+    await expect(root.locator("[data-labels3d] span.defender").first()).toHaveText(/^−0\.\d{3} xG$/);
+    expect(errors).toEqual([]);
+  });
+
   test("steering: free look in a player's eyes, orbit, pan, re-centre", async ({ page }) => {
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
@@ -84,9 +109,19 @@ test.describe("football replay 3D", () => {
     await expect(root).toHaveAttribute("data-options", String(r.options.length));
     const stage = root.locator("[data-stage3d]"), canvas = stage.locator("canvas"), hint = root.locator("[data-hint3d]");
     const num = async (name) => Number(await stage.getAttribute(`data-camera-${name}`));
-    const centre = async () => { // a point on the canvas that is inside the window
-      await canvas.evaluate((el) => el.scrollIntoView({ block: "center" }));
-      const b = await canvas.boundingBox();
+    // global.css has `scroll-behavior: smooth`: a plain scrollIntoView() is animated, so the box read right after it
+    // was mid-scroll (the canvas partly above the window) and a drag then missed the canvas (yaw stayed 0). Scroll
+    // instantly, then wait until the canvas stops moving and its centre is inside the window.
+    const centre = async () => {
+      await canvas.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
+      let b = null, prev = "";
+      await expect.poll(async () => {
+        b = await canvas.boundingBox();
+        const view = page.viewportSize(), key = JSON.stringify(b);
+        const settled = key === prev && b.y + b.height / 2 > 0 && b.y + b.height / 2 < view.height && b.x + b.width / 2 < view.width;
+        prev = key;
+        return settled;
+      }, { intervals: [50, 50, 100] }).toBe(true);
       return { x: b.x + b.width / 2, y: b.y + b.height / 2, b };
     };
     const drag = async (dx, dy) => {

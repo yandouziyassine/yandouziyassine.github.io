@@ -14,13 +14,15 @@ export const BALL_R = 0.11; // m: the ball's radius, so the height of its centre
 const NO_TEAM = "#777777";  // players who are not on the match sheet (grey, as in 2D)
 
 export type Tone = "best" | "pick" | "other";
-export interface ArrowSpec { from: Vec; to: Vec; label: string; tone: Tone }
+export interface ArrowSpec { from: Vec; to: Vec; label: string; tone: Tone; why?: string }
+/** A ghost (coach insight B): where a teammate (run) or a defender would stand, drawn faint with a dashed path and a label. */
+export interface GhostSpec { from: Vec; to: Vec; colour: string; label: string; kind: "run" | "defender" }
 export interface Figure { player: number; at: Vec; team: number; shirt: number; colour: string }
 export interface Frame3D {
-  figures: Figure[]; ball: Vec | null; ballH: number; carrier: number | null; arrows: ArrowSpec[]; trail: Vec[];
+  figures: Figure[]; ball: Vec | null; ballH: number; carrier: number | null; arrows: ArrowSpec[]; ghosts: GhostSpec[]; trail: Vec[];
   focus: { player: number; at: Vec; vel: Vec } | null;
 }
-export interface FrameInput { t: number; z: Int16Array | null; carrier: number | null; arrows: ArrowSpec[]; focus: number | null; trail: boolean }
+export interface FrameInput { t: number; z: Int16Array | null; carrier: number | null; arrows: ArrowSpec[]; ghosts?: GhostSpec[]; focus: number | null; trail: boolean }
 export interface EyesChoice { player: number; label: string }
 
 export function decodeBallZ(buf: ArrayBuffer, frames: number): Int16Array {
@@ -45,7 +47,7 @@ export function buildFrame(m: MatchMeta, h: HalfData, inp: FrameInput): Frame3D 
   });
   const f = inp.focus === null ? undefined : figures.find((x) => x.player === inp.focus);
   return {
-    figures, ball, ballH: ballHeight(inp.z, inp.t), carrier: inp.carrier, arrows: inp.arrows,
+    figures, ball, ballH: ballHeight(inp.z, inp.t), carrier: inp.carrier, arrows: inp.arrows, ghosts: inp.ghosts ?? [],
     trail: inp.trail ? trail(h, inp.t, m.fps) : [],
     focus: f ? { player: f.player, at: f.at, vel: velocityAt(h, Math.floor(inp.t), f.player, m.fps) } : null,
   };
