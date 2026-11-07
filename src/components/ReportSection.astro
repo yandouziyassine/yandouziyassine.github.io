@@ -1,0 +1,229 @@
+---
+// Match report (project 20, feature A): the replay match's passes, what each player chose against what the coach
+// (models trained without this match) valued most. /football/report.json (117 kB) and match.json (player names) load
+// when this section scrolls into view, not on page load; if the report is missing the whole section is hidden.
+// Clicking a highlight sends "football:spot" to the replay (FootballReplay.astro), which seeks, pauses and draws both
+// options. The report is the model's opinion: no good/bad labels.
+---
+<section class="rp" data-report aria-labelledby="rp-h">
+  <h2 class="small" id="rp-h">Match report: what the players chose, what the coach preferred</h2>
+  <p class="rp-intro">For every pass of this match that could be placed on the tracking, the coach (trained on the other matches,
+    never on this one) looked at the options the passer had and valued each in expected goals. Here is how the choices compare
+    with its opinion. It is an opinion of a weak model, not a verdict on anyone.</p>
+  <p class="rp-status mono" data-rp-status role="status" aria-live="polite">The report loads when you scroll here.</p>
+  <div data-rp-body hidden>
+    <div class="rp-caveats" role="group" aria-labelledby="rp-cav-h">
+      <h3 class="rp-h3" id="rp-cav-h">Before you read the numbers</h3>
+      <ul data-rp-caveats></ul>
+    </div>
+    <h3 class="rp-h3">The match in numbers</h3>
+    <dl class="rp-stats" data-rp-summary></dl>
+    <div class="rp-scroll" tabindex="0" role="region" aria-label="Decisions by team">
+      <table class="rp-table" data-rp-teams>
+        <caption class="sr-only">Decisions by team</caption>
+        <thead><tr><th scope="col">Team</th><th scope="col">Decisions</th><th scope="col">Coach's first option</th><th scope="col">Coach's top 3</th><th scope="col">Mean gap</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3 class="rp-h3" id="rp-players-h">Players</h3>
+    <p class="rp-note">Only the passer is counted, one decision per pass. Press a column title to sort. The gap is how much more
+      the coach valued its best option than the pass chosen, in expected goals (xG).</p>
+    <div class="rp-scroll" tabindex="0" role="region" aria-labelledby="rp-players-h">
+      <table class="rp-table" data-rp-players>
+        <caption class="sr-only">Players: decisions, share of choices that matched the coach, mean gap</caption>
+        <thead><tr></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="rp-status mono" data-rp-sort role="status" aria-live="polite"></p>
+    <h3 class="rp-h3" id="rp-hl-h">Moments to look at</h3>
+    <p class="rp-note">Press a moment: the replay above jumps there, paused, and draws two arrows.</p>
+    <p class="rp-legend" data-rp-legend><span class="rp-sw pick" aria-hidden="true"></span> green: what the player chose
+      <span class="rp-sw best" aria-hidden="true"></span> orange: what the coach valued most</p>
+    <div class="rp-lists">
+      <div>
+        <h4 class="rp-h4" id="rp-missed-h">10 biggest missed opportunities</h4>
+        <p class="rp-note">The largest gaps where the coach's option would likely have worked (chance of at least 50 %). "Missed"
+          means the model valued another option more, not that the player made a mistake.</p>
+        <ol class="rp-hl" data-rp-missed aria-labelledby="rp-missed-h"></ol>
+      </div>
+      <div>
+        <h4 class="rp-h4" id="rp-best-h">10 best decisions</h4>
+        <p class="rp-note">The player chose the coach's first option, and it scored well above the typical option.</p>
+        <ol class="rp-hl" data-rp-best aria-labelledby="rp-best-h"></ol>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  import { SORT_LABELS, defaultDir, gapText, highlightRows, highlightSentence, pct1, playerRows, readReport, sortAnnouncement, sortRows,
+    spotFor, summaryLines, teamRows, tooFewText, type HighlightKind, type ReportJson, type SortDir, type SortKey } from "../lib/coach/report";
+  import type { PlayerInfo } from "../lib/coach/replay";
+
+  const BASE = "/football/";
+  const root = document.querySelector<HTMLElement>("[data-report]");
+
+  function mount(root: HTMLElement) {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const status = $("[data-rp-status]"), body = $("[data-rp-body]");
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, text = "", cls = "") => {
+      const e = document.createElement(tag);
+      if (text) e.textContent = text;
+      if (cls) e.className = cls;
+      return e;
+    };
+    const cell = (tag: "td" | "th", text: string, cls = "") => el(tag, text, cls);
+
+    let report: ReportJson, players: PlayerInfo[];
+    let key: SortKey = "n", dir: SortDir = "desc";
+
+    function renderSummary() {
+      $("[data-rp-caveats]").replaceChildren(...report.caveats.map((c) => el("li", c)));
+      $("[data-rp-summary]").replaceChildren(...summaryLines(report).flatMap((l) => {
+        const box = el("div", "", "rp-stat");
+        const dt = el("dt", l.label), dd = el("dd", l.value), note = el("dd", l.note, "rp-stat-note");
+        box.append(dt, dd, note);
+        return [box];
+      }));
+      $("[data-rp-teams] tbody").replaceChildren(...teamRows(report).map((t) => {
+        const tr = el("tr");
+        tr.append(cell("th", t.name), cell("td", String(t.n)), cell("td", t.top1), cell("td", t.top3), cell("td", t.meanGap));
+        tr.firstElementChild!.setAttribute("scope", "row");
+        return tr;
+      }));
+    }
+
+    const HEADERS: SortKey[] = ["name", "team", "n", "top1", "top3", "meanGap"];
+    function renderPlayers(focus?: SortKey) {
+      const head = $("[data-rp-players] thead tr");
+      head.replaceChildren(...HEADERS.map((k) => {
+        const th = el("th");
+        th.scope = "col";
+        th.setAttribute("aria-sort", k === key ? (dir === "asc" ? "ascending" : "descending") : "none");
+        const b = el("button", SORT_LABELS[k], "rp-sort");
+        b.type = "button";
+        b.dataset.sort = k;
+        b.addEventListener("click", () => {
+          if (k === key) dir = dir === "asc" ? "desc" : "asc"; else { key = k; dir = defaultDir(k); }
+          renderPlayers(k);
+          $("[data-rp-sort]").textContent = sortAnnouncement(key, dir);
+        });
+        if (k === key) b.dataset.dir = dir;
+        th.append(b);
+        return th;
+      }));
+      if (focus) head.querySelector<HTMLButtonElement>(`[data-sort=${focus}]`)?.focus();
+      const few = tooFewText(report);
+      $("[data-rp-players] tbody").replaceChildren(...sortRows(playerRows(report), key, dir).map((p) => {
+        const tr = el("tr");
+        tr.dataset.player = String(p.player);
+        const name = cell("th", `#${p.shirt} ${p.name}`);
+        name.scope = "row";
+        tr.append(name, cell("td", p.teamName), cell("td", String(p.n)));
+        if (p.tooFew) { const td = cell("td", few, "rp-few"); td.colSpan = 3; tr.append(td); }
+        else tr.append(cell("td", pct1(p.top1)), cell("td", pct1(p.top3)), cell("td", gapText(p.meanGap)));
+        return tr;
+      }));
+    }
+
+    function renderHighlights(kind: HighlightKind, host: HTMLElement) {
+      host.replaceChildren(...highlightRows(report, kind, players).map((h) => {
+        const li = el("li");
+        const b = el("button", "", "rp-hl-btn");
+        b.type = "button";
+        b.dataset.decision = String(h.decision);
+        b.setAttribute("aria-label", `${highlightSentence(h)} Show it in the replay.`);
+        const line = (cls: string, parts: [string, string?][]) => {
+          const p = el("span", "", cls);
+          for (const [t, c] of parts) p.append(el("span", t, c ?? ""));
+          return p;
+        };
+        b.append(
+          line("rp-l1", [[h.time, "rp-time"], [` ${h.player}`, "rp-who"], [` (${h.team})`, "rp-team"]]),
+          line("rp-l2", [["Chose: ", "rp-k"], [h.chose]]),
+          line("rp-l2", [[h.same ? "Coach: " : "Coach valued more: ", "rp-k"], [h.preferred]]),
+          line("rp-l3", [[h.measure], [` · ${h.outcome}`]]),
+        );
+        b.addEventListener("click", () => {
+          const replay = document.querySelector("[data-football]");
+          replay?.dispatchEvent(new CustomEvent("football:spot", { detail: spotFor(report, h.decision) }));
+        });
+        li.append(b);
+        return li;
+      }));
+    }
+
+    let started = false;
+    async function load() {
+      if (started) return;
+      started = true;
+      try {
+        const get = (f: string) => fetch(BASE + f).then((r) => { if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`); return r.json(); });
+        const [rep, match] = await Promise.all([get("report.json"), get("match.json")]);
+        const r = readReport(rep);
+        if (!r || !Array.isArray(match.players)) throw new Error("report.json is not in the expected shape");
+        report = r; players = match.players;
+        renderSummary(); renderPlayers();
+        renderHighlights("missed", $("[data-rp-missed]")); renderHighlights("best", $("[data-rp-best]"));
+        status.hidden = true; body.hidden = false;
+        root.dataset.ready = "true";
+      } catch (err) {
+        console.warn(err);
+        root.hidden = true; // no report, no section
+      }
+    }
+
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) { io.disconnect(); load(); }
+      }, { rootMargin: "300px" });
+      io.observe(root);
+    } else load();
+    root.addEventListener("focusin", load, { once: true });
+  }
+  if (root) mount(root);
+</script>
+<style is:global>
+  .rp { margin-top: 36px; }
+  .rp .small { font: 500 15px var(--sans); margin: 0 0 8px; }
+  .rp-intro, .rp-note { max-width: 760px; margin: 0 0 12px; font-size: 14px; color: var(--ink-2); }
+  .rp-note { font-size: 13px; }
+  .rp-status { margin: 0 0 12px; font-size: 13px; color: var(--ink-2); }
+  .rp-status[hidden], .rp [hidden] { display: none; }
+  .rp-h3 { font: 500 14px var(--sans); margin: 22px 0 8px; color: var(--ink); }
+  .rp-h4 { font: 500 14px var(--sans); margin: 0 0 6px; color: var(--ink); }
+  .rp-caveats { max-width: 760px; padding: 4px 16px 8px; border: 1px solid var(--line-2); border-radius: var(--radius); }
+  .rp-caveats .rp-h3 { margin-top: 12px; }
+  .rp-caveats ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--ink-2); }
+  .rp-caveats li { margin-bottom: 6px; }
+  .rp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 0 0 16px; }
+  .rp-stat { padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--radius); }
+  .rp-stat dt { font-size: 12px; color: var(--ink-2); }
+  .rp-stat dd { margin: 2px 0 0; font: 500 22px var(--sans); color: var(--ink); }
+  .rp-stat dd.rp-stat-note { font: 12px var(--sans); color: var(--ink-2); }
+  .rp-scroll { overflow-x: auto; }
+  .rp-scroll:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .rp-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .rp-table th, .rp-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .rp-table thead th { font-weight: 500; color: var(--ink); }
+  .rp-table tbody th { font-weight: 400; color: var(--ink); }
+  .rp-table td.rp-few { color: var(--ink-2); font-style: italic; }
+  .rp-sort { min-height: 44px; padding: 0 4px; font: inherit; font-weight: 500; color: var(--ink); background: none; border: 0; cursor: pointer; }
+  .rp-sort:hover { color: var(--signal); }
+  .rp-sort[data-dir="asc"]::after { content: " ▲"; font-size: 11px; }
+  .rp-sort[data-dir="desc"]::after { content: " ▼"; font-size: 11px; }
+  .rp-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 0 0 14px; font-size: 13px; color: var(--ink-2); }
+  .rp-sw { display: inline-block; width: 22px; height: 6px; margin-right: -6px; border-radius: 3px; }
+  .rp-sw.pick { background: var(--ok); }
+  .rp-sw.best { background: var(--signal); }
+  .rp-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 24px; }
+  .rp-hl { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; counter-reset: hl; }
+  .rp-hl li { counter-increment: hl; }
+  .rp-hl-btn { display: grid; gap: 2px; width: 100%; min-height: 44px; padding: 10px 12px; text-align: left; font: 13px var(--sans); color: var(--ink-2);
+    background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--radius); cursor: pointer; }
+  .rp-hl-btn:hover, .rp-hl-btn:focus-visible { border-color: var(--signal); }
+  .rp-hl-btn .rp-l1 { color: var(--ink); font-size: 14px; }
+  .rp-hl-btn .rp-time { font-family: var(--font-mono, monospace); color: var(--ink); }
+  .rp-hl-btn .rp-k { color: var(--ink-2); }
+  .rp-hl-btn .rp-l3 { font-size: 12px; }
+</style>

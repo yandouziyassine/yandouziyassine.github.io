@@ -7,11 +7,15 @@ import { spawnSync } from "node:child_process";
 const goodProfiles = () => ({ built_without: ["T"], advice_effect: "display-only", a: { pass: 0, shot: 0 },
   players: { 0: { name: "A", team: 0, pass_skill: { logit: 0.01, n: 30, raw: 0.2 } } } });
 
-function fakeExport(dir, { size = 2 * 3 * 4, credit = "Data: someone, CC BY 4.0", trainedWithout = "T", z = null, profiles = null } = {}) {
+const goodReport = () => ({ trained_without: "T", players: { 0: { name: "A" } }, highlights: { missed: [{ decision: 0, gap: 0.01 }], best: [] },
+  decisions: [{ half: 0, frame: 1, carrier: 0, target: 0, best: { kind: "pass", target: 0 }, gap: 0.01 }] });
+
+function fakeExport(dir, { size = 2 * 3 * 4, credit = "Data: someone, CC BY 4.0", trainedWithout = "T", z = null, profiles = null, report = null } = {}) {
   fs.mkdirSync(dir, { recursive: true });
   const halves = [{ frames: 2, slots: [0, 1], attack: [1, -1] }];
   fs.writeFileSync(path.join(dir, "match.json"), JSON.stringify({ match_id: "T", fps: 12.5, halves, players: [{ team: 0, shirt: 1, name: "A" }], credit }));
   if (profiles) fs.writeFileSync(path.join(dir, "profiles.json"), typeof profiles === "string" ? profiles : JSON.stringify(profiles));
+  if (report) fs.writeFileSync(path.join(dir, "report.json"), typeof report === "string" ? report : JSON.stringify(report));
   fs.writeFileSync(path.join(dir, "models.json"), JSON.stringify({ trained_without: trainedWithout }));
   fs.writeFileSync(path.join(dir, "h0.bin"), Buffer.alloc(size));
   if (z !== null) fs.writeFileSync(path.join(dir, "z0.bin"), Buffer.alloc(z)); // ball height: 2 bytes per frame
@@ -79,6 +83,30 @@ describe("npm run sync:football", () => {
     const big = path.join(tmp, "pbig");
     fakeExport(big, { profiles: JSON.stringify({ ...goodProfiles(), pad: "x".repeat(100_001) }) });
     expect(run(big, path.join(tmp, "out-pbig")).stderr).toMatch(/over 100 kB/);
+  });
+  it("copies report.json when it was built without the replay match", () => {
+    const src = path.join(tmp, "rep"), out = path.join(tmp, "out-rep");
+    fakeExport(src, { report: goodReport() });
+    const r = run(src, out);
+    expect(r.status, r.stderr).toBe(0);
+    expect(fs.readdirSync(out).sort()).toEqual(["h0.bin", "match.json", "models.json", "report.json"]);
+  });
+  it("refuses a report that saw the match, has a frame outside the half, names an unknown player, or is over 300 kB", () => {
+    const bad = (name, patch, d = {}) => {
+      const g = goodReport(), r = { ...g, ...patch, decisions: [{ ...g.decisions[0], ...d }] };
+      const src = path.join(tmp, name);
+      fakeExport(src, { report: r });
+      return run(src, path.join(tmp, `out-${name}`));
+    };
+    expect(bad("rseen", { trained_without: "OTHER" }).stderr).toMatch(/not trained without T/);
+    expect(bad("rframe", {}, { frame: 2 }).stderr).toMatch(/frame 2 is outside half 0/);
+    expect(bad("rcarrier", {}, { carrier: 3 }).stderr).toMatch(/not in match.json/);
+    expect(bad("rtarget", {}, { target: 3 }).stderr).toMatch(/not in match.json/);
+    expect(bad("rbest", {}, { best: { kind: "pass", target: 9 } }).stderr).toMatch(/not in match.json/);
+    expect(bad("rhl", { highlights: { missed: [{ decision: 4 }], best: [] } }).stderr).toMatch(/highlight 4/);
+    const big = path.join(tmp, "rbig");
+    fakeExport(big, { report: JSON.stringify({ ...goodReport(), pad: "x".repeat(300_001) }) });
+    expect(run(big, path.join(tmp, "out-rbig")).stderr).toMatch(/over 300 kB/);
   });
   it("does nothing when there is no export", () => {
     const out = path.join(tmp, "out-none");

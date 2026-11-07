@@ -66,6 +66,11 @@
     </div>
   </section>
   <p class="reveal" data-reveal role="status" aria-live="polite" hidden></p>
+  <div class="spot" data-spot role="status" aria-live="polite" hidden>
+    <p class="spot-line"><span class="sw pick" aria-hidden="true"></span><span data-spot-chose></span></p>
+    <p class="spot-line"><span class="sw best" aria-hidden="true"></span><span data-spot-best></span></p>
+    <button type="button" class="btn ctl" data-spot-clear>Hide the two options</button>
+  </div>
   <table class="tally">
     <caption class="sr-only">Running tally: the coach's expected value of the options chosen</caption>
     <thead><tr><th scope="col">Tally</th><th scope="col">Choices</th><th scope="col">Expected value</th></tr></thead>
@@ -82,6 +87,7 @@
   import { decide, emptyTally, outcome, proChoice, reveal, type Outcome, type ProChoice, type Tally } from "../lib/coach/decision";
   import { arrowLabel, frameLabel, optionLabel, outcomeLabel, proLabel, signedXg, textOn } from "../lib/coach/format";
   import { HALF_LENGTH, HALF_WIDTH, normalise, type Vec } from "../lib/coach/geometry";
+  import { sameOption, spotLegend, type Spot } from "../lib/coach/report";
   import { coachFromModels, type ModelsJson } from "../lib/coach/models";
   import { cardLines, cardText, readProfiles, type ProfilesJson } from "../lib/coach/profiles";
   import { carrierAt, clock, decodeHalf, frameDots, markers, nearestCarrierFrame, playerAt, scoreAt, stateAt, trail, type Carrier, type HalfData, type MatchMeta } from "../lib/coach/replay";
@@ -104,6 +110,7 @@
     const stage3d = $("[data-stage3d]"), labels3d = $("[data-labels3d]"), view3dBtn = $<HTMLButtonElement>("[data-view3d]");
     const cams = $<HTMLFieldSetElement>("[data-cams]"), eyesRow = $("[data-eyes-row]"), eyesSel = $<HTMLSelectElement>("[data-eyes]");
     const note3d = $("[data-note3d]"), hint3d = $("[data-hint3d]"), recentre = $<HTMLButtonElement>("[data-recentre]");
+    const spotBox = $("[data-spot]");
     const cards = $("[data-cards]"), carrierCard = $("[data-card=carrier]"), targetCard = $("[data-card=target]");
     const css = getComputedStyle(document.documentElement);
     const SIGNAL = css.getPropertyValue("--signal").trim() || "#ff5b1f";
@@ -128,6 +135,8 @@
     let chosen: { half: number; frame: number; option: CoachOption } | null = null;
     let pending: { half: number; pro: ProChoice; result: Outcome } | null = null;
     let tally: Tally = emptyTally();
+    let spot: Spot | null = null; // a decision of the match report: draw what the player chose and what the coach preferred
+    let booting: Promise<void> | null = null;
     let view3d: View3D | null = null, opening3d = false, webgl = false, camMode: CameraMode = "broadcast", eyesOf: number | null = null;
     const zHalves: (Int16Array | null | undefined)[] = []; // ball height per half: undefined = not asked yet, null = none
 
@@ -215,6 +224,13 @@
       if (!shown) return [];
       const from = playerAt(h, shown.frame, shown.carrier.player), dir = meta.halves[half].attack[shown.carrier.team];
       if (!from) return [];
+      const both = spotOptions();
+      if (both) { // a report decision: only the player's choice (green) and the coach's preference (orange)
+        const out: ArrowSpec[] = [];
+        if (!both.same) out.push({ from, to: normalise(both.best.to, dir), label: arrowLabel(both.best, meta.players), tone: "best" });
+        out.push({ from, to: normalise(both.chosen.to, dir), label: arrowLabel(both.chosen, meta.players), tone: "pick" });
+        return out;
+      }
       const pick = chosen && chosen.half === half && chosen.frame === shown.frame ? shown.opts.find((o) => same(o, chosen!.option)) ?? null : null;
       const drawn = shown.opts.slice(0, 3);
       if (pick && !drawn.includes(pick)) drawn.push(pick);
@@ -222,6 +238,26 @@
         from, to: normalise(o.to, dir), label: arrowLabel(o, meta.players),
         tone: o === pick ? "pick" : o === shown.opts[0] ? "best" : "other",
       }));
+    }
+
+    /** The coach's options that match the report's chosen and preferred option at the moment shown, if both are there. */
+    function spotOptions(): { chosen: CoachOption; best: CoachOption; same: boolean } | null {
+      const shown = shownAdvice();
+      if (!spot || !shown || spot.half !== shown.half || spot.frame !== shown.frame || spot.carrier !== shown.carrier.player) return null;
+      const find = (o: Spot["chosen"]) => shown.opts.find((x) => sameOption(x, o));
+      const chosen = find(spot.chosen), best = find(spot.best);
+      return chosen && best ? { chosen, best, same: chosen === best } : null;
+    }
+
+    function showSpot() {
+      const both = spot ? spotOptions() : null;
+      spotBox.hidden = !both;
+      root.dataset.spot = both ? "true" : "false";
+      if (!spot || !both) return;
+      const l = spotLegend(spot, meta.players);
+      $("[data-spot-chose]").textContent = l.chose;
+      $("[data-spot-best]").textContent = l.preferred;
+      spotBox.classList.toggle("one", both.same);
     }
 
     function draw3d() {
@@ -292,9 +328,13 @@
       const h = halves[half]!, f = frameNow();
       list.replaceChildren();
       advice = null; hideTargetCard();
-      const c = carrierAt(meta, half, h, f);
+      // A report decision names its passer: the report ranked his options at the release frame, where the strict
+      // ball-carrier rule (ball within 2 m, ball alive) may not hold yet, so he is the carrier here.
+      const named = spot && spot.half === half && spot.frame === f && playerAt(h, f, spot.carrier) ? { player: spot.carrier, team: meta.players[spot.carrier].team } : null;
+      const c = named ?? carrierAt(meta, half, h, f);
       describe(c);
       if (!c) {
+        spotBox.hidden = true; root.dataset.spot = "false";
         coachBox.hidden = true; root.dataset.options = "0"; cards.hidden = true;
         say("Paused. Nobody has the ball at this moment: step on a little (→) and the coach will look again.");
         draw(); return;
@@ -327,6 +367,7 @@
       const p = meta.players[c.player];
       $("[data-coach-who]").textContent = `for #${p.shirt} ${p.name}`;
       followBtn.disabled = done; coachBox.hidden = false; root.dataset.options = String(opts.length);
+      showSpot();
       const moved = shift ? `Paused ${(Math.abs(shift) / meta.fps).toFixed(1)} s ${shift < 0 ? "earlier" : "later"}, when` : "Paused.";
       say(done ? "You already chose here. Press Play to see what the pro did."
         : `${moved} #${p.shirt} ${p.name} ${shift ? "had" : "has"} the ball: ${opts.length} options, best first. Follow the coach or pick another (1–9).`);
@@ -355,6 +396,7 @@
       if (playing || !advice) return;
       const { opts, carrier, frame } = advice, option = opts[i];
       if (!option || (chosen && chosen.half === half && chosen.frame === frame)) return;
+      spot = null; // the viewer's own choice takes over the arrows
       doReveal(); // an earlier choice that was never revealed
       tally = decide(tally, opts, option);
       chosen = { half, frame, option };
@@ -391,7 +433,7 @@
 
     function play() {
       if (playing || !ready || frameNow() >= meta.halves[half].frames - 1) return;
-      playing = true; playBtn.textContent = "Pause"; coachBox.hidden = true; advice = null; root.dataset.options = "0"; cards.hidden = true; say("");
+      playing = true; playBtn.textContent = "Pause"; spot = null; spotBox.hidden = true; root.dataset.spot = "false"; coachBox.hidden = true; advice = null; root.dataset.options = "0"; cards.hidden = true; say("");
       last = performance.now(); requestAnimationFrame(tick);
     }
 
@@ -520,7 +562,7 @@
     }
 
     // ---------- wiring ----------
-    playBtn.addEventListener("click", () => (ready ? toggle() : start()));
+    playBtn.addEventListener("click", () => (ready ? toggle() : void start()));
     followBtn.addEventListener("click", () => choose(0));
     time.addEventListener("input", () => seek(Number(time.value)));
     jump.addEventListener("change", () => {
@@ -563,10 +605,22 @@
     new ResizeObserver(resize).observe(canvas);
     // The data (about 3.5 MB for the first half) loads on the first hover, touch or keyboard focus, not on page load:
     // visitors who only read the page download nothing, and the page's Lighthouse performance stays above 0.9.
-    let started = false;
-    const start = () => { if (!started) { started = true; init().catch(failed); } };
-    root.addEventListener("pointerenter", start, { once: true });
-    root.addEventListener("focusin", start, { once: true });
+    const start = () => (booting ??= init().catch(failed));
+    // The match report (ReportSection.astro) asks for one of its decisions: load the match if needed, go to that moment
+    // (paused) and draw both options.
+    root.addEventListener("football:spot", (e) => {
+      const want = (e as CustomEvent<Spot>).detail;
+      start().then(async () => {
+        if (!ready) return;
+        spot = want;
+        await setHalf(want.half, want.frame);
+        if (!spotOptions()) say("The report's moment is on screen, but the coach's options there could not be matched; the report's numbers stand.");
+        root.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      }).catch(failed);
+    });
+    $("[data-spot-clear]").addEventListener("click", () => { spot = null; showSpot(); draw(); });
+    root.addEventListener("pointerenter", () => void start(), { once: true });
+    root.addEventListener("focusin", () => void start(), { once: true });
   }
 
   const el = document.querySelector<HTMLElement>("[data-football]");
@@ -607,6 +661,14 @@
   .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 10px; }
   .hint { font-size: 12px; color: var(--ink-3); }
   .reveal { margin: 0; padding: 12px 14px; color: var(--ink-2); border: 1px solid var(--line); border-radius: var(--radius); }
+  .spot { display: grid; gap: 6px; justify-items: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); }
+  .spot[hidden] { display: none; }
+  .spot-line { display: flex; gap: 10px; align-items: baseline; margin: 0; font-size: 14px; color: var(--ink); }
+  .spot.one .spot-line:last-of-type .sw { display: none; }
+  .sw { flex: none; width: 22px; height: 6px; border-radius: 3px; transform: translateY(-3px); }
+  .sw.pick { background: var(--ok); }
+  .sw.best { background: var(--signal); }
+  .fr { scroll-margin-top: 72px; }
   .tally { width: 100%; max-width: 480px; border-collapse: collapse; font-size: 14px; }
   .tally th, .tally td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); }
   .stage { position: relative; }

@@ -3,7 +3,7 @@
 // CI has no cv-data checkout):
 //   npm run sync:football        FOOTBALL_EXPORT overrides ../cv-data/football-coach/site-export (FOOTBALL_OUT: tests)
 // z<i>.bin (the ball's height per frame, int16 cm, for the 3D view) is copied when the export has it, and so is
-// profiles.json (display-only player profiles, built without the replay match; checked below).
+// report.json (the match report, validated) and profiles.json (display-only player profiles, built without the replay match; checked below).
 import fs from "node:fs";
 import path from "node:path";
 
@@ -52,9 +52,29 @@ if (hasProfiles) {
     }
   }
 }
+// report.json: the match report (decisions of the replay match scored by models built without it). Optional; checked below.
+const reportPath = path.join(SRC, "report.json");
+const hasReport = fs.existsSync(reportPath);
+if (hasReport) {
+  const size = fs.statSync(reportPath).size;
+  if (size > 300_000) throw new Error(`football: report.json is ${size} bytes (over 300 kB)`);
+  const rep = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+  if (rep.trained_without !== meta.match_id) throw new Error(`football: report.json was not trained without ${meta.match_id}`);
+  if (!Array.isArray(rep.decisions) || !rep.players || !rep.highlights) throw new Error("football: report.json is malformed");
+  const known = (i) => Number.isInteger(i) && !!meta.players[i];
+  rep.decisions.forEach((d, k) => {
+    const frames = meta.halves[d.half]?.frames;
+    if (!(Number.isInteger(d.frame) && d.frame >= 0 && d.frame < frames)) throw new Error(`football: report.json decision ${k} frame ${d.frame} is outside half ${d.half}`);
+    if (!known(d.carrier) || !known(d.target) || (d.best?.kind === "pass" && !known(d.best.target)))
+      throw new Error(`football: report.json decision ${k} names a player that is not in match.json`);
+  });
+  for (const i of Object.keys(rep.players)) if (!known(Number(i))) throw new Error(`football: report.json player ${i} is not in match.json`);
+  for (const list of [rep.highlights.missed, rep.highlights.best])
+    for (const h of list) if (!rep.decisions[h.decision]) throw new Error(`football: report.json highlight ${h.decision} is not a decision`);
+}
 // The credit for the profiles' data is the match's: IDSSE events of the other matches, CC BY 4.0 (match.json credit).
 if (!models.shot_trained_on) console.warn("football: models.json has no shot_trained_on (shot model trained on the other Bundesliga matches only?)");
-const files = ["match.json", "models.json", ...(hasProfiles ? ["profiles.json"] : []), ...meta.halves.map((_, i) => `h${i}.bin`), ...zFiles];
+const files = ["match.json", "models.json", ...(hasProfiles ? ["profiles.json"] : []), ...(hasReport ? ["report.json"] : []), ...meta.halves.map((_, i) => `h${i}.bin`), ...zFiles];
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 for (const f of files) fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
