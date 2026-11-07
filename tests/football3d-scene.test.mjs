@@ -4,7 +4,7 @@ import { Color, Matrix4, OrthographicCamera, PerspectiveCamera } from "three";
 import { BALL_VIS_R, createScene } from "../src/lib/football3d/scene.ts";
 
 const fig = (player, x, y, team = 0) => ({ player, at: [x, y], team, shirt: player + 1, colour: team ? "#FFFFFF" : "#9F1922" });
-const frame = (over = {}) => ({ figures: [fig(0, 10, 5), fig(1, -20, 0, 1)], ball: [10, 5.5], ballH: 0.11, carrier: 0, arrows: [], trail: [], focus: null, ...over });
+const frame = (over = {}) => ({ figures: [fig(0, 10, 5), fig(1, -20, 0, 1)], ball: [10, 5.5], ballH: 0.11, carrier: 0, arrows: [], ghosts: [], trail: [], focus: null, ...over });
 const drawables = (scene) => { let n = 0; scene.traverse((o) => { if (o.isMesh || o.isLine || o.isPoints) n++; }); return n; };
 const scaleOf = (mesh, i) => { const m = new Matrix4(); mesh.getMatrixAt(i, m); return m.elements[0]; };
 function above(x, y) { // a perspective camera 30 m straight above pitch point (x, y)
@@ -19,7 +19,7 @@ describe("3D scene", () => {
     expect(drawables(s.scene)).toBeLessThanOrEqual(40);
     s.update(frame({ figures: Array.from({ length: 22 }, (_, i) => fig(i, i * 4 - 44, 0, i % 2)) }), null);
     expect(s.parts.bodies.count).toBe(22);
-    expect(drawables(s.scene)).toBe(13);
+    expect(drawables(s.scene)).toBe(16);
   });
   it("colours each body with its team and hides the player whose eyes we look through", () => {
     const s = createScene(null);
@@ -46,6 +46,19 @@ describe("3D scene", () => {
     s.update(frame({ arrows, trail: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]] }), null);
     expect(s.parts.arrows.geometry.drawRange.count).toBe(18);
     expect(s.parts.trail.geometry.drawRange.count).toBe(5);
+  });
+  it("draws ghosts as faint translucent figures with dashed paths, and none by default", () => {
+    const s = createScene(null);
+    s.update(frame(), null);
+    expect([s.parts.ghostBodies.count, s.parts.ghostHeads.count, s.parts.ghostPaths.geometry.drawRange.count]).toEqual([0, 0, 0]);
+    const ghosts = [{ from: [10, 5], to: [17.5, 5], colour: "#9F1922", label: "+0.011 xG", kind: "run" }, { from: [-20, 0], to: [-20, 7.5], colour: "#ffffff", label: "−0.003 xG", kind: "defender" }];
+    s.update(frame({ ghosts }), null);
+    expect([s.parts.ghostBodies.count, s.parts.ghostHeads.count]).toEqual([2, 2]);
+    expect(s.parts.ghostBodies.material.transparent).toBe(true);
+    expect(s.parts.ghostBodies.material.opacity).toBeLessThan(0.5);
+    expect(s.parts.ghostPaths.geometry.drawRange.count).toBeGreaterThan(8); // dashes, two vertices each
+    const pos = s.parts.ghostPaths.geometry.getAttribute("position");
+    expect(pos.getX(0)).toBeCloseTo(10, 9); // the first dash starts at the player
   });
   it("in the player's eyes the arrows are thin ribbons that start 2.5 m ahead, and the best one stays orange", () => {
     const s = createScene(null);
@@ -87,7 +100,7 @@ describe("3D scene", () => {
     let freed = 0;
     s.scene.traverse((o) => o.geometry?.addEventListener("dispose", () => freed++));
     s.dispose();
-    expect(freed).toBe(13);
+    expect(freed).toBe(16);
   });
 });
 

@@ -3,11 +3,11 @@
 // It is built from three.js objects only (no renderer, no DOM), so Node tests can count its draw calls, update it and
 // pick players. Pitch metres map to three.js world units as (x, y, height) -> (x, height, -y): +x to the right and +y
 // away from the stadium camera, as on the 2D pitch.
-// 13 draw calls whatever the number of players: each body part is one instanced mesh, and the shirt numbers are
+// 16 draw calls whatever the number of players (3 of them are the ghosts, empty unless the visitor shows them): each body part is one instanced mesh, and the shirt numbers are
 // billboards sampling a 10 x 10 number atlas.
 import {
   BufferAttribute, BufferGeometry, CapsuleGeometry, CircleGeometry, Color, CylinderGeometry, DirectionalLight, DoubleSide,
-  DynamicDrawUsage, HemisphereLight, IcosahedronGeometry, InstancedBufferAttribute, InstancedMesh, Line, LineBasicMaterial,
+  DynamicDrawUsage, HemisphereLight, IcosahedronGeometry, InstancedBufferAttribute, InstancedMesh, Line, LineBasicMaterial, LineSegments,
   Matrix4, Mesh, MeshBasicMaterial, MeshLambertMaterial, Plane, PlaneGeometry, Quaternion, Raycaster, RingGeometry, Scene,
   ShaderMaterial, SphereGeometry, Vector2, Vector3, type Camera, type Material, type Texture,
 } from "three";
@@ -21,7 +21,8 @@ export const HEAD_Y = 1.7;
 export const NUMBER_Y = 2.3;
 export const BALL_VIS_R = 0.22; // drawn at twice its real radius so it can be seen from the stand
 export const PICK_M = 2.5;      // a tap on the grass this close to a player picks him
-const GOAL_H = 2.44, MAX_TRAIL = 32, MAX_ARROWS = 4;
+const GOAL_H = 2.44, MAX_TRAIL = 32, MAX_ARROWS = 4, MAX_GHOST_FIGURES = 6, DASH = 0.6, GAP = 0.5, MAX_DASHES = 14;
+export const GHOST_OPACITY = 0.35;
 const TONES: Record<Tone, string> = { best: "#ff5b1f", pick: "#7fd18b", other: "#ecebe6" }; // --signal, --ok, --ink
 
 const NUMBER_VS = /* glsl */ `
@@ -46,7 +47,7 @@ void main() {
 
 export interface Scene3D {
   scene: Scene;
-  parts: { bodies: InstancedMesh; heads: InstancedMesh; numbers: InstancedMesh; shadows: InstancedMesh; ring: Mesh; ball: Mesh; arrows: Mesh; trail: Line };
+  parts: { bodies: InstancedMesh; heads: InstancedMesh; numbers: InstancedMesh; shadows: InstancedMesh; ring: Mesh; ball: Mesh; arrows: Mesh; trail: Line; ghostBodies: InstancedMesh; ghostHeads: InstancedMesh; ghostPaths: LineSegments };
   /** Place everything for this frame; `hide` = the player whose eyes we look through; `scale` enlarges the figures;
    *  `eyes` draws the arrows as thin ribbons that start 2.5 m ahead (the camera stands where they start). */
   update(frame: Frame3D, hide: number | null, scale?: number, eyes?: boolean): void;
@@ -129,7 +130,25 @@ export function createScene(atlas: Texture | null): Scene3D {
   const trail = new Line(trailGeo, new LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 }));
   trail.frustumCulled = false;
 
-  scene.add(surround, grass, lines, goals, shadows, bodies, heads, numbers, ring, ball, ballShadow, arrows, trail);
+  // Ghosts: faint translucent figures where a teammate or a defender would stand, and dashed paths from where he is.
+  const ghostMat = (color: number | string) => new MeshLambertMaterial({ color, transparent: true, opacity: GHOST_OPACITY, depthWrite: false });
+  const ghostMesh = (geometry: BufferGeometry, material: Material) => {
+    const mesh = new InstancedMesh(geometry, material, MAX_GHOST_FIGURES);
+    mesh.count = 0;
+    mesh.frustumCulled = false;
+    return mesh;
+  };
+  const ghostBodies = ghostMesh(new CapsuleGeometry(0.28, 1.0, 4, 8), ghostMat(0xffffff));
+  for (let i = 0; i < MAX_GHOST_FIGURES; i++) ghostBodies.setColorAt(i, colour.set(0xffffff));
+  const ghostHeads = ghostMesh(new SphereGeometry(0.14, 10, 8), ghostMat("#d8d6cf"));
+  const pathPos = new BufferAttribute(new Float32Array(MAX_GHOST_FIGURES * MAX_DASHES * 2 * 3), 3).setUsage(DynamicDrawUsage);
+  const pathGeo = new BufferGeometry();
+  pathGeo.setAttribute("position", pathPos);
+  pathGeo.setDrawRange(0, 0);
+  const ghostPaths = new LineSegments(pathGeo, new LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 }));
+  ghostPaths.frustumCulled = false;
+
+  scene.add(surround, grass, lines, goals, shadows, bodies, heads, numbers, ring, ball, ballShadow, arrows, trail, ghostBodies, ghostHeads, ghostPaths);
 
   let slots: number[] = [], spots: Vec[] = [], hidden: number | null = null;
 
@@ -178,6 +197,27 @@ export function createScene(atlas: Texture | null): Scene3D {
     arrowGeo.setDrawRange(0, v);
     arrowPos.needsUpdate = arrowCol.needsUpdate = true;
 
+    const gs = f.ghosts.slice(0, MAX_GHOST_FIGURES);
+    let dv = 0;
+    q.identity();
+    gs.forEach((g, i) => {
+      s.set(scale, scale, scale);
+      ghostBodies.setMatrixAt(i, m.compose(p.set(g.to[0], BODY_Y * scale, -g.to[1]), q, s));
+      ghostBodies.setColorAt(i, colour.set(g.colour));
+      ghostHeads.setMatrixAt(i, m.compose(p.set(g.to[0], HEAD_Y * scale, -g.to[1]), q, s));
+      const dx = g.to[0] - g.from[0], dy = g.to[1] - g.from[1], len = Math.hypot(dx, dy);
+      for (let d = 0, a = 0; a < len && d < MAX_DASHES; d++, a += DASH + GAP, dv += 2) {
+        const b = Math.min(len, a + DASH);
+        pathPos.setXYZ(dv, g.from[0] + (dx * a) / len, 0.04, -(g.from[1] + (dy * a) / len));
+        pathPos.setXYZ(dv + 1, g.from[0] + (dx * b) / len, 0.04, -(g.from[1] + (dy * b) / len));
+      }
+    });
+    ghostBodies.count = ghostHeads.count = gs.length;
+    ghostBodies.instanceMatrix.needsUpdate = ghostHeads.instanceMatrix.needsUpdate = true;
+    ghostBodies.instanceColor!.needsUpdate = true;
+    pathGeo.setDrawRange(0, dv);
+    pathPos.needsUpdate = true;
+
     const tr = f.trail.slice(-MAX_TRAIL);
     tr.forEach((b, i) => trailPos.setXYZ(i, b[0], 0.05, -b[1]));
     trailGeo.setDrawRange(0, tr.length);
@@ -210,5 +250,5 @@ export function createScene(atlas: Texture | null): Scene3D {
     mats.forEach((x) => x.dispose());
   }
 
-  return { scene, parts: { bodies, heads, numbers, shadows, ring, ball, arrows, trail }, update, pick, dispose };
+  return { scene, parts: { bodies, heads, numbers, shadows, ring, ball, arrows, trail, ghostBodies, ghostHeads, ghostPaths }, update, pick, dispose };
 }

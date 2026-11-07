@@ -52,6 +52,11 @@ describe("frame for the 3D view", () => {
     expect(f.trail).toEqual([]);
     expect(f.focus).toBeNull();
   });
+  it("carries the ghosts it is given, none by default", () => {
+    expect(buildFrame(meta, h, input({})).ghosts).toEqual([]);
+    const g = [{ from: [0, 0], to: [7.5, 0], colour: "#fff", label: "+0.010 xG", kind: "run" }];
+    expect(buildFrame(meta, h, input({ ghosts: g })).ghosts).toEqual(g);
+  });
   it("adds the followed player's speed (for his eyes) and the last second of ball trail", () => {
     const f = buildFrame(meta, h, input({ focus: 0, trail: true }));
     expect(f.focus.player).toBe(0);

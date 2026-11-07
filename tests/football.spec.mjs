@@ -54,6 +54,48 @@ test.describe("football replay", () => {
     await expect(root.locator("[data-reveal]")).toContainText("Outcome within 15 s", { timeout: 10_000 });
   });
 
+  test("each option lists its reasons; ghosts are off by default, shown on request and remembered", async ({ page }) => {
+    const r = fx.frames.find((f) => f.half === 0 && f.ghosts.runs.length && f.ghosts.defence.length && !f.explanations[0].fragile);
+    const n = r.ghosts.runs.length + r.ghosts.defence.length;
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto("/demos/football/");
+    const root = page.locator("[data-football]");
+    await root.hover();
+    await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
+    await root.locator("[data-time]").fill(String(r.frame));
+    await expect(root).toHaveAttribute("data-options", String(r.options.length));
+    const why = root.locator("[data-options] .why");
+    await expect(why).toHaveCount(r.options.length);
+    await expect(why.first()).toHaveText(`Why: ${r.explanations[0].phrases.join(" · ")}`);
+    const first = root.locator("[data-options] button").first();
+    expect(await first.getAttribute("aria-describedby")).toContain("fr-why-0"); // screen readers read the reasons with the option
+    await first.focus(); // the reasons also show over the pitch on focus
+    await expect(root.locator("[data-tip]")).toContainText(r.explanations[0].phrases[0]);
+    const toggle = root.getByRole("button", { name: "Show ghosts" });
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect(root).toHaveAttribute("data-ghosts", "off");
+    await expect(root.locator("[data-ghost-legend]")).toBeHidden();
+    await toggle.click();
+    await expect(root).toHaveAttribute("data-ghosts", String(n));
+    await expect(root.locator("[data-ghost-legend]")).toContainText("only 3 % of the predicted gain was still there at the pass");
+    await expect(root.locator("[data-ghost-list] li")).toHaveCount(n);
+    await expect(root.getByRole("button", { name: "Hide ghosts" })).toHaveAttribute("aria-pressed", "true");
+    await page.reload(); // remembered in localStorage
+    await root.hover();
+    await expect(root).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
+    await root.locator("[data-time]").fill(String(r.frame));
+    await expect(root).toHaveAttribute("data-ghosts", String(n));
+    await root.getByRole("button", { name: "Hide ghosts" }).click();
+    await expect(root).toHaveAttribute("data-ghosts", "off");
+    // playing hides them and computes nothing
+    await root.getByRole("button", { name: "Show ghosts" }).click();
+    await root.getByRole("button", { name: "Play" }).click();
+    await expect(root.locator("[data-ghost-legend]")).toBeHidden();
+    await expect(root).toHaveAttribute("data-ghosts", "off");
+    expect(errors).toEqual([]);
+  });
+
   test("pausing in open play snaps to the nearest moment someone has the ball", async ({ page }) => {
     await page.goto("/demos/football/");
     const root = page.locator("[data-football]");
@@ -108,7 +150,7 @@ test.describe("football replay", () => {
     await expect(target).toBeHidden();
     await pass.locator("button").focus(); // keyboard: the focus shows it too, and a screen reader reads it as the description
     await expect(target).toBeVisible();
-    const desc = await pass.locator("button").getAttribute("aria-describedby");
+    const desc = (await pass.locator("button").getAttribute("aria-describedby")).split(" ").pop(); // the reasons come first, then the card
     await expect(page.locator(`#${desc}`)).toContainText("pass target");
     await root.locator("[data-time]").focus();
     await expect(target).toBeHidden();

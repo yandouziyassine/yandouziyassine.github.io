@@ -185,7 +185,8 @@ export function createView3D(o: ViewOptions): View3D {
 
   /** Arrow labels: DOM spans at the projected arrow tips; hidden when a tip is off screen or behind the camera. */
   function placeLabels() {
-    const w = canvas.clientWidth, h = canvas.clientHeight, arrows = frame?.arrows ?? [];
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const arrows = [...(frame?.arrows ?? []), ...(frame?.ghosts ?? []).map((g) => ({ to: g.to, label: g.label, tone: g.kind === "run" ? "ghost run" : "ghost defender" }))];
     while (o.labels.children.length < arrows.length) o.labels.append(document.createElement("span"));
     Array.from(o.labels.children).forEach((el, i) => {
       const span = el as HTMLElement, a = arrows[i];
