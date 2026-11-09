@@ -8,7 +8,7 @@ import { control, type PitchControlParams } from "./pitchControl";
 
 export type Predict = (x: number[]) => number;
 export interface AdviceParams { carry_dist: number; carry_angles_deg: number[]; shot_range: number }
-export interface Coach { predict: { pass: Predict; value: Predict; shot: Predict }; pc: PitchControlParams; advice: AdviceParams }
+export interface Coach { predict: { pass: Predict; value: Predict; arrival?: Predict; shot: Predict }; pc: PitchControlParams; advice: AdviceParams }
 export interface CoachOption {
   kind: "pass" | "carry" | "shot";
   target?: number;   // pass: player index (match.json players)
@@ -22,6 +22,8 @@ export interface CoachOption {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 export const valueAt = (coach: Coach, p: Vec) => coach.predict.value(vector(valueFeatures(p), VALUE_FEATURES));
+/** V(target) of a pass that arrives: the arrival model when the export has one, else the possession value. */
+export const arrivalAt = (coach: Coach, p: Vec) => (coach.predict.arrival ?? coach.predict.value)(vector(valueFeatures(p), VALUE_FEATURES));
 
 export function options(s: State, carrier: number, coach: Coach): CoachOption[] {
   const out: CoachOption[] = [], loss: Vec[] = [];
@@ -43,7 +45,7 @@ export function options(s: State, carrier: number, coach: Coach): CoachOption[] 
   }
   const vNow = valueAt(coach, here);
   out.forEach((o, i) => {
-    o.value = valueAt(coach, o.to);
+    o.value = o.kind === "pass" ? arrivalAt(coach, o.to) : valueAt(coach, o.to);
     o.vLost = valueAt(coach, [-loss[i][0], -loss[i][1]]); // the opponent attacks the other way
     o.score = o.p * o.value - (1 - o.p) * o.vLost - vNow;
   });

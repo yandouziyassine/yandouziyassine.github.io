@@ -52,9 +52,16 @@ const ext = { target: "_blank", rel: "noopener" };
             ({models.trained_without}) was never seen in training.</li>
           <li>The pass model is solid (held-out AUC 0.77–0.84). The value model is weak: it explains about 2 % of what happens
             in the next 15 s, barely more than "closer to goal is better", so differences of a few thousandths of a goal mean little.</li>
-          <li>The coach plays bolder than the pros: passes it ranks first were completed 69 % of the time, against 85 % for
-            its 7th choice and below, and it has the pro's receiver in its top 3 about as often as chance (37 % vs 30 %). It
-            gives a value opinion, not a prediction of what a player will do.</li>
+          <li>The coach plays bolder than the pros: before the cut-back fix, passes it ranked first were completed 69 % of
+            the time, against 85 % for its 7th choice and below, and it had the pro's receiver in its top 3 about as often
+            as chance (37 % vs 30 %). It now recommends a pass as its best option 92 % of the time (84 % before). It gives a
+            value opinion, not a prediction of what a player will do.</li>
+          <li>Cut-backs (a pass from the byline back to the centre) used to be ranked in the bottom few percent, although
+            they are followed by a goal within 15 s about one time in four. Passes now get their own "arrival" value, and
+            on held-out matches completed cut-backs are ranked near the top (median 99th percentile in the A-League, 98th
+            in the Bundesliga, from the 4th and 6th). The coach score now agrees with what happens next (Spearman +0.09,
+            it was slightly negative), although the value model behind it is still weak. With only 7 Bundesliga cut-backs,
+            treat that league's figure as indicative.</li>
           <li>The shot option uses our own small shot model, now trained on {shots} shots from two leagues: the other Bundesliga
             matches and {sc} A-League matches (SkillCorner open data). On held-out Bundesliga matches this lowered its
             log-loss from 0.325 to 0.306 and raised its AUC from 0.63 to 0.68, but that rests on 16 goals; the data

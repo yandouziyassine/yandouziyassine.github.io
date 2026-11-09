@@ -19,6 +19,10 @@ const meta = JSON.parse(fs.readFileSync(path.join(SRC, "match.json"), "utf8"));
 const models = JSON.parse(fs.readFileSync(path.join(SRC, "models.json"), "utf8"));
 if (!Array.isArray(meta.halves)) throw new Error("football: old single-file export (match.bin); re-run coach.export in the library");
 if (!/CC BY 4\.0/.test(meta.credit || "")) throw new Error("football: match.json has no CC BY 4.0 credit line");
+{
+  const vf = models.value?.features, af = models.arrival?.features;
+  if (!af || !Array.isArray(vf) || af.join() !== vf.join()) throw new Error("football: models.json must contain \"arrival\" with the same features as \"value\" (re-export with the cut-back fix)");
+}
 if (models.trained_without !== meta.match_id) throw new Error(`football: models were not trained without ${meta.match_id}`);
 meta.halves.forEach((h, i) => {
   const size = fs.statSync(path.join(SRC, `h${i}.bin`)).size, want = h.frames * (h.slots.length + 1) * 4;

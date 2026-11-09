@@ -16,7 +16,7 @@ function fakeExport(dir, { size = 2 * 3 * 4, credit = "Data: someone, CC BY 4.0"
   fs.writeFileSync(path.join(dir, "match.json"), JSON.stringify({ match_id: "T", fps: 12.5, halves, players: [{ team: 0, shirt: 1, name: "A" }], credit }));
   if (profiles) fs.writeFileSync(path.join(dir, "profiles.json"), typeof profiles === "string" ? profiles : JSON.stringify(profiles));
   if (report) fs.writeFileSync(path.join(dir, "report.json"), typeof report === "string" ? report : JSON.stringify(report));
-  fs.writeFileSync(path.join(dir, "models.json"), JSON.stringify({ trained_without: trainedWithout }));
+  fs.writeFileSync(path.join(dir, "models.json"), JSON.stringify({ trained_without: trainedWithout, value: { features: ["a"] }, arrival: { features: ["a"] } }));
   fs.writeFileSync(path.join(dir, "h0.bin"), Buffer.alloc(size));
   if (z !== null) fs.writeFileSync(path.join(dir, "z0.bin"), Buffer.alloc(z)); // ball height: 2 bytes per frame
 }
@@ -60,6 +60,12 @@ describe("npm run sync:football", () => {
     fakeExport(b, { credit: "no licence" });
     expect(run(a, path.join(tmp, "out-a")).stderr).toMatch(/not trained without T/);
     expect(run(b, path.join(tmp, "out-b")).stderr).toMatch(/CC BY 4\.0/);
+  });
+  it("refuses models without the arrival model (pre cut-back export)", () => {
+    const a = path.join(tmp, "noarrival");
+    fakeExport(a, {});
+    fs.writeFileSync(path.join(a, "models.json"), JSON.stringify({ trained_without: "T", value: { features: ["a"] } }));
+    expect(run(a, path.join(tmp, "out-na")).stderr).toMatch(/must contain "arrival"/);
   });
   it("copies profiles.json when it was built without the replay match and is display-only", () => {
     const src = path.join(tmp, "prof"), out = path.join(tmp, "out-prof");
