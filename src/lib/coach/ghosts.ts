@@ -2,7 +2,7 @@
 // functions of one normalised frame state. Fan of 7 points REACH metres around the player's heading (his velocity
 // direction when he moves at >= MIN_SPEED, else +x), clipped to the pitch. The moved player stands still at his ghost
 // point; nobody else reacts (a limit of the counterfactual). Ties keep the lower row and fan index (strict compares).
-import { options as adviceOptions, valueAt, type Coach } from "./advice";
+import { options as adviceOptions, arrivalAt, valueAt, type Coach } from "./advice";
 import { PASS_FEATURES, laneLossPoint, passFeatures, vector, type State } from "./features";
 import { HALF_LENGTH, HALF_WIDTH, type Vec } from "./geometry";
 
@@ -37,7 +37,7 @@ function passScore(s: State, carrier: number, target: number, coach: Coach, vNow
   const here = s.att[carrier], to = s.att[target];
   const p = coach.predict.pass(vector(passFeatures(s, carrier, target, coach.pc), PASS_FEATURES));
   const loss = laneLossPoint(s, here, to);
-  return p * valueAt(coach, to) - (1 - p) * valueAt(coach, [-loss[0], -loss[1]]) - vNow;
+  return p * arrivalAt(coach, to) - (1 - p) * valueAt(coach, [-loss[0], -loss[1]]) - vNow;
 }
 
 export function ghostRuns(s: State, carrier: number, coach: Coach): GhostRun[] {
