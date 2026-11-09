@@ -301,7 +301,8 @@ data [10.6084/m9.figshare.28196177](https://doi.org/10.6084/m9.figshare.28196177
 - **The coach is calibrated in expected goals but not a better ranker than V alone.** For the pass the player
   actually made, the coach's expected outcome tracks the realised net xG (Spearman 0.24, 95 % CI 0.22–0.26, slope
   1.15): when it says a choice is worth more, it usually is. But ranking by V(target) alone does as well (0.24).
-- **It plays bolder than the pros.** Completion of the pass the player chose, by the coach's rank of that option:
+- **It plays bolder than the pros.** (Measured before the cut-back fix below, which makes the coach recommend a pass as
+  its best option 92 % of the time instead of 84 %.) Completion of the pass the player chose, by the coach's rank of that option:
   rank 1: 69 %, ranks 2–3: 78 %, 4–6: 81 %, 7+: 85 %. Its top suggestions are the riskier, more valuable passes.
   It agrees with the receiver the pro chose in 37 % of cases (top-3), about the same as random (30 %); the
   nearest-teammate rule agrees 67 %. That is expected (a coach that copied pros would be pointless), but it also
@@ -596,13 +597,21 @@ The ranking is the same as in the Bundesliga: coach − xT −0.016 [−0.023, �
 +0.038 [+0.019, +0.061]. With all 27 matches pooled, VAEP catches up in the Bundesliga (0.18 → 0.25), so its last
 place there was a lack of data.
 
-**Cut-backs are the coach's blind spot.** 7 of the 10 biggest A-League disagreements are completed cut-backs from the
+**Cut-backs were the coach's blind spot (fixed, see below).** Before the fix: 7 of the 10 biggest A-League disagreements are completed cut-backs from the
 byline area to the centre: the coach's bottom 1 %, xT's and VAEP's top 1 %. 3 of the 7 led to a goal within 15 s.
 Over all 54 completed A-League cut-backs, the coach's median percentile is 4 % (xT 99.6 %, VAEP 99.5 %). They are
 followed by 0.130 net xG vs 0.007 for other completed passes (difference +0.124 [+0.086, +0.153]), and 26 % lead to
 a goal within 15 s (1 % otherwise). The Bundesliga shows the same direction on 7 cut-backs (+0.104 [+0.033, +0.199]).
 The coach charges the pass's low completion probability and its own preference for a narrow-angle shot. It does not
 see that the ball arrives in front of goal.
+
+**The fix.** Pass targets are now valued with a second ridge model, the "arrival" value, fitted on completed passes only (the
+ball in the box after a pass is worth 4-5 times more than an average second of possession there). Carries, the current
+position, the loss point and shots keep the possession value. On held-out matches the median percentile of completed cut-backs
+goes from 3.6 % to 99.1 % (A-League, 54) and from 5.9 % to 98.0 % (Bundesliga, 7, indicative only); the coach score now agrees with
+what happens in the next 15 s (Spearman +0.086 [0.065, 0.103] A-League, +0.083 [0.051, 0.110] Bundesliga, from -0.021 and -0.069), and the
+coach recommends a pass as its best option 92 % of the time (84 % before). Agreement with xT drops (0.455 to 0.350 in the A-League)
+because the coach now ranks the risk-adjusted score rather than the arrival alone. The numbers above are the pre-fix coach.
 
 ### Run the coach
 
