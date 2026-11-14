@@ -25,6 +25,9 @@ links:
 <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>).</figcaption>
 </figure>
 
+The coach also powers **[Playmaker](/projects/playmaker/)**, a daily football decision game: five real pro moments a
+day, pick the pass, then see the coach's pick and what the pro did.
+
 
 Detects **players and the ball** in broadcast football frames, splits players into **two teams by jersey
 color without any team labels**, and decides **which team has the ball**. A YOLO11n detector fine-tuned
@@ -653,6 +656,113 @@ the rounding of the cached p (max difference 1.5e-4, checked against a full re-r
 A-League 0.25; xT 0.25 / 0.27, VAEP 0.25 / 0.24), and the coach's risk-aware score now agrees with what follows in
 both leagues (+0.053 [0.026, 0.077] and +0.097 [0.074, 0.115], from −0.044 and −0.025). The completion-by-rank figures
 in "Results (held-out matches)" were refreshed the same day; the other earlier tables in this document are the pre-fix coach.
+
+### Playmaker content (daily decision game, 2026-11-09)
+
+**Play it: https://yandouziyassine.github.io/playmaker/** (public static demo; code and docs:
+[yandouziyassine/playmaker](https://github.com/yandouziyassine/playmaker)). The game adds 2D/3D views, a second
+objective question (guess what the pro did), stats, offline play, FR/EN, free play on a full match and an in-browser
+computer-vision Lab (player and ball detection, automatic pitch calibration, tracking, video-clip analysis).
+
+[`coach/game/`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/tree/main/20-football-analytics/coach/game/) turns the coach into the content of **Playmaker**, a daily football decision game
+([spec](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/docs/superpowers/specs/2026-11-09-playmaker-fan-game-design.md), product repo
+[yandouziyassine/playmaker](https://github.com/yandouziyassine/playmaker)). For every synced pass decision of a match,
+with models trained **without that match**: the options (passes to each teammate, carries, shot) scored by the coach,
+the same scores under **20 refits** of the four models on whole-match resamples of the training matches, and the
+points: 100 when the option is the main model's best or the best in at least 20 % of the refits ("close call"),
+otherwise 0-90 by rank. Public moment files hold positions, players and options only; answers (scores, points, the
+pro's pick, what happened in 15 s, the coach's reasons) are separate files that stay server-side.
+Quality filters: 9-11 tracked players per side (red cards leave 10), ball within 2 m of the carrier, no position jump
+over 1.5 m per frame in the 3 s lead-up. Daily sets: 5 moments (own third, 2 midfield, 2 final third), distinct
+matches, at least one followed by a shot or goal, ordered by difficulty.
+
+Release content-v1 (2026-11-10, all 27 matches): 16,678 candidate moments (7 Bundesliga / 2. Bundesliga
+matches and 20 A-League matches; J03WN1 has a red card: 465 moments once 10 v 11 is allowed, 26 before), the
+"obvious" filter (one option best in all 20 refits) removes a third. The pool is ranked by interest **within each
+zone** (percentiles of the options' score spread and of the stakes, bonuses for cut-backs, AI-vs-pro disagreements
+and shots that followed) and filled 1 : 2 : 2 like the daily slots: ranked on raw spread, 92 % of the pool was in the
+final third and only 8 days could be built. 60 days, 300 moments (A-League 257, 2. Bundesliga 32, Bundesliga 11 ≈
+the match shares under the distinct-match rule), each with 6 s of real tracking after the release for the reveal
+replay (A-League ball gaps of ≤ 6 frames interpolated), the scoreline at the moment, and the coach's top reasons with
+their effect (+ raises the success chance, − lowers it, ≈ a value term), refreshed with the held-out main models. The
+fast scorer equals `advice.options` to 1e-12 (tests/test_20_game.py).
+
+```bash
+python -m coach.game.build --out D:/cv-data/playmaker --start 2026-12-01 --days 150 --pool 3500   # 27 matches (USB key): 117 days
+python -m coach.game.build --set idsse --out ../../cv-data/playmaker-dev --days 20       # Bundesliga only
+python -m coach.game.build --validate <out>/content-v1                                   # schemas + no answers in public files
+python -m coach.rebuild_results                                                          # every results JSON, stamped
+```
+
+### Playmaker content audit
+
+[`coach/game/evaluate_content.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/coach/game/evaluate_content.py) reads the candidate cache and the release (no model
+fitting) and asks two questions. **Do the points mean anything?** For the option the professional actually chose, in
+all 16,680 candidates of 27 matches (models held out per match; 95 % CIs from 1000 resamples of whole matches):
+
+| points of the pro's pick | n | net xG in 15 s | P(shot or goal) | possession kept |
+|---|---:|---:|---:|---:|
+| 100 | 2,804 | +0.0087 [0.0068, 0.0107] | 9.1 % | 81 % |
+| 50-99 | 10,365 | +0.0071 [0.0056, 0.0089] | 8.2 % | 88 % |
+| 0-49 | 3,511 | +0.0024 [0.0013, 0.0036] | 4.0 % | 89 % |
+
+Spearman(points, net xG) = +0.08 [0.07, 0.09], Spearman(coach score, net xG) = +0.09 [0.07, 0.11]: the ordering is
+right (0-49 is clearly worse; 100 vs 50-99 overlaps) but the signal per moment is weak, as expected from a 15 s
+outcome. High-point passes are the riskier ones (81 % kept vs 89 %): the points reward value, not safety. Same
+picture in both leagues (A-League +0.079, Bundesliga 1+2 +0.086).
+
+**How hard is the game?** Expected points per moment on the 300 released moments ([chart](/media/projects/football-analytics/playmaker_content_eval.png)):
+
+| strategy | mean points | share of 100s |
+|---|---:|---:|
+| always the AI pick | 100 | 100 % |
+| **shoot when a shot option exists, else most advanced pass** | **85.8** | **55.7 %** |
+| **pass to the most advanced teammate** | **81.7** | **35.0 %** |
+| **pass to the nearest teammate** | **75.1** | 13.3 % |
+| play like the pro | 74.8 | 9.3 % |
+| random option | 50.9 | 10.7 % |
+| carry straight ahead / longest pass | 32.3 / 24.1 | 0.7 / 4.0 % |
+
+**EXPLOIT**: three strategies that read only the public geometry beat the professionals, in both leagues. The shot is
+the hole: every final-third moment (120 of 300) offers one, and it scores 100 in 82 % of them (the AI's pick in 64 %),
+while the pro never shot by construction (moments are pass decisions). In midfield the most advanced pass is a 100 in
+47 %. Close calls are rare (1-3 options at 100: 128 / 152 / 20 moments) and the pro's pick is a 100 in only 9 % of the
+release (17 % of all candidates: the interest ranking favours AI-vs-pro disagreements). Fix, replayed through the real
+daily selection (`what_if` in the JSON): dropping candidates where the shot, the most advanced or the nearest pass
+scores 100 (pool 16,680 → 8,869, still 60 days) plus a steeper partial credit (90 · ((r − rank)/(r − 1))², rank among
+the non-100 options) brings the best trivial strategy to 59 points with ≤ 4 % of 100s, the pro to 57 and random to 37.
+
+```bash
+python -m coach.game.evaluate_content --cache D:/cv-data/playmaker/cache --release D:/cv-data/playmaker/content-v1
+```
+
+**Fix applied (2026-11-10, content-v1 rebuilt).** Before: on the 300 released moments, "shoot if possible, else the
+most advanced pass" averaged 85.8 points (56 % of 100s), the most advanced pass 81.7 and the nearest teammate 75.1, all
+above playing like the pro (74.8): a player who never looked at the defence beat the professionals. Two changes, both
+from the what-if replays above: (1) moments where the shot, the most advanced pass or the nearest pass already scores
+100 are not selected (pool 16,680 -> 8,869 candidates, still 60 days); (2) partial credit falls quadratically with rank,
+90 * ((r - rank) / (r - 1))^2. After the rebuild: pro 56.6, random 37.4, most advanced pass 59.2, shoot-if-possible
+58.0, nearest teammate 54.5, and **no trivial strategy reaches 100 on any released moment** (0 %). Scoring 100 now
+needs reading the defenders; the "EXPLOIT" flags that remain in `playmaker_content_eval.json` concern the unfiltered
+candidate pool, which players never see.
+
+**Longer season (2026-11-10).** With a pool of 3,500 the same rules give **117 days (585 moments)** before the build-up
+slots run out (`--days 150 --pool 3500`). The audit on that release: pro 54.8, random 37.5, most advanced pass 59.2,
+shoot-if-possible 57.6, nearest teammate 52.0, still **no trivial strategy at 100 on any released moment**.
+
+### Model lab: can the coach be more accurate? (2026-11-10)
+
+[`coach/model_lab.py`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/coach/model_lab.py), report [`docs/coach_model_lab.md`](https://github.com/yandouziyassine/COMPUTER-VISION-PROJECT-LIBRARY/blob/main/20-football-analytics/docs/coach_model_lab.md). Leave-one-match-out
+over all 27 matches (18,308 passes), 95 % intervals from resampling whole matches.
+- **Pass model: keep the current logistic.** Six new features (receiver motion, time-to-intercept, interactions) lower
+  the log-loss (+0.009 [+0.007, +0.011]), but the coach score of the pro's pass then tracks what followed *worse*
+  (Spearman -0.014 [-0.018, -0.009]): better completion odds, worse advice. Gradient boosting gains 2.5 times more when
+  the interceptor is removed from failed passes, a sign it learns the labelling, and it cannot run in the browser.
+- **Value and arrival: ridge with zone x context terms is better on its own** (value MSE skill 4.1 -> 5.5 %, arrival
+  8.9 -> 10.0 %, both intervals above zero), but end to end the coach's Spearman with net xG moves only 0.088 -> 0.097
+  (+0.008 [-0.003, +0.021], not distinguishable). **Not shipped yet:** it needs the context features at every valued point
+  in Python and TypeScript, new parity fixtures and a rebuild of the game content, for a gain the data cannot confirm.
+  It is the first change to ship when more matches are added.
 
 ### Run the coach
 

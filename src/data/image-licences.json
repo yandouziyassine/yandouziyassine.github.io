@@ -33,6 +33,11 @@
     "wikimedia-illusions": {
       "name": "Six illusion photos from Wikimedia Commons (credits on /credits/)",
       "licence": "CC BY 2.0 / CC BY-SA 4.0 / CC0; the figure is shared under CC BY-SA 4.0"
+    },
+    "playmaker": {
+      "name": "Own work: Playmaker screenshots, animated clip and social card, the app's own renders of open tracking data (Bundesliga: Bassek et al. 2025, DFL / Sportec Solutions; A-League: SkillCorner open data); the Lab image is a code-drawn synthetic scene",
+      "licence": "Own work (MIT, same as the code); the rendered data is CC BY 4.0 (DFL / Sportec Solutions) and MIT (SkillCorner), credited in the captions",
+      "url": "https://github.com/yandouziyassine/playmaker"
     }
   },
   "images": {
@@ -51,6 +56,7 @@
     "/images/jobai-landing.png": "own",
     "/images/nfl-cover.svg": "own",
     "/images/otams-cover.svg": "own",
+    "/images/playmaker-cover.png": "playmaker",
     "/images/slipstream-cover.svg": "own",
     "/media/projects/anomaly-detection-patchcore/latency.png": "own",
     "/media/projects/anomaly-detection-patchcore/results_chart.png": "own",
@@ -69,6 +75,7 @@
     "/media/projects/football-analytics/coach_skillcorner_pass_reliability.png": "own",
     "/media/projects/football-analytics/coach_skillcorner_rules.png": "own",
     "/media/projects/football-analytics/coach_value_calibration.png": "own",
+    "/media/projects/football-analytics/playmaker_content_eval.png": "own",
     "/media/projects/football-analytics/stats_noise_ablation.png": "own",
     "/media/projects/football-analytics/stats_pass_network.png": "own",
     "/media/projects/football-analytics/stats_xg_calibration.png": "own",
@@ -87,6 +94,11 @@
     "/media/projects/monocular-depth-3d/w7_posters.png": "own",
     "/media/projects/monocular-depth-3d/w8_mirror.png": "own",
     "/media/projects/monocular-depth-3d/w9_results.png": "own",
+    "/media/projects/playmaker/3d-stadium.webp": "playmaker",
+    "/media/projects/playmaker/choose-2d.webp": "playmaker",
+    "/media/projects/playmaker/clip.webp": "playmaker",
+    "/media/projects/playmaker/lab-autocal.webp": "playmaker",
+    "/media/projects/playmaker/reveal.webp": "playmaker",
     "/media/projects/retail-shelf-monitor/counting.png": "own",
     "/media/projects/satellite-land-cover/confusion_matrix.png": "own",
     "/media/projects/satellite-land-cover/examples.jpg": "eurosat",
