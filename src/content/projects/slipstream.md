@@ -2,7 +2,7 @@
 title: Slipstream
 kind: software
 area: Systems
-order: 201
+order: 202
 metric:
   value: '1'
   unit: writer thread · zero locks on the hot path

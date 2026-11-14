@@ -64,6 +64,9 @@ const REPLAY_PREVIEW = `<figure class="replay-preview">
 // (owner decision 2026-10-24: it does not work well enough); the Space itself stays up.
 const OVERRIDES = {
   "football-analytics": (body) => `${REPLAY_PREVIEW}
+The coach also powers **[Playmaker](/projects/playmaker/)**, a daily football decision game: five real pro moments a
+day, pick the pass, then see the coach's pick and what the pro did.
+
 ${body}`,
   "anomaly-detection-patchcore": (body) => body
     .replace(/^\*\*▶ Try it live:\*\*.*\n/m, "")
@@ -98,13 +101,14 @@ const software = [
 ];
 for (const s of software) {
   const slug = s.slug || s.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  const code = (s.links || []).find((l) => /^https/.test(l.href))?.href;
+  const code = (s.links || []).find((l) => /^https/.test(l.href) && !/demo/i.test(l.label))?.href;
+  const demo = (s.links || []).find((l) => /demo/i.test(l.label))?.href;
   const body = [`*${s.kicker || ""}*`, "", s.details || s.summary, "", s.stack?.length ? `**Stack:** ${s.stack.join(" · ")}` : "",
     "", code ? `[Code and README on GitHub](${code})` : ""].join("\n");
   write(slug, {
-    title: s.title, kind: "software", area: (s.tags && s.tags[0]) || "Software", order: s.order,
+    title: s.title, kind: "software", area: (s.tags && s.tags[0]) || "Software", featured: s.featured, order: s.order,
     metric: s.metric, summary: s.summary, stack: s.stack || [],
-    cover: s.image ? `/${s.image}` : undefined, links: { code },
+    cover: s.image ? `/${s.image}` : undefined, links: { code, demo },
   }, body);
 }
 fs.writeFileSync(path.join(ROOT, "src", "data", "small-projects.json"), JSON.stringify(SMALL, null, 2) + "\n");

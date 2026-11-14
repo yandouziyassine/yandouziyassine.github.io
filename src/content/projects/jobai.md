@@ -2,7 +2,7 @@
 title: JoBaI
 kind: software
 area: Web
-order: 202
+order: 203
 metric:
   value: 0–100
   unit: ATS score per tailored CV

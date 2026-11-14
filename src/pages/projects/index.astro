@@ -12,7 +12,7 @@ const cvCount = all.filter((p) => p.data.kind === "cv").length;
   <div class="wrap section">
     <div class="section-head"><span class="eyebrow">Projects</span><h1 class="display">Everything I've built</h1>
       <p class="lede">The computer vision library holds {cvCount} measured projects on its own page. Next to it: an
-        order-execution engine, an AI SaaS, a production file-conversion API, an Android app and sports analytics.</p></div>
+        daily football decision game, an order-execution engine, an AI SaaS, a production file-conversion API, an Android app and sports analytics.</p></div>
     <div class="grid">{top.map((p, i) => <ProjectCard p={p} eager={i < 3} level={2} />)}</div>
     <h2 class="small-head">Smaller projects</h2>
     <ul class="small">
