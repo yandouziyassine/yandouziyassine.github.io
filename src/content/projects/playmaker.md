@@ -22,7 +22,7 @@ stack:
 cover: /images/playmaker-cover.png
 links:
   code: https://github.com/yandouziyassine/playmaker
-  demo: https://yandouziyassine.github.io/playmaker/
+  demo: https://playmaker-game.github.io/
 ---
 
 *Daily football decision game on an AI coach · TypeScript, three.js, in-browser computer vision*
@@ -34,7 +34,7 @@ Playmaker turns the AI coach of [project 20](/projects/football-analytics/) into
 - **What would you do?** Scored by the AI coach. Close calls get full points.
 - **What did the pro actually do?** Objective: the real pass.
 
-The reveal shows your points, the coach's pick with what helped and hurt, the pro's pass, what happened in the next 15 seconds and a replay of the real 6 seconds after the pass. **[Play the demo](https://yandouziyassine.github.io/playmaker/)**: it runs in the browser, in English or French.
+The reveal shows your points, the coach's pick with what helped and hurt, the pro's pass, what happened in the next 15 seconds and a replay of the real 6 seconds after the pass. **[Play the demo](https://playmaker-game.github.io/)**: it runs in the browser, in English or French.
 
 <figure class="shots one">
 <img src="/media/projects/playmaker/clip.webp" width="360" height="682" alt="One Playmaker moment on a phone: the 3 s lead-up, a pass picked on the pitch, the guess of the pro's pass, then the reveal with the real play after the pass.">
