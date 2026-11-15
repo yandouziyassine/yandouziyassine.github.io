@@ -72,7 +72,7 @@ window.FEATURED = [
     image: "images/playmaker-cover.png",
     links: [
       { label: "Repository", href: "https://github.com/yandouziyassine/playmaker" },
-      { label: "Live demo", href: "https://yandouziyassine.github.io/playmaker/" },
+      { label: "Live demo", href: "https://playmaker-game.github.io/" },
     ],
     details: [
       "## What it is",
@@ -86,7 +86,7 @@ window.FEATURED = [
       "",
       "The reveal shows your points, the coach's pick with what helped and hurt, the pro's pass, what happened in the " +
       "next 15 seconds and a replay of the real 6 seconds after the pass. " +
-      "**[Play the demo](https://yandouziyassine.github.io/playmaker/)**: it runs in the browser, in English or French.",
+      "**[Play the demo](https://playmaker-game.github.io/)**: it runs in the browser, in English or French.",
       "",
       "<figure class=\"shots one\">",
       "<img src=\"/media/projects/playmaker/clip.webp\" width=\"360\" height=\"682\" alt=\"One Playmaker moment on a phone: the 3 s lead-up, a pass picked on the pitch, the guess of the pro's pass, then the reveal with the real play after the pass.\">",
