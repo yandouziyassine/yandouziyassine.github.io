@@ -12,3 +12,6 @@ export const HARDHAT_LIVE = fs.existsSync("public/models/ppe_yolo11n_fp16.onnx")
 
 // The football replay is live once scripts/football.mjs has copied the project 20 export into public/football/.
 export const FOOTBALL_LIVE = fs.existsSync("public/football/models.json");
+
+// Playmaker (the daily football decision game) is its own app with its own address; the demos page embeds it.
+export const PLAYMAKER_URL = "https://yandouziyassine.github.io/playmaker/";

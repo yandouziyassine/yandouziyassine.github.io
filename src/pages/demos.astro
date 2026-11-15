@@ -2,8 +2,10 @@
 import Base from "../layouts/Base.astro";
 import Painter from "../components/Painter.astro";
 import HardHat from "../components/HardHat.astro";
-import { DEPTH_GAME_LIVE, FOOTBALL_LIVE, HARDHAT_LIVE, PAINTER_LIVE } from "../data/flags";
+import { DEPTH_GAME_LIVE, FOOTBALL_LIVE, HARDHAT_LIVE, PAINTER_LIVE, PLAYMAKER_URL } from "../data/flags";
 const demos = [
+  { title: "Playmaker: the daily football game", where: "Runs in your browser (phone or desktop)", status: "live", playmaker: true,
+    text: "Five real moments a day from pro matches. You have the ball: pick the pass, then guess what the pro did. The AI coach scores your call, shows its own pick and what really happened, in 2D or 3D.", project: "/projects/playmaker/" },
   { title: "Virtual painter", where: PAINTER_LIVE ? "Runs in your browser (webcam)" : "Will run in your browser (webcam)",
     status: PAINTER_LIVE ? "live" : "soon", painter: PAINTER_LIVE,
     text: "Draw in the air with your index finger: MediaPipe tracks 21 hand landmarks per frame and a small gesture state machine switches between drawing, erasing and picking colours.", project: "/projects/virtual-painter/" },
@@ -25,8 +27,9 @@ const demos = [
           <div class="meta">
             <span class={`status mono ${d.status}`}>{d.status === "live" ? "LIVE" : "COMING SOON"}</span>
             <h2>{d.title}</h2><p class="where mono">{d.where}</p><p>{d.text}</p>
-            <p class="links">{d.game && DEPTH_GAME_LIVE && <a class="play-link" href="/demos/depth-challenge/">▶ Play</a>}{d.football && FOOTBALL_LIVE && <a class="play-link" href="/demos/football/">▶ Watch and coach</a>}<a href={d.project}>Case study →</a></p>
+            <p class="links">{d.playmaker && <a class="play-link" href={PLAYMAKER_URL}>▶ Play full screen</a>}{d.game && DEPTH_GAME_LIVE && <a class="play-link" href="/demos/depth-challenge/">▶ Play</a>}{d.football && FOOTBALL_LIVE && <a class="play-link" href="/demos/football/">▶ Watch and coach</a>}<a href={d.project}>Case study →</a></p>
           </div>
+          {d.playmaker && <div class="embed game"><iframe src={PLAYMAKER_URL} title="Playmaker, the daily football decision game" loading="lazy" allow="fullscreen"></iframe></div>}
           {d.painter && <div class="embed"><Painter /></div>}
           {d.hardhat && <div class="embed"><HardHat /></div>}
         </section>
@@ -42,6 +45,7 @@ const demos = [
   .status { font-size: 11px; padding: 3px 8px; border-radius: 3px; }
   .status.live { background: var(--signal); color: #0d0e10; } .status.soon { border: 1px solid var(--line-2); color: var(--ink-3); }
   .embed { padding: 0 22px 22px; }
+  .embed.game iframe { display: block; width: 100%; max-width: 430px; height: 820px; margin: 0 auto; border: 1px solid var(--line-2); border-radius: 20px; background: #06120c; }
   .links a { color: var(--ink); text-decoration-color: var(--signal); }
   .links .play-link { color: var(--signal); margin-right: 18px; }
 </style>
