@@ -66,7 +66,7 @@ The reveal shows your points, the coach's pick with what helped and hurt, the pr
 
 - **The computer vision numbers are synthetic.** They come from renders of real tracking data, not TV pictures: real broadcasts add blur, graphics, compression and crowds. The Lab has not been measured on real footage.
 - **The value model is weak.** It explains about 2 % of the variance of what happens in the next 15 seconds on held-out Bundesliga matches, no better than distance to goal. That is why close calls get full points and the reveal calls the ranking a model opinion and always shows what really happened.
-- **The demo scores in the browser.** The static demo ships 30 days of content with their answer files, so anyone can read the answers and there are no crowd stats. The full service keeps answers on a server until you pick; it is not deployed yet.
+- **The demo scores in the browser.** The static game ships 329 days (1,645 plays, also playable endlessly in Training mode) with their answer files, so anyone can read the answers and there are no crowd stats. The full service keeps answers on a server until you pick; it is not deployed yet.
 - The clip mode takes about 1.6 s per frame on a laptop CPU, so a minute of video takes minutes.
 
 Full write-up: [case study](https://github.com/yandouziyassine/playmaker/blob/main/docs/CASE_STUDY.md) · [architecture](https://github.com/yandouziyassine/playmaker/blob/main/docs/ARCHITECTURE.md).
